@@ -64,22 +64,6 @@ st.markdown("""
         font-size: 0.95rem !important;
     }
 
-    /* Estilização do Seletor de Abas (Pills / Segmented Control) para Jogadores Parecidos */
-    div[data-testid="stSegmentedControl"] button {
-        background-color: #262626 !important;
-        color: #ffffff !important;
-        border: 1px solid #333333 !important;
-        border-radius: 6px !important;
-        font-size: 0.85rem !important;
-        padding: 4px 12px !important;
-    }
-    div[data-testid="stSegmentedControl"] button[aria-selected="true"] {
-        background-color: #10b981 !important;
-        color: #ffffff !important;
-        font-weight: bold !important;
-        border-color: #10b981 !important;
-    }
-
     /* Badges de Atributos do FIFA */
     .stat-box {
         display: flex;
@@ -317,20 +301,24 @@ if page == "👤 Perfil":
 
     p = df[df['Name'] == target_player_name].iloc[0]
 
-    # PAINEL DE JOGADORES PARECIDOS COM SELETOR ESTILO ABA
+    # PAINEL DE JOGADORES PARECIDOS COM BOTÕES IDÊNTICOS PARA O FILTRO
     with col_similar:
-        col_sim_title, col_sim_tab = st.columns([1.5, 1])
+        col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
         with col_sim_title:
             st.markdown("### 👥 Jogadores Parecidos")
-        with col_sim_tab:
-            similar_tab = st.segmented_control(
-                "Filtro Parecidos",
-                options=["Todos", "Regens (≤23)"],
-                default="Todos",
-                label_visibility="collapsed"
-            )
 
-        is_regens = (similar_tab == "Regens (≤23)")
+        # Inicializa o estado do filtro de similares se não existir
+        if "sim_filter_mode" not in st.session_state:
+            st.session_state["sim_filter_mode"] = "Todos"
+
+        with col_btn_todos:
+            if st.button("Todos", use_container_width=True):
+                st.session_state["sim_filter_mode"] = "Todos"
+        with col_btn_regen:
+            if st.button("Regen", use_container_width=True):
+                st.session_state["sim_filter_mode"] = "Regen"
+
+        is_regens = (st.session_state["sim_filter_mode"] == "Regen")
         similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
 
         sim_cols = st.columns(3)
