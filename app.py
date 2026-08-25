@@ -12,7 +12,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Estilização em CSS para tema escuro e cards
 st.markdown("""
 <style>
     .stApp {
@@ -61,7 +60,6 @@ def load_and_clean_data():
         st.error("❌ Arquivo 'sofifa_players.csv' não encontrado. Suba o arquivo CSV no seu repositório do GitHub.")
         st.stop()
 
-    # Mapeamento de colunas para padronização
     column_mapping = {
         'Name': 'short_name',
         'Club': 'club_name',
@@ -74,7 +72,6 @@ def load_and_clean_data():
     }
     df.rename(columns=column_mapping, inplace=True)
 
-    # Valores padrão para colunas ausentes
     default_cols = {
         'short_name': 'Desconhecido',
         'club_name': 'Sem Clube',
@@ -95,16 +92,15 @@ def load_and_clean_data():
         if col not in df.columns:
             df[col] = default_val
 
-    # Tratamento de nulos
     df['short_name'] = df['short_name'].fillna('Sem Nome')
     df['club_name'] = df['club_name'].fillna('Sem Clube')
     df['player_face_url'] = df['player_face_url'].fillna('https://cdn.sofifa.net/player_0.png')
     
-    # Garantir colunas numéricas
     stat_cols = ['pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic']
     for c in stat_cols:
         df[c] = pd.to_numeric(df[c], errors='coerce').fillna(50)
 
+    # Tratamento seguro das colunas numéricas de Overall e Potencial
     df['overall'] = pd.to_numeric(df['overall'], errors='coerce').fillna(50).astype(int)
     df['potential'] = pd.to_numeric(df['potential'], errors='coerce').fillna(50).astype(int)
 
@@ -119,7 +115,6 @@ st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
 st.sidebar.title("⚽ Dashboard SoFIFA")
 st.sidebar.markdown("---")
 
-# Filtro de Clube
 all_clubs = sorted(df['club_name'].dropna().unique().tolist())
 selected_clubs = st.sidebar.multiselect("Filtrar por Clube(s):", options=all_clubs)
 
@@ -127,14 +122,21 @@ filtered_df = df.copy()
 if selected_clubs:
     filtered_df = filtered_df[filtered_df['club_name'].isin(selected_clubs)]
 
-# Filtro de Overall
-min_ovr, max_ovr = int(df['overall'].min()), int(df['overall'].max())
+# Lógica segura para o slider de Overall (evita min_value == max_value)
+min_ovr = int(df['overall'].min())
+max_ovr = int(df['overall'].max())
+
+if min_ovr >= max_ovr:
+    min_ovr = 40
+    max_ovr = 99
+
 selected_ovr = st.sidebar.slider(
     "Faixa de Overall:",
     min_value=min_ovr,
     max_value=max_ovr,
     value=(min_ovr, max_ovr)
 )
+
 filtered_df = filtered_df[
     (filtered_df['overall'] >= selected_ovr[0]) & 
     (filtered_df['overall'] <= selected_ovr[1])
