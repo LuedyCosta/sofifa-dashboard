@@ -46,78 +46,55 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. CARREGAMENTO E MAPEAMENTO INTELIGENTE DAS COLUNAS
+# 2. CARREGAMENTO E MAPEAMENTO EXATO DO CSV
 # -----------------------------------------------------------------------------
 @st.cache_data
-def load_and_clean_data():
+def load_data():
     try:
         df = pd.read_csv("sofifa_players.csv")
     except FileNotFoundError:
         st.error("❌ Arquivo 'sofifa_players.csv' não encontrado no repositório.")
         st.stop()
 
-    # Função auxiliar para procurar colunas que contenham certos termos
-    def find_col(keywords, default_name):
-        for col in df.columns:
-            for kw in keywords:
-                if kw in col.lower():
-                    return col
-        return default_name
-
-    # Mapeia as colunas dinamicamente buscando trechos de texto
-    col_name = find_col(['name', 'nome', 'player'], 'short_name')
-    col_club = find_col(['club', 'clube', 'team', 'elenco'], 'club_name')
-    col_ovr = find_col(['overall', 'ovr', 'rating', 'pontuacao'], 'overall')
-    col_pot = find_col(['potential', 'pot', 'potencial'], 'potential')
-    col_val = find_col(['value', 'valor', 'price'], 'value')
-    col_wage = find_col(['wage', 'salario', 'salary'], 'wage')
-    col_photo = find_col(['photo', 'foto', 'image', 'face', 'url'], 'player_face_url')
-    col_pos = find_col(['pos', 'posição', 'posicao'], 'positions')
-
-    # Renomeia no dataframe
+    # Mapeamento com base nas colunas reais do arquivo raspado
     rename_dict = {
-        col_name: 'short_name',
-        col_club: 'club_name',
-        col_ovr: 'overall',
-        col_pot: 'potential',
-        col_val: 'value',
-        col_wage: 'wage',
-        col_photo: 'player_face_url',
-        col_pos: 'positions'
+        'is-preload': 'short_name',
+        'is-preload (2)': 'club_name',
+        'pos': 'positions',
+        'd2': 'age',
+        'd2 (2)': 'overall',
+        'd2 (3)': 'potential',
+        'd6': 'value',
+        'd6 (2)': 'wage',
+        'player-check src': 'player_face_url'
     }
+
     df.rename(columns=rename_dict, inplace=True)
 
-    # Atributos numéricos de estatísticas
-    for stat in ['pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic']:
-        matched_col = find_col([stat, stat[:3]], stat)
-        if matched_col != stat:
-            df.rename(columns={matched_col: stat}, inplace=True)
-        if stat not in df.columns:
-            df[stat] = 50
-        else:
-            df[stat] = pd.to_numeric(df[stat], errors='coerce').fillna(50)
-
-    # Tratamento final de nulos
-    if 'short_name' not in df.columns or df['short_name'].isnull().all():
-        df['short_name'] = [f"Jogador {i+1}" for i in range(len(df))]
-    else:
-        df['short_name'] = df['short_name'].fillna('Jogador Sem Nome').astype(str)
-
-    df['club_name'] = df['club_name'].fillna('Sem Clube').astype(str) if 'club_name' in df.columns else 'Sem Clube'
-    df['player_face_url'] = df['player_face_url'].fillna('https://cdn.sofifa.net/player_0.png').astype(str) if 'player_face_url' in df.columns else 'https://cdn.sofifa.net/player_0.png'
-    df['positions'] = df['positions'].fillna('N/A').astype(str) if 'positions' in df.columns else 'N/A'
-    df['value'] = df['value'].fillna('N/A').astype(str) if 'value' in df.columns else 'N/A'
-    df['wage'] = df['wage'].fillna('N/A').astype(str) if 'wage' in df.columns else 'N/A'
+    # Tratamento de nulos e tipos de dados
+    df['short_name'] = df['short_name'].fillna('Jogador Sem Nome').astype(str)
+    df['club_name'] = df['club_name'].fillna('Sem Clube').astype(str)
+    df['positions'] = df['positions'].fillna('N/A').astype(str)
+    df['value'] = df['value'].fillna('N/A').astype(str)
+    df['wage'] = df['wage'].fillna('N/A').astype(str)
+    df['player_face_url'] = df['player_face_url'].fillna('https://cdn.sofifa.net/player_0.png').astype(str)
 
     df['overall'] = pd.to_numeric(df['overall'], errors='coerce').fillna(50).astype(int)
     df['potential'] = pd.to_numeric(df['potential'], errors='coerce').fillna(50).astype(int)
+    df['age'] = pd.to_numeric(df['age'], errors='coerce').fillna(0).astype(int)
+
+    # Como a tabela raspada não contém estatísticas detalhadas (pace, shooting, etc.),
+    # definimos valores genéricos baseados no overall para evitar erros no gráfico radar.
+    for stat in ['pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic']:
+        if stat not in df.columns:
+            df[stat] = df['overall']
 
     return df
 
-df = load_and_clean_data()
+df = load_data()
 
 # -----------------------------------------------------------------------------
-# 3. BARRA LATERAL & FILTROS
+# 3. BARRA LATERAL (FILTROS)
 # -----------------------------------------------------------------------------
 st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
 st.sidebar.title("⚽ Dashboard SoFIFA")
@@ -158,13 +135,13 @@ if mode == "Perfil do Jogador":
     player_options = sorted(filtered_df['short_name'].unique().tolist())
     
     if not player_options:
-        st.warning("Nenhum jogador encontrado para esses filtros.")
+        st.warning("Nenhum jogador encontrado com os filtros selecionados.")
     else:
         selected_player = st.selectbox("Selecione o Jogador:", options=player_options)
         player = filtered_df[filtered_df['short_name'] == selected_player].iloc[0]
 
         st.markdown(f"## 👤 {player['short_name']}")
-        st.markdown(f"**Clube:** {player['club_name']} | **Posição:** `{player['positions']}`")
+        st.markdown(f"**Clube:** {player['club_name']} | **Posição:** `{player['positions']}` | **Idade:** {player['age']} anos")
 
         col_img, col_metrics, col_radar = st.columns([1, 1.5, 2.5])
 
@@ -209,7 +186,7 @@ if mode == "Perfil do Jogador":
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 showlegend=False,
-                title="Atributos Principais",
+                title="Estimativa de Atributos",
                 margin=dict(l=40, r=40, t=40, b=40)
             )
 
@@ -230,7 +207,7 @@ elif mode == "Comparador (1 vs 1)":
         p2_name = st.selectbox("Selecione o Jogador 2:", options=player_options, index=idx2)
         p2 = df[df['short_name'] == p2_name].iloc[0]
 
-    categories = ['Pace', 'Shooting', 'Passing', 'Dribbling', 'Defending', 'Physic']
+    categories = ['Ritmo', 'Chute', 'Passe', 'Drible', 'Defesa', 'Físico']
     cats_closed = categories + [categories[0]]
 
     v1 = [p1['pace'], p1['shooting'], p1['passing'], p1['dribbling'], p1['defending'], p1['physic']]
@@ -269,9 +246,19 @@ elif mode == "Visão Geral do Elenco":
     st.markdown("## 📋 Tabela de Jogadores Filtrados")
     st.markdown(f"Exibindo **{len(filtered_df)}** jogadores.")
 
-    # Exibe a tabela do dataframe limpo
+    display_cols = ['short_name', 'club_name', 'positions', 'age', 'overall', 'potential', 'value', 'wage']
+
     st.dataframe(
-        filtered_df,
+        filtered_df[display_cols].rename(columns={
+            'short_name': 'Nome',
+            'club_name': 'Clube',
+            'positions': 'Posição',
+            'age': 'Idade',
+            'overall': 'Overall',
+            'potential': 'Potencial',
+            'value': 'Valor',
+            'wage': 'Salário'
+        }),
         use_container_width=True,
         hide_index=True
     )
