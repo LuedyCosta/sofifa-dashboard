@@ -197,17 +197,20 @@ def render_stat_item(label, value):
 
 def find_similar_players(df, target_player, top_n=3):
     gender = target_player.get('GENDER', 'M')
-    # Filtra obrigatoriamente pelo mesmo GÊNERO e descarta o próprio jogador
+    # Filtra pelo mesmo GÊNERO e descarta o próprio jogador
     candidates = df[(df['GENDER'] == gender) & (df['Name'] != target_player['Name'])].copy()
     if candidates.empty:
         return candidates
 
     stat_cols = ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age']
-    target_vec = target_player[stat_cols].fillna(0).values.astype(float)
-    cand_vecs = candidates[stat_cols].fillna(0).values.astype(float)
+    
+    # Conversão segura para vetores numéricos do Numpy
+    target_vec = np.array([get_val(target_player, col, 50) for col in stat_cols], dtype=float)
+    cand_vecs = candidates[stat_cols].apply(pd.to_numeric, errors='coerce').fillna(50).to_numpy(dtype=float)
 
-    std_vec = df[stat_cols].std().values
-    std_vec[std_vec == 0] = 1.0
+    # Cálculo do desvio padrão tratado com Numpy puro (evita erros de indexação de Series)
+    std_vec = np.array(df[stat_cols].apply(pd.to_numeric, errors='coerce').std().values, dtype=float)
+    std_vec = np.where((np.isnan(std_vec)) | (std_vec == 0), 1.0, std_vec)
 
     # Distância Euclidiana normalizada
     dist = np.linalg.norm((cand_vecs - target_vec) / std_vec, axis=1)
@@ -232,7 +235,7 @@ def find_similar_players(df, target_player, top_n=3):
         except:
             return 1.0
 
-    style_penalties = candidates['play style'].apply(style_dist).values * 1.0
+    style_penalties = candidates['play style'].apply(style_dist).to_numpy(dtype=float) * 1.0
 
     candidates['similarity_score'] = dist + pos_penalty + style_penalties
     return candidates.sort_values('similarity_score').head(top_n)
@@ -262,23 +265,20 @@ if page == "👤 Perfil":
     if who_type == "Jogador":
         player_list = sorted(df['Name'].unique().tolist())
 
-        # Seleção preliminar para buscar similares antes da renderização do painel
         default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
         
-        # O seletor fica logo abaixo de "Quem"
         with col_quem:
             target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
 
         p = df[df['Name'] == target_player_name].iloc[0]
         similar_df = find_similar_players(df, p, top_n=3)
 
-        # PAINEL DE JOGADORES PARECIDOS NA ÁREA DEMARCADA (RETÂNGULO VERMELHO)
+        # PAINEL DE JOGADORES PARECIDOS
         with col_similar:
             st.markdown("### 👥 Jogadores Parecidos")
             sim_cols = st.columns(3)
             for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
                 with sim_cols[idx]:
-                    # Estilos de jogo abreviados
                     try:
                         s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
                         styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
