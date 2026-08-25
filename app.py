@@ -354,7 +354,26 @@ if page == "👤 Perfil":
         st.markdown("---")
 
         # 2. INDICADORES DE PERFORMANCE E COMPARAÇÃO
-        st.markdown("### 2 · Indicadores de Performance")
+        all_stat_keys = []
+        for g_name, g_stats in STAT_GROUPS.items():
+            for stat_label in g_stats.keys():
+                all_stat_keys.append(f"chk_{g_name}_{stat_label}")
+
+        def select_all_stats():
+            for k in all_stat_keys:
+                st.session_state[k] = True
+
+        def deselect_all_stats():
+            for k in all_stat_keys:
+                st.session_state[k] = False
+
+        c_title, c_btn1, c_btn2, _ = st.columns([2.5, 0.8, 0.9, 4])
+        with c_title:
+            st.markdown("### 2 · Indicadores de Performance")
+        with c_btn1:
+            st.button("✅ Marcar Todos", on_click=select_all_stats, use_container_width=True)
+        with c_btn2:
+            st.button("❌ Desmarcar", on_click=deselect_all_stats, use_container_width=True)
 
         selected_stats_map = {}
 
@@ -367,8 +386,11 @@ if page == "👤 Perfil":
                 with col_target:
                     st.markdown(f"**{group_name}**")
                     for stat_label, csv_col in STAT_GROUPS[group_name].items():
-                        is_default = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
-                        checked = st.checkbox(stat_label, value=is_default, key=f"chk_{group_name}_{stat_label}")
+                        chk_key = f"chk_{group_name}_{stat_label}"
+                        if chk_key not in st.session_state:
+                            st.session_state[chk_key] = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
+                        
+                        checked = st.checkbox(stat_label, key=chk_key)
                         if checked:
                             selected_stats_map[stat_label] = csv_col
 
