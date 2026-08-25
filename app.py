@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 # -----------------------------------------------------------------------------
-# 1. CONFIGURAÇÃO DA PÁGINA & ESTILIZAÇÃO CUSTOMIZADA
+# 1. CONFIGURAÇÃO DA PÁGINA
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="SoFIFA Stats Dashboard",
@@ -18,15 +18,12 @@ st.markdown("""
         background-color: #0e1117;
         color: #ffffff;
     }
-    
     .player-card {
         background-color: #1f2937;
         border-radius: 12px;
         padding: 20px;
         border: 1px solid #374151;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     }
-    
     .badge-overall {
         background-color: #10b981;
         color: #ffffff;
@@ -36,7 +33,6 @@ st.markdown("""
         font-size: 1.2rem;
         display: inline-block;
     }
-    
     .badge-potential {
         background-color: #3b82f6;
         color: #ffffff;
@@ -50,7 +46,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. CARREGAMENTO E TRATAMENTO DOS DADOS
+# 2. CARREGAMENTO E MAPEAMENTO INTELIGENTE DAS COLUNAS
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_and_clean_data():
@@ -60,57 +56,58 @@ def load_and_clean_data():
         st.error("❌ Arquivo 'sofifa_players.csv' não encontrado no repositório.")
         st.stop()
 
-    # Mapeamento flexível de nomes de colunas comum em scrapers do SoFIFA
-    rename_dict = {}
-    for col in df.columns:
-        c_lower = col.lower().strip()
-        if c_lower in ['name', 'player_name', 'short_name']:
-            rename_dict[col] = 'short_name'
-        elif c_lower in ['club', 'team', 'club_name']:
-            rename_dict[col] = 'club_name'
-        elif c_lower in ['overall', 'overall rating', 'ovr']:
-            rename_dict[col] = 'overall'
-        elif c_lower in ['potential', 'potential rating', 'pot']:
-            rename_dict[col] = 'potential'
-        elif c_lower in ['value', 'market_value']:
-            rename_dict[col] = 'value'
-        elif c_lower in ['wage', 'salary']:
-            rename_dict[col] = 'wage'
-        elif c_lower in ['photo', 'player_face_url', 'image']:
-            rename_dict[col] = 'player_face_url'
-        elif c_lower in ['position', 'positions', 'player_positions']:
-            rename_dict[col] = 'positions'
+    # Função auxiliar para procurar colunas que contenham certos termos
+    def find_col(keywords, default_name):
+        for col in df.columns:
+            for kw in keywords:
+                if kw in col.lower():
+                    return col
+        return default_name
 
+    # Mapeia as colunas dinamicamente buscando trechos de texto
+    col_name = find_col(['name', 'nome', 'player'], 'short_name')
+    col_club = find_col(['club', 'clube', 'team', 'elenco'], 'club_name')
+    col_ovr = find_col(['overall', 'ovr', 'rating', 'pontuacao'], 'overall')
+    col_pot = find_col(['potential', 'pot', 'potencial'], 'potential')
+    col_val = find_col(['value', 'valor', 'price'], 'value')
+    col_wage = find_col(['wage', 'salario', 'salary'], 'wage')
+    col_photo = find_col(['photo', 'foto', 'image', 'face', 'url'], 'player_face_url')
+    col_pos = find_col(['pos', 'posição', 'posicao'], 'positions')
+
+    # Renomeia no dataframe
+    rename_dict = {
+        col_name: 'short_name',
+        col_club: 'club_name',
+        col_ovr: 'overall',
+        col_pot: 'potential',
+        col_val: 'value',
+        col_wage: 'wage',
+        col_photo: 'player_face_url',
+        col_pos: 'positions'
+    }
     df.rename(columns=rename_dict, inplace=True)
 
-    default_cols = {
-        'short_name': 'Jogador Sem Nome',
-        'club_name': 'Sem Clube',
-        'overall': 50,
-        'potential': 50,
-        'value': '€0',
-        'wage': 'N/A',
-        'player_face_url': 'https://cdn.sofifa.net/player_0.png',
-        'positions': 'N/A',
-        'pace': 50,
-        'shooting': 50,
-        'passing': 50,
-        'dribbling': 50,
-        'defending': 50,
-        'physic': 50
-    }
+    # Atributos numéricos de estatísticas
+    for stat in ['pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic']:
+        matched_col = find_col([stat, stat[:3]], stat)
+        if matched_col != stat:
+            df.rename(columns={matched_col: stat}, inplace=True)
+        if stat not in df.columns:
+            df[stat] = 50
+        else:
+            df[stat] = pd.to_numeric(df[stat], errors='coerce').fillna(50)
 
-    for col, default_val in default_cols.items():
-        if col not in df.columns:
-            df[col] = default_val
+    # Tratamento final de nulos
+    if 'short_name' not in df.columns or df['short_name'].isnull().all():
+        df['short_name'] = [f"Jogador {i+1}" for i in range(len(df))]
+    else:
+        df['short_name'] = df['short_name'].fillna('Jogador Sem Nome').astype(str)
 
-    df['short_name'] = df['short_name'].fillna('Jogador Sem Nome')
-    df['club_name'] = df['club_name'].fillna('Sem Clube')
-    df['player_face_url'] = df['player_face_url'].fillna('https://cdn.sofifa.net/player_0.png')
-    
-    stat_cols = ['pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic']
-    for c in stat_cols:
-        df[c] = pd.to_numeric(df[c], errors='coerce').fillna(50)
+    df['club_name'] = df['club_name'].fillna('Sem Clube').astype(str) if 'club_name' in df.columns else 'Sem Clube'
+    df['player_face_url'] = df['player_face_url'].fillna('https://cdn.sofifa.net/player_0.png').astype(str) if 'player_face_url' in df.columns else 'https://cdn.sofifa.net/player_0.png'
+    df['positions'] = df['positions'].fillna('N/A').astype(str) if 'positions' in df.columns else 'N/A'
+    df['value'] = df['value'].fillna('N/A').astype(str) if 'value' in df.columns else 'N/A'
+    df['wage'] = df['wage'].fillna('N/A').astype(str) if 'wage' in df.columns else 'N/A'
 
     df['overall'] = pd.to_numeric(df['overall'], errors='coerce').fillna(50).astype(int)
     df['potential'] = pd.to_numeric(df['potential'], errors='coerce').fillna(50).astype(int)
@@ -120,13 +117,13 @@ def load_and_clean_data():
 df = load_and_clean_data()
 
 # -----------------------------------------------------------------------------
-# 3. BARRA LATERAL (FILTROS)
+# 3. BARRA LATERAL & FILTROS
 # -----------------------------------------------------------------------------
 st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
 st.sidebar.title("⚽ Dashboard SoFIFA")
 st.sidebar.markdown("---")
 
-all_clubs = sorted(df['club_name'].dropna().unique().tolist())
+all_clubs = sorted([c for c in df['club_name'].unique() if c != 'Sem Clube'])
 selected_clubs = st.sidebar.multiselect("Filtrar por Clube(s):", options=all_clubs)
 
 filtered_df = df.copy()
@@ -155,13 +152,13 @@ st.sidebar.markdown("---")
 mode = st.sidebar.radio("Navegação:", ["Perfil do Jogador", "Comparador (1 vs 1)", "Visão Geral do Elenco"])
 
 # -----------------------------------------------------------------------------
-# 4. MODOS DE VISUALIZAÇÃO
+# 4. EXIBIÇÃO DE CONTEÚDO
 # -----------------------------------------------------------------------------
 if mode == "Perfil do Jogador":
     player_options = sorted(filtered_df['short_name'].unique().tolist())
     
     if not player_options:
-        st.warning("Nenhum jogador encontrado com os filtros selecionados.")
+        st.warning("Nenhum jogador encontrado para esses filtros.")
     else:
         selected_player = st.selectbox("Selecione o Jogador:", options=player_options)
         player = filtered_df[filtered_df['short_name'] == selected_player].iloc[0]
@@ -173,7 +170,10 @@ if mode == "Perfil do Jogador":
 
         with col_img:
             st.markdown('<div class="player-card" style="text-align: center;">', unsafe_allow_html=True)
-            st.image(player['player_face_url'], width=160)
+            if str(player['player_face_url']).startswith("http"):
+                st.image(player['player_face_url'], width=150)
+            else:
+                st.markdown("📷 *(Foto indisponível)*")
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(f'<span class="badge-overall">OVR: {player["overall"]}</span> ', unsafe_allow_html=True)
             st.markdown(f'<span class="badge-potential">POT: {player["potential"]}</span>', unsafe_allow_html=True)
@@ -181,8 +181,8 @@ if mode == "Perfil do Jogador":
 
         with col_metrics:
             st.markdown("### 📊 Informações Gerais")
-            st.metric("Valor Estimado", str(player.get('value', 'N/A')))
-            st.metric("Salário Semanal", str(player.get('wage', 'N/A')))
+            st.metric("Valor Estimado", str(player['value']))
+            st.metric("Salário Semanal", str(player['wage']))
 
         with col_radar:
             categories = ['Ritmo', 'Chute', 'Passe', 'Drible', 'Defesa', 'Físico']
@@ -205,10 +205,7 @@ if mode == "Perfil do Jogador":
             ))
 
             fig.update_layout(
-                polar=dict(
-                    radialaxis=dict(visible=True, range=[0, 100]),
-                    angularaxis=dict(visible=True)
-                ),
+                polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 showlegend=False,
@@ -260,9 +257,7 @@ elif mode == "Comparador (1 vs 1)":
     ))
 
     fig.update_layout(
-        polar=dict(
-            radialaxis=dict(visible=True, range=[0, 100])
-        ),
+        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=40, r=40, t=40, b=40)
@@ -274,11 +269,9 @@ elif mode == "Visão Geral do Elenco":
     st.markdown("## 📋 Tabela de Jogadores Filtrados")
     st.markdown(f"Exibindo **{len(filtered_df)}** jogadores.")
 
-    cols_to_display = ['short_name', 'club_name', 'positions', 'overall', 'potential', 'value', 'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic']
-    available_cols = [c for c in cols_to_display if c in filtered_df.columns]
-
+    # Exibe a tabela do dataframe limpo
     st.dataframe(
-        filtered_df[available_cols].sort_values(by="overall", ascending=False),
+        filtered_df,
         use_container_width=True,
         hide_index=True
     )
