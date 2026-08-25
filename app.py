@@ -57,27 +57,39 @@ def load_and_clean_data():
     try:
         df = pd.read_csv("sofifa_players.csv")
     except FileNotFoundError:
-        st.error("❌ Arquivo 'sofifa_players.csv' não encontrado. Suba o arquivo CSV no seu repositório do GitHub.")
+        st.error("❌ Arquivo 'sofifa_players.csv' não encontrado no repositório.")
         st.stop()
 
-    column_mapping = {
-        'Name': 'short_name',
-        'Club': 'club_name',
-        'Overall Rating': 'overall',
-        'Potential Rating': 'potential',
-        'Value': 'value',
-        'Wage': 'wage',
-        'Photo': 'player_face_url',
-        'Position': 'positions'
-    }
-    df.rename(columns=column_mapping, inplace=True)
+    # Mapeamento flexível de nomes de colunas comum em scrapers do SoFIFA
+    rename_dict = {}
+    for col in df.columns:
+        c_lower = col.lower().strip()
+        if c_lower in ['name', 'player_name', 'short_name']:
+            rename_dict[col] = 'short_name'
+        elif c_lower in ['club', 'team', 'club_name']:
+            rename_dict[col] = 'club_name'
+        elif c_lower in ['overall', 'overall rating', 'ovr']:
+            rename_dict[col] = 'overall'
+        elif c_lower in ['potential', 'potential rating', 'pot']:
+            rename_dict[col] = 'potential'
+        elif c_lower in ['value', 'market_value']:
+            rename_dict[col] = 'value'
+        elif c_lower in ['wage', 'salary']:
+            rename_dict[col] = 'wage'
+        elif c_lower in ['photo', 'player_face_url', 'image']:
+            rename_dict[col] = 'player_face_url'
+        elif c_lower in ['position', 'positions', 'player_positions']:
+            rename_dict[col] = 'positions'
+
+    df.rename(columns=rename_dict, inplace=True)
 
     default_cols = {
-        'short_name': 'Desconhecido',
+        'short_name': 'Jogador Sem Nome',
         'club_name': 'Sem Clube',
         'overall': 50,
         'potential': 50,
         'value': '€0',
+        'wage': 'N/A',
         'player_face_url': 'https://cdn.sofifa.net/player_0.png',
         'positions': 'N/A',
         'pace': 50,
@@ -92,7 +104,7 @@ def load_and_clean_data():
         if col not in df.columns:
             df[col] = default_val
 
-    df['short_name'] = df['short_name'].fillna('Sem Nome')
+    df['short_name'] = df['short_name'].fillna('Jogador Sem Nome')
     df['club_name'] = df['club_name'].fillna('Sem Clube')
     df['player_face_url'] = df['player_face_url'].fillna('https://cdn.sofifa.net/player_0.png')
     
@@ -100,7 +112,6 @@ def load_and_clean_data():
     for c in stat_cols:
         df[c] = pd.to_numeric(df[c], errors='coerce').fillna(50)
 
-    # Tratamento seguro das colunas numéricas de Overall e Potencial
     df['overall'] = pd.to_numeric(df['overall'], errors='coerce').fillna(50).astype(int)
     df['potential'] = pd.to_numeric(df['potential'], errors='coerce').fillna(50).astype(int)
 
@@ -122,13 +133,11 @@ filtered_df = df.copy()
 if selected_clubs:
     filtered_df = filtered_df[filtered_df['club_name'].isin(selected_clubs)]
 
-# Lógica segura para o slider de Overall (evita min_value == max_value)
 min_ovr = int(df['overall'].min())
 max_ovr = int(df['overall'].max())
 
 if min_ovr >= max_ovr:
-    min_ovr = 40
-    max_ovr = 99
+    min_ovr, max_ovr = 40, 99
 
 selected_ovr = st.sidebar.slider(
     "Faixa de Overall:",
@@ -197,13 +206,13 @@ if mode == "Perfil do Jogador":
 
             fig.update_layout(
                 polar=dict(
-                    radialaxis=dict(visible=True, range=[0, 100], color="#9ca3af"),
-                    angularaxis=dict(color="#ffffff", font=dict(size=12))
+                    radialaxis=dict(visible=True, range=[0, 100]),
+                    angularaxis=dict(visible=True)
                 ),
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 showlegend=False,
-                title=dict(text="Atributos Principais", font=dict(size=16, color="#ffffff")),
+                title="Atributos Principais",
                 margin=dict(l=40, r=40, t=40, b=40)
             )
 
@@ -252,12 +261,10 @@ elif mode == "Comparador (1 vs 1)":
 
     fig.update_layout(
         polar=dict(
-            radialaxis=dict(visible=True, range=[0, 100], color="#9ca3af"),
-            angularaxis=dict(color="#ffffff")
+            radialaxis=dict(visible=True, range=[0, 100])
         ),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        legend=dict(font=dict(color="#ffffff")),
         margin=dict(l=40, r=40, t=40, b=40)
     )
 
