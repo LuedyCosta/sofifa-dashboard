@@ -353,8 +353,8 @@ if page == "👤 Perfil":
         with c_info:
             st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
             st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
-            st.markdown(f"**Posição:** <code><span class='var-text'>{p['Position']}</span></code> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
-            st.markdown(f"**Overall:** <code><span class='var-text'>{p['OVR']}</span></code> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
+            st.markdown(f"**Posição:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
+            st.markdown(f"**Overall:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
         with c_details:
             st.markdown(f"""
