@@ -16,18 +16,52 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    .stApp {
-        background-color: #0e1117;
-        color: #f0f2f6;
+    /* Fundo Totalmente Preto */
+    .stApp, .stApp > header {
+        background-color: #000000;
+        color: #ffffff;
     }
 
-    label, .stMarkdown p, .stMarkdown span, div[data-baseweb="typography"] {
-        color: #f8fafc !important;
+    /* Textos Fixos Brancos */
+    h1, h2, h3, h4, h5, h6, label, .stMarkdown p, .stMarkdown span, div[data-baseweb="typography"] {
+        color: #ffffff !important;
         font-weight: 500 !important;
     }
 
+    /* Expander e Checkboxes Textos Brancos */
+    .streamlit-expanderHeader { color: #ffffff !important; }
+    .stCheckbox label { color: #ffffff !important; }
+
+    /* Classe para Textos Variáveis (Dinâmicos) em Verde */
+    .var-text {
+        color: #10b981 !important; /* Verde 500 */
+        font-weight: bold;
+    }
+
     .stCaption, small, .caption-text {
-        color: #cbd5e1 !important;
+        color: #a3a3a3 !important;
+    }
+
+    /* Estilização Customizada de Botões (Cinza 50% inativo, sem quebra de linha) */
+    div[data-testid="stButton"] button {
+        background-color: #808080 !important; /* Cinza 50% */
+        color: #ffffff !important;
+        border: none !important;
+        white-space: nowrap !important; /* Força 1 linha */
+        height: 38px !important; /* Altura compatível com h3 */
+        min-height: 38px !important;
+        padding: 0px 16px !important;
+        margin-top: 5px !important; /* Ajuste fino para alinhar ao centro do texto h3 */
+        border-radius: 6px !important;
+    }
+    div[data-testid="stButton"] button:hover {
+        background-color: #a3a3a3 !important; /* Cinza mais claro no hover */
+        border: none !important;
+        color: #ffffff !important;
+    }
+    div[data-testid="stButton"] button p {
+        color: #ffffff !important;
+        font-size: 0.95rem !important;
     }
 
     /* Badges de Atributos do FIFA */
@@ -45,52 +79,52 @@ st.markdown("""
         justify-content: center;
         font-weight: bold;
         font-size: 0.85rem;
-        color: #ffffff;
+        color: #ffffff !important;
         margin-right: 8px;
     }
     .stat-green { background-color: #10b981; }
     .stat-yellow { background-color: #f59e0b; }
     .stat-red { background-color: #ef4444; }
     .stat-label {
-        color: #f1f5f9 !important;
+        color: #ffffff !important;
         font-size: 0.95rem;
     }
 
     /* Card do Perfil do Jogador */
     .profile-info-box {
-        background-color: #1a1f2c;
+        background-color: #111111; /* Preto ligeiramente mais claro para contraste */
         border-radius: 8px;
         padding: 16px;
-        border: 1px solid #334155;
+        border: 1px solid #333333;
         margin-bottom: 20px;
     }
 
     /* Container de Jogadores Parecidos */
     .similar-container {
-        background-color: #161b26;
-        border: 1px dashed #3b82f6;
+        background-color: #000000;
+        border: 1px dashed #333333;
         border-radius: 10px;
         padding: 12px 16px;
         margin-top: -15px;
         margin-bottom: 15px;
     }
     .similar-card {
-        background-color: #1e293b;
-        border: 1px solid #334155;
+        background-color: #111111;
+        border: 1px solid #333333;
         border-radius: 8px;
         padding: 10px;
         text-align: center;
         height: 100%;
     }
     .similar-name {
-        color: #38bdf8 !important;
+        color: #10b981 !important; /* Nome dinâmico em verde */
         font-size: 0.95rem !important;
         font-weight: bold !important;
         margin-bottom: 2px;
     }
     .similar-meta {
         font-size: 0.8rem;
-        color: #cbd5e1 !important;
+        color: #ffffff !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -283,9 +317,9 @@ if page == "👤 Perfil":
                     <div class="similar-card">
                         <div class="similar-name">⚽ {sim_p['Name']}</div>
                         <div class="similar-meta">
-                            <b>Pos:</b> {sim_p['Position']} | <b>Idade:</b> {sim_p['Age']} yrs<br>
-                            <b>OVR:</b> {sim_p['OVR']} | <b>Clube:</b> {sim_p['Team']}<br>
-                            <span style="color:#94a3b8; font-size:0.75rem;">Estilo: {styles_txt}</span>
+                            <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
+                            <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
+                            <span style="color:#a3a3a3; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -317,35 +351,35 @@ if page == "👤 Perfil":
                 st.image("https://cdn.sofifa.net/player_0.png", width=130)
 
         with c_info:
-            st.subheader(f"🏃 {p['Name']}")
-            st.markdown(f"**Clube:** {p['Team']} ({p['League']})")
-            st.markdown(f"**Posição:** `{p['Position']}` | **Nacionalidade:** {p.get('Nation', 'N/A')}")
-            st.markdown(f"**Overall:** `{p['OVR']}` | **Idade:** {p['Age']} anos")
+            st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
+            st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
+            st.markdown(f"**Posição:** `<span class='var-text'>{p['Position']}</span>` | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
+            st.markdown(f"**Overall:** `<span class='var-text'>{p['OVR']}</span>` | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
         with c_details:
             st.markdown(f"""
             <div class="profile-info-box">
                 <div style="display: flex; justify-content: space-between;">
                     <div>
-                        <strong style="color:#cbd5e1;">Perfil</strong><br>
-                        <span>Perna boa: <b>{perna_boa}</b></span><br>
-                        <span><b>{fintas} ★</b> Fintas</span><br>
-                        <span><b>{perna_ruim} ★</b> Perna ruim</span><br>
-                        <span>Rank: <b>#{rep_int}</b></span>
+                        <strong style="color:#ffffff;">Perfil</strong><br>
+                        <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
+                        <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
+                        <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
+                        <span>Rank: <b class="var-text">#{rep_int}</b></span>
                     </div>
                     <div>
-                        <strong style="color:#cbd5e1;">Atributos Globais</strong><br>
-                        <span style="color:#10b981;">PAC: {p.get('PAC', 0)}</span> | 
-                        <span style="color:#f59e0b;">SHO: {p.get('SHO', 0)}</span><br>
-                        <span style="color:#3b82f6;">PAS: {p.get('PAS', 0)}</span> | 
-                        <span style="color:#8b5cf6;">DRI: {p.get('DRI', 0)}</span><br>
-                        <span style="color:#ef4444;">DEF: {p.get('DEF', 0)}</span> | 
-                        <span style="color:#ec4899;">PHY: {p.get('PHY', 0)}</span>
+                        <strong style="color:#ffffff;">Atributos Globais</strong><br>
+                        <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
+                        <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
+                        <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
+                        <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
+                        <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
+                        <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
                     </div>
                     <div>
-                        <strong style="color:#cbd5e1;">Clube</strong><br>
-                        <span><b>{p['Team']}</b></span><br>
-                        <span style="color:#38bdf8;">Posição {p['Position']}</span>
+                        <strong style="color:#ffffff;">Clube</strong><br>
+                        <span><b class="var-text">{p['Team']}</b></span><br>
+                        <span>Posição <b class="var-text">{p['Position']}</b></span>
                     </div>
                 </div>
             </div>
@@ -367,7 +401,8 @@ if page == "👤 Perfil":
             for k in all_stat_keys:
                 st.session_state[k] = False
 
-        c_title, c_btn1, c_btn2, _ = st.columns([2.5, 0.8, 0.9, 4])
+        # Ajuste de largura das colunas para impedir quebra de linha nos botões
+        c_title, c_btn1, c_btn2, _ = st.columns([2.5, 1.2, 1.2, 3])
         with c_title:
             st.markdown("### 2 · Indicadores de Performance")
         with c_btn1:
@@ -406,15 +441,15 @@ if page == "👤 Perfil":
             <style>
                 /* Jogador 1 - Azul */
                 div[data-testid="stSelectbox"]:nth-of-type(1) label { color: #3b82f6 !important; font-weight: bold !important; }
-                div[data-testid="stSelectbox"]:nth-of-type(1) div[data-baseweb="select"] > div { border: 2px solid #3b82f6 !important; }
+                div[data-testid="stSelectbox"]:nth-of-type(1) div[data-baseweb="select"] > div { border: 2px solid #3b82f6 !important; background-color: #111111 !important; color: #ffffff !important; }
                 
                 /* Jogador 2 - Verde */
                 div[data-testid="stSelectbox"]:nth-of-type(2) label { color: #10b981 !important; font-weight: bold !important; }
-                div[data-testid="stSelectbox"]:nth-of-type(2) div[data-baseweb="select"] > div { border: 2px solid #10b981 !important; }
+                div[data-testid="stSelectbox"]:nth-of-type(2) div[data-baseweb="select"] > div { border: 2px solid #10b981 !important; background-color: #111111 !important; color: #ffffff !important; }
                 
                 /* Jogador 3 - Amarelo */
                 div[data-testid="stSelectbox"]:nth-of-type(3) label { color: #f59e0b !important; font-weight: bold !important; }
-                div[data-testid="stSelectbox"]:nth-of-type(3) div[data-baseweb="select"] > div { border: 2px solid #f59e0b !important; }
+                div[data-testid="stSelectbox"]:nth-of-type(3) div[data-baseweb="select"] > div { border: 2px solid #f59e0b !important; background-color: #111111 !important; color: #ffffff !important; }
             </style>
             """, unsafe_allow_html=True)
 
@@ -485,11 +520,11 @@ if page == "👤 Perfil":
                             visible=True,
                             range=[0, 100],
                             tickfont=dict(color='#cbd5e1'),
-                            gridcolor='#334155'
+                            gridcolor='#333333'
                         ),
                         angularaxis=dict(
                             tickfont=dict(color='#ffffff', size=13),
-                            gridcolor='#334155'
+                            gridcolor='#333333'
                         )
                     ),
                     paper_bgcolor='rgba(0,0,0,0)',
@@ -497,7 +532,7 @@ if page == "👤 Perfil":
                     height=480,
                     margin=dict(l=30, r=30, t=50, b=40),
                     legend=dict(
-                        font=dict(color='#f8fafc'),
+                        font=dict(color='#ffffff'),
                         orientation="h",
                         yanchor="bottom",
                         y=-0.18,
@@ -552,9 +587,9 @@ if page == "👤 Perfil":
             st.markdown("#### Estilos de Jogo")
             if play_styles:
                 for style in play_styles:
-                    st.markdown(f"- **{style}**")
+                    st.markdown(f"- **<span class='var-text'>{style}</span>**", unsafe_allow_html=True)
             else:
-                st.markdown("- *Nenhum estilo de jogo específico*")
+                st.markdown("- *<span class='var-text'>Nenhum estilo de jogo específico</span>*", unsafe_allow_html=True)
 
     else:
         # Perfil do Time
@@ -562,7 +597,7 @@ if page == "👤 Perfil":
         target_club = st.selectbox("Buscar Time:", options=clubs_list)
         club_df = df_raw[df_raw['Team'] == target_club]
 
-        st.subheader(f"🛡️ {target_club}")
+        st.subheader(f"🛡️ <span class='var-text'>{target_club}</span>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         c1.metric("Média Overall", f"{club_df['OVR'].mean():.1f}")
         c2.metric("Elenco Total", f"{len(club_df)} Jogadores")
