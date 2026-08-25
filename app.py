@@ -30,11 +30,6 @@ st.markdown("""
         color: #cbd5e1 !important;
     }
 
-    div[role="radiogroup"] label p {
-        color: #ffffff !important;
-        font-weight: 600 !important;
-    }
-
     /* Badges de Atributos do FIFA */
     .stat-box {
         display: flex;
@@ -73,75 +68,79 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. MAPEAMENTO DOS ATRIBUTOS (COM BASE NAS NOVAS COLUNAS DO NOVO CSV)
+# 2. MAPEAMENTO DOS GRUPOS BASEADO EXATAMENTE NA IMAGEM 2
 # -----------------------------------------------------------------------------
 STAT_GROUPS = {
-    'Ritmo': {
-        'Aceleração': 'Acceleration',
-        'Pique': 'Sprint Speed'
-    },
-    'Chute': {
+    'Ofensivo': {
+        'Cruzamento': 'Crossing',
         'Finalização': 'Finishing',
-        'Força do Chute': 'Shot Power',
-        'Chutes de Longe': 'Long Shots',
-        'Pênaltis': 'Penalties',
-        'Pos. ataque': 'Positioning',
+        'Prec. Cabeceio': 'Heading Accuracy',
+        'Passe curto': 'Short Passing',
         'Voleios': 'Volleys'
     },
-    'Passe': {
-        'Visão de jogo': 'Vision',
-        'Cruzamento': 'Crossing',
-        'Precisão nas faltas': 'Free Kick Accuracy',
-        'Passe curto': 'Short Passing',
-        'Lançamento': 'Long Passing',
-        'Curva': 'Curve'
-    },
-    'Dribles': {
-        'Agilidade': 'Agility',
-        'Equilíbrio': 'Balance',
-        'Reação': 'Reactions',
-        'Controle de bola': 'Ball Control',
+    'Habilidade': {
         'Dribles': 'Dribbling',
-        'Compostura': 'Composure'
+        'Curva': 'Curve',
+        'Prec. faltas': 'Free Kick Accuracy',
+        'Lançamento': 'Long Passing',
+        'Controle bola': 'Ball Control'
     },
-    'Defesa': {
-        'Intercept.': 'Interceptions',
-        'Precisão no Cabeceio': 'Heading Accuracy',
-        'Habilidade defensiva': 'Def Awareness',
-        'Dividida em pé': 'Standing Tackle',
-        'Carrinho': 'Sliding Tackle'
+    'Movimentação': {
+        'Aceleração': 'Acceleration',
+        'Pique': 'Sprint Speed',
+        'Agilidade': 'Agility',
+        'Reação': 'Reactions',
+        'Equilíbrio': 'Balance'
     },
-    'Físico': {
+    'Força': {
+        'Força chute': 'Shot Power',
         'Impulsão': 'Jumping',
         'Fôlego': 'Stamina',
         'Força': 'Strength',
-        'Combatividade': 'Aggression'
+        'Chutes longe': 'Long Shots'
+    },
+    'Mentalidade': {
+        'Combatividade': 'Aggression',
+        'Intercept.': 'Interceptions',
+        'Pos. ataque': 'Positioning',
+        'Visão de jogo': 'Vision',
+        'Pênaltis': 'Penalties',
+        'Compostura': 'Composure'
+    },
+    'Defesa': {
+        'Hab. defensiva': 'Def Awareness',
+        'Dividida pé': 'Standing Tackle',
+        'Carrinho': 'Sliding Tackle'
+    },
+    'Atributos GL': {
+        'Elasticidade GL': 'GK Diving',
+        'Manejo GL': 'GK Handling',
+        'Chute GL': 'GK Kicking',
+        'Posicion. GL': 'GK Positioning',
+        'Reflexos GL': 'GK Reflexes'
     }
 }
 
 # -----------------------------------------------------------------------------
-# 3. CARREGAMENTO E TRATAMENTO DOS DADOS
+# 3. LEITURA DOS DADOS
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
-    # Tenta carregar sofifa_players_2.csv ou cai de volta para sofifa_players.csv
     try:
         df = pd.read_csv("sofifa_players_2.csv")
     except FileNotFoundError:
         try:
             df = pd.read_csv("sofifa_players.csv")
         except FileNotFoundError:
-            st.error("❌ Nenhum arquivo de dados encontrado (sofifa_players_2.csv ou sofifa_players.csv).")
+            st.error("❌ Arquivo de dados não encontrado.")
             st.stop()
 
-    # Preenchimento de valores nulos
     df['Name'] = df['Name'].fillna('Jogador Sem Nome').astype(str)
     df['Team'] = df['Team'].fillna('Sem Clube').astype(str)
     df['Position'] = df['Position'].fillna('N/A').astype(str)
     df['League'] = df['League'].fillna('Desconhecida').astype(str)
     df['Preferred foot'] = df['Preferred foot'].fillna('Right').astype(str)
     
-    # Conversões numéricas
     for col in ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age', 'Weak foot', 'Skill moves']:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
@@ -192,7 +191,7 @@ if page == "👤 Perfil":
         target_player_name = st.selectbox("Buscar Jogador:", options=player_list)
         p = df[df['Name'] == target_player_name].iloc[0]
 
-        # Tratamento do Estilo de Jogo (play style)
+        # Estilo de jogo
         play_styles_raw = str(p.get('play style', '[]'))
         try:
             play_styles = ast.literal_eval(play_styles_raw)
@@ -206,7 +205,7 @@ if page == "👤 Perfil":
         perna_ruim = p.get('Weak foot', 2)
         rep_int = p.get('Rank', 1)
 
-        # PAINEL SUPERIOR COM DADOS REAIS DO NOVO CSV (Imagem 4)
+        # PAINEL DE PERFIL
         c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
         
         with c_face:
@@ -253,24 +252,35 @@ if page == "👤 Perfil":
 
         st.markdown("---")
 
-        # 2. INDICADORES DE PERFORMANCE (RADAR OUTLINE / TRANSPARENTE DA IMAGEM 2)
+        # 2. INDICADORES DE PERFORMANCE (SELETOR VIA CHECKBOX MULTIGRUPO)
         st.markdown("### 2 · Indicadores de Performance")
-        
-        selected_group_name = st.radio("Grupo de Atributos:", list(STAT_GROUPS.keys()), horizontal=True)
-        current_group_dict = STAT_GROUPS[selected_group_name]
+        st.write("Selecione as estatísticas desejadas para exibir no gráfico Radar (permite mesclar grupos diferentes):")
 
-        selected_pt_labels = st.multiselect(
-            f"Selecione as estatísticas de {selected_group_name} para o Radar:",
-            options=list(current_group_dict.keys()),
-            default=list(current_group_dict.keys())
-        )
+        # Dicionário dinâmico para armazenar quais checkboxes foram marcados
+        selected_stats_map = {}
 
-        if selected_pt_labels:
-            radar_labels = selected_pt_labels
-            # Obtém os valores reais numéricos das colunas do novo CSV
-            radar_values = [get_val(p, current_group_dict[label]) for label in selected_pt_labels]
+        # Interface com expansor para manter o visual limpo
+        with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=True):
+            cols = st.columns(4)
+            group_keys = list(STAT_GROUPS.keys())
+            
+            for idx, group_name in enumerate(group_keys):
+                col_target = cols[idx % 4]
+                with col_target:
+                    st.markdown(f"**{group_name}**")
+                    # Define defaults para 'Aceleração' e 'Pique' da Movimentação
+                    for stat_label, csv_col in STAT_GROUPS[group_name].items():
+                        is_default = stat_label in ['Aceleração', 'Pique']
+                        checked = st.checkbox(stat_label, value=is_default, key=f"chk_{group_name}_{stat_label}")
+                        if checked:
+                            selected_stats_map[stat_label] = csv_col
 
-            # Fecha o ciclo do gráfico polar
+        # GRÁFICO RADAR APENAS OUTLINE (SEM FUNDO BRANCO)
+        if selected_stats_map:
+            radar_labels = list(selected_stats_map.keys())
+            radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
+
+            # Fechar a geometria do radar
             r_vals = radar_values + [radar_values[0]]
             theta_labs = radar_labels + [radar_labels[0]]
 
@@ -279,7 +289,7 @@ if page == "👤 Perfil":
                 r=r_vals,
                 theta=theta_labs,
                 mode='lines+markers',
-                fill='none',  # OUTLINE PURA - SEM FUNDO BRANCO
+                fill='none',  # OUTLINE PURA
                 line=dict(color='#ef4444', width=3),
                 marker=dict(size=8, color='#ef4444'),
                 name=p['Name']
@@ -287,7 +297,7 @@ if page == "👤 Perfil":
 
             fig.update_layout(
                 title=dict(
-                    text=f"Análise de {selected_group_name}: {p['Name']} (OVR: {p['OVR']})",
+                    text=f"Análise Personalizada: {p['Name']} (OVR: {p['OVR']})",
                     font=dict(color='#ffffff', size=16)
                 ),
                 polar=dict(
@@ -305,72 +315,52 @@ if page == "👤 Perfil":
                 ),
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                height=450,
+                height=480,
                 margin=dict(l=40, r=40, t=50, b=40)
             )
 
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning("⚠️ Selecione pelo menos uma estatística para visualizar o gráfico.")
+            st.warning("⚠️ Marque pelo menos uma estatística na lista acima para exibir o gráfico.")
 
         st.markdown("---")
 
-        # 3. ESTATÍSTICAS DETALHADAS DINÂMICAS DO JOGADOR (IMAGEM 3)
+        # 3. ESTATÍSTICAS DETALHADAS DINÂMICAS DO JOGADOR (IMAGEM 2)
         st.markdown("### 📊 Estatísticas Detalhadas do Jogador")
 
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
             st.markdown("#### Ofensivo")
-            st.markdown(render_stat_item("Cruzamento", get_val(p, 'Crossing')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Finalização", get_val(p, 'Finishing')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Prec. Cabeceio", get_val(p, 'Heading Accuracy')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Passe curto", get_val(p, 'Short Passing')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Voleios", get_val(p, 'Volleys')), unsafe_allow_html=True)
+            for lbl, col in STAT_GROUPS['Ofensivo'].items():
+                st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
             st.markdown("#### Mentalidade")
-            st.markdown(render_stat_item("Combatividade", get_val(p, 'Aggression')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Intercept.", get_val(p, 'Interceptions')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Pos. ataque", get_val(p, 'Positioning')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Visão de jogo", get_val(p, 'Vision')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Pênaltis", get_val(p, 'Penalties')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Compostura", get_val(p, 'Composure')), unsafe_allow_html=True)
+            for lbl, col in STAT_GROUPS['Mentalidade'].items():
+                st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
         with col2:
             st.markdown("#### Habilidade")
-            st.markdown(render_stat_item("Dribles", get_val(p, 'Dribbling')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Curva", get_val(p, 'Curve')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Prec. faltas", get_val(p, 'Free Kick Accuracy')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Lançamento", get_val(p, 'Long Passing')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Controle bola", get_val(p, 'Ball Control')), unsafe_allow_html=True)
+            for lbl, col in STAT_GROUPS['Habilidade'].items():
+                st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
             st.markdown("#### Defesa")
-            st.markdown(render_stat_item("Hab. defensiva", get_val(p, 'Def Awareness')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Dividida pé", get_val(p, 'Standing Tackle')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Carrinho", get_val(p, 'Sliding Tackle')), unsafe_allow_html=True)
+            for lbl, col in STAT_GROUPS['Defesa'].items():
+                st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
         with col3:
             st.markdown("#### Movimentação")
-            st.markdown(render_stat_item("Aceleração", get_val(p, 'Acceleration')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Pique", get_val(p, 'Sprint Speed')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Agilidade", get_val(p, 'Agility')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Reação", get_val(p, 'Reactions')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Equilíbrio", get_val(p, 'Balance')), unsafe_allow_html=True)
+            for lbl, col in STAT_GROUPS['Movimentação'].items():
+                st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
             st.markdown("#### Atributos GL")
-            st.markdown(render_stat_item("Elasticidade GL", get_val(p, 'GK Diving', 10)), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Manejo GL", get_val(p, 'GK Handling', 10)), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Chute GL", get_val(p, 'GK Kicking', 10)), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Posicion. GL", get_val(p, 'GK Positioning', 10)), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Reflexos GL", get_val(p, 'GK Reflexes', 10)), unsafe_allow_html=True)
+            for lbl, col in STAT_GROUPS['Atributos GL'].items():
+                st.markdown(render_stat_item(lbl, get_val(p, col, 10)), unsafe_allow_html=True)
 
         with col4:
             st.markdown("#### Força")
-            st.markdown(render_stat_item("Força chute", get_val(p, 'Shot Power')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Impulsão", get_val(p, 'Jumping')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Fôlego", get_val(p, 'Stamina')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Força", get_val(p, 'Strength')), unsafe_allow_html=True)
-            st.markdown(render_stat_item("Chutes longe", get_val(p, 'Long Shots')), unsafe_allow_html=True)
+            for lbl, col in STAT_GROUPS['Força'].items():
+                st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
             st.markdown("#### Estilos de Jogo")
             if play_styles:
@@ -391,7 +381,7 @@ if page == "👤 Perfil":
         c2.metric("Elenco Total", f"{len(club_df)} Jogadores")
 
 # -----------------------------------------------------------------------------
-# OUTRAS PÁGINAS
+# DEMAIS PÁGINAS
 # -----------------------------------------------------------------------------
 elif page == "🛡️ Equipes":
     st.title("🛡️ Comparação de Equipes")
