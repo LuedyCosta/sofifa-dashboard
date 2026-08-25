@@ -197,29 +197,23 @@ def render_stat_item(label, value):
 
 def find_similar_players(df, target_player, top_n=3):
     gender = target_player.get('GENDER', 'M')
-    # Filtra pelo mesmo GÊNERO e descarta o próprio jogador
     candidates = df[(df['GENDER'] == gender) & (df['Name'] != target_player['Name'])].copy()
     if candidates.empty:
         return candidates
 
     stat_cols = ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age']
     
-    # Conversão segura para vetores numéricos do Numpy
     target_vec = np.array([get_val(target_player, col, 50) for col in stat_cols], dtype=float)
     cand_vecs = candidates[stat_cols].apply(pd.to_numeric, errors='coerce').fillna(50).to_numpy(dtype=float)
 
-    # Cálculo do desvio padrão tratado com Numpy puro (evita erros de indexação de Series)
     std_vec = np.array(df[stat_cols].apply(pd.to_numeric, errors='coerce').std().values, dtype=float)
     std_vec = np.where((np.isnan(std_vec)) | (std_vec == 0), 1.0, std_vec)
 
-    # Distância Euclidiana normalizada
     dist = np.linalg.norm((cand_vecs - target_vec) / std_vec, axis=1)
 
-    # Penalidade por Posição diferente
     target_pos = str(target_player['Position'])
     pos_penalty = np.where(candidates['Position'] == target_pos, 0.0, 1.2)
 
-    # Penalidade por Estilos de Jogo diferentes (Jaccard)
     try:
         t_styles = set(ast.literal_eval(str(target_player.get('play style', '[]'))))
     except:
@@ -359,9 +353,8 @@ if page == "👤 Perfil":
 
         st.markdown("---")
 
-        # 2. INDICADORES DE PERFORMANCE
+        # 2. INDICADORES DE PERFORMANCE E COMPARAÇÃO
         st.markdown("### 2 · Indicadores de Performance")
-        st.write("Selecione as estatísticas desejadas para exibir no gráfico Radar:")
 
         selected_stats_map = {}
 
@@ -374,56 +367,104 @@ if page == "👤 Perfil":
                 with col_target:
                     st.markdown(f"**{group_name}**")
                     for stat_label, csv_col in STAT_GROUPS[group_name].items():
-                        is_default = stat_label in ['Aceleração', 'Pique']
+                        is_default = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
                         checked = st.checkbox(stat_label, value=is_default, key=f"chk_{group_name}_{stat_label}")
                         if checked:
                             selected_stats_map[stat_label] = csv_col
 
-        if selected_stats_map:
-            radar_labels = list(selected_stats_map.keys())
-            radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
+        # ÁREA DE COMPARAÇÃO NO LADO ESQUERDO DO GRÁFICO (ÁREA AMARELA)
+        col_comp_left, col_chart_right = st.columns([1, 2.5])
 
-            r_vals = radar_values + [radar_values[0]]
-            theta_labs = radar_labels + [radar_labels[0]]
+        with col_comp_left:
+            st.markdown("#### ⚔️ Comparar Jogadores")
+            st.caption("Adicione até 3 jogadores para comparar com o selecionado:")
 
-            fig = go.Figure()
-            fig.add_trace(go.Scatterpolar(
-                r=r_vals,
-                theta=theta_labs,
-                mode='lines+markers',
-                fill='none',
-                line=dict(color='#ef4444', width=3),
-                marker=dict(size=8, color='#ef4444'),
-                name=p['Name']
-            ))
-
-            fig.update_layout(
-                title=dict(
-                    text=f"Análise Personalizada: {p['Name']} (OVR: {p['OVR']})",
-                    font=dict(color='#ffffff', size=16)
-                ),
-                polar=dict(
-                    bgcolor='rgba(0,0,0,0)',
-                    radialaxis=dict(
-                        visible=True,
-                        range=[0, 100],
-                        tickfont=dict(color='#cbd5e1'),
-                        gridcolor='#334155'
-                    ),
-                    angularaxis=dict(
-                        tickfont=dict(color='#ffffff', size=13),
-                        gridcolor='#334155'
-                    )
-                ),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                height=480,
-                margin=dict(l=40, r=40, t=50, b=40)
+            # Lista de opções excluindo o jogador atual
+            other_players = [name for name in player_list if name != target_player_name]
+            
+            compared_players = st.multiselect(
+                "Adicionar Jogadores:",
+                options=other_players,
+                max_selections=3,
+                placeholder="Busque e selecione..."
             )
 
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.warning("⚠️ Marque pelo menos uma estatística para exibir o gráfico.")
+        with col_chart_right:
+            if selected_stats_map:
+                radar_labels = list(selected_stats_map.keys())
+                theta_labs = radar_labels + [radar_labels[0]]
+
+                fig = go.Figure()
+
+                # 1. Jogador Principal (Vermelho)
+                radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
+                r_vals = radar_values + [radar_values[0]]
+
+                fig.add_trace(go.Scatterpolar(
+                    r=r_vals,
+                    theta=theta_labs,
+                    mode='lines+markers',
+                    fill='none',
+                    line=dict(color='#ef4444', width=3),
+                    marker=dict(size=8, color='#ef4444'),
+                    name=f"{p['Name']} (Principal)"
+                ))
+
+                # Cores contrastantes para os até 3 jogadores comparados
+                comp_colors = ['#3b82f6', '#10b981', '#f59e0b']  # Azul, Verde, Amarelo
+
+                # 2. Jogadores Selecionados para Comparação
+                for idx, comp_name in enumerate(compared_players):
+                    comp_row = df[df['Name'] == comp_name].iloc[0]
+                    comp_radar_values = [get_val(comp_row, csv_col) for csv_col in selected_stats_map.values()]
+                    comp_r_vals = comp_radar_values + [comp_radar_values[0]]
+                    color = comp_colors[idx % len(comp_colors)]
+
+                    fig.add_trace(go.Scatterpolar(
+                        r=comp_r_vals,
+                        theta=theta_labs,
+                        mode='lines+markers',
+                        fill='none',
+                        line=dict(color=color, width=2.5, dash='solid'),
+                        marker=dict(size=7, color=color),
+                        name=f"{comp_row['Name']} ({comp_row['OVR']})"
+                    ))
+
+                fig.update_layout(
+                    title=dict(
+                        text=f"Análise Comparativa Radar: {p['Name']} (OVR: {p['OVR']})",
+                        font=dict(color='#ffffff', size=16)
+                    ),
+                    polar=dict(
+                        bgcolor='rgba(0,0,0,0)',
+                        radialaxis=dict(
+                            visible=True,
+                            range=[0, 100],
+                            tickfont=dict(color='#cbd5e1'),
+                            gridcolor='#334155'
+                        ),
+                        angularaxis=dict(
+                            tickfont=dict(color='#ffffff', size=13),
+                            gridcolor='#334155'
+                        )
+                    ),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    height=480,
+                    margin=dict(l=30, r=30, t=50, b=40),
+                    legend=dict(
+                        font=dict(color='#f8fafc'),
+                        orientation="h",
+                        yanchor="bottom",
+                        y=-0.18,
+                        xanchor="center",
+                        x=0.5
+                    )
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("⚠️ Marque pelo menos uma estatística para exibir o gráfico.")
 
         st.markdown("---")
 
