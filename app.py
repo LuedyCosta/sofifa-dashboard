@@ -64,11 +64,39 @@ st.markdown("""
         border: 1px solid #334155;
         margin-bottom: 20px;
     }
+
+    /* Container de Jogadores Parecidos */
+    .similar-container {
+        background-color: #161b26;
+        border: 1px dashed #3b82f6;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-top: -15px;
+        margin-bottom: 15px;
+    }
+    .similar-card {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        height: 100%;
+    }
+    .similar-name {
+        color: #38bdf8 !important;
+        font-size: 0.95rem !important;
+        font-weight: bold !important;
+        margin-bottom: 2px;
+    }
+    .similar-meta {
+        font-size: 0.8rem;
+        color: #cbd5e1 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. MAPEAMENTO DOS GRUPOS BASEADO EXATAMENTE NA IMAGEM 2
+# 2. MAPEAMENTO DOS GRUPOS
 # -----------------------------------------------------------------------------
 STAT_GROUPS = {
     'Ofensivo': {
@@ -122,7 +150,7 @@ STAT_GROUPS = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. LEITURA DOS DADOS
+# 3. LEITURA DOS DADOS E ALGORITMO DE SIMILARIDADE
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
@@ -139,6 +167,7 @@ def load_data():
     df['Team'] = df['Team'].fillna('Sem Clube').astype(str)
     df['Position'] = df['Position'].fillna('N/A').astype(str)
     df['League'] = df['League'].fillna('Desconhecida').astype(str)
+    df['GENDER'] = df['GENDER'].fillna('M').astype(str)
     df['Preferred foot'] = df['Preferred foot'].fillna('Right').astype(str)
     
     for col in ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age', 'Weak foot', 'Skill moves']:
@@ -166,6 +195,48 @@ def render_stat_item(label, value):
     </div>
     """
 
+def find_similar_players(df, target_player, top_n=3):
+    gender = target_player.get('GENDER', 'M')
+    # Filtra obrigatoriamente pelo mesmo GÊNERO e descarta o próprio jogador
+    candidates = df[(df['GENDER'] == gender) & (df['Name'] != target_player['Name'])].copy()
+    if candidates.empty:
+        return candidates
+
+    stat_cols = ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age']
+    target_vec = target_player[stat_cols].fillna(0).values.astype(float)
+    cand_vecs = candidates[stat_cols].fillna(0).values.astype(float)
+
+    std_vec = df[stat_cols].std().values
+    std_vec[std_vec == 0] = 1.0
+
+    # Distância Euclidiana normalizada
+    dist = np.linalg.norm((cand_vecs - target_vec) / std_vec, axis=1)
+
+    # Penalidade por Posição diferente
+    target_pos = str(target_player['Position'])
+    pos_penalty = np.where(candidates['Position'] == target_pos, 0.0, 1.2)
+
+    # Penalidade por Estilos de Jogo diferentes (Jaccard)
+    try:
+        t_styles = set(ast.literal_eval(str(target_player.get('play style', '[]'))))
+    except:
+        t_styles = set()
+
+    def style_dist(style_str):
+        try:
+            s_set = set(ast.literal_eval(str(style_str)))
+            if not t_styles and not s_set:
+                return 0.0
+            union = len(t_styles.union(s_set))
+            return 1.0 - (len(t_styles.intersection(s_set)) / union) if union > 0 else 1.0
+        except:
+            return 1.0
+
+    style_penalties = candidates['play style'].apply(style_dist).values * 1.0
+
+    candidates['similarity_score'] = dist + pos_penalty + style_penalties
+    return candidates.sort_values('similarity_score').head(top_n)
+
 # -----------------------------------------------------------------------------
 # 4. BARRA LATERAL
 # -----------------------------------------------------------------------------
@@ -182,16 +253,52 @@ df = df_raw.copy()
 if page == "👤 Perfil":
     st.title("👤 Perfil Detalhado")
 
-    st.markdown("### 1 · Quem")
-    who_type = st.radio("Selecione a Entidade:", ["Jogador", "Time"], horizontal=True, label_visibility="collapsed")
-    st.markdown("---")
+    col_quem, col_similar = st.columns([1, 2.3])
+
+    with col_quem:
+        st.markdown("### 1 · Quem")
+        who_type = st.radio("Selecione a Entidade:", ["Jogador", "Time"], horizontal=True, label_visibility="collapsed")
 
     if who_type == "Jogador":
         player_list = sorted(df['Name'].unique().tolist())
-        target_player_name = st.selectbox("Buscar Jogador:", options=player_list)
-        p = df[df['Name'] == target_player_name].iloc[0]
 
-        # Estilo de jogo
+        # Seleção preliminar para buscar similares antes da renderização do painel
+        default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
+        
+        # O seletor fica logo abaixo de "Quem"
+        with col_quem:
+            target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
+
+        p = df[df['Name'] == target_player_name].iloc[0]
+        similar_df = find_similar_players(df, p, top_n=3)
+
+        # PAINEL DE JOGADORES PARECIDOS NA ÁREA DEMARCADA (RETÂNGULO VERMELHO)
+        with col_similar:
+            st.markdown("### 👥 Jogadores Parecidos")
+            sim_cols = st.columns(3)
+            for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
+                with sim_cols[idx]:
+                    # Estilos de jogo abreviados
+                    try:
+                        s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
+                        styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
+                    except:
+                        styles_txt = "Padrão"
+
+                    st.markdown(f"""
+                    <div class="similar-card">
+                        <div class="similar-name">⚽ {sim_p['Name']}</div>
+                        <div class="similar-meta">
+                            <b>Pos:</b> {sim_p['Position']} | <b>Idade:</b> {sim_p['Age']} yrs<br>
+                            <b>OVR:</b> {sim_p['OVR']} | <b>Clube:</b> {sim_p['Team']}<br>
+                            <span style="color:#94a3b8; font-size:0.75rem;">Estilo: {styles_txt}</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # Estilo de jogo do jogador selecionado
         play_styles_raw = str(p.get('play style', '[]'))
         try:
             play_styles = ast.literal_eval(play_styles_raw)
@@ -205,7 +312,7 @@ if page == "👤 Perfil":
         perna_ruim = p.get('Weak foot', 2)
         rep_int = p.get('Rank', 1)
 
-        # PAINEL DE PERFIL
+        # PAINEL DE PERFIL DO JOGADOR
         c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
         
         with c_face:
@@ -252,14 +359,12 @@ if page == "👤 Perfil":
 
         st.markdown("---")
 
-        # 2. INDICADORES DE PERFORMANCE (SELETOR VIA CHECKBOX MULTIGRUPO)
+        # 2. INDICADORES DE PERFORMANCE
         st.markdown("### 2 · Indicadores de Performance")
-        st.write("Selecione as estatísticas desejadas para exibir no gráfico Radar (permite mesclar grupos diferentes):")
+        st.write("Selecione as estatísticas desejadas para exibir no gráfico Radar:")
 
-        # Dicionário dinâmico para armazenar quais checkboxes foram marcados
         selected_stats_map = {}
 
-        # Interface com expansor para manter o visual limpo
         with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=True):
             cols = st.columns(4)
             group_keys = list(STAT_GROUPS.keys())
@@ -268,19 +373,16 @@ if page == "👤 Perfil":
                 col_target = cols[idx % 4]
                 with col_target:
                     st.markdown(f"**{group_name}**")
-                    # Define defaults para 'Aceleração' e 'Pique' da Movimentação
                     for stat_label, csv_col in STAT_GROUPS[group_name].items():
                         is_default = stat_label in ['Aceleração', 'Pique']
                         checked = st.checkbox(stat_label, value=is_default, key=f"chk_{group_name}_{stat_label}")
                         if checked:
                             selected_stats_map[stat_label] = csv_col
 
-        # GRÁFICO RADAR APENAS OUTLINE (SEM FUNDO BRANCO)
         if selected_stats_map:
             radar_labels = list(selected_stats_map.keys())
             radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
 
-            # Fechar a geometria do radar
             r_vals = radar_values + [radar_values[0]]
             theta_labs = radar_labels + [radar_labels[0]]
 
@@ -289,7 +391,7 @@ if page == "👤 Perfil":
                 r=r_vals,
                 theta=theta_labs,
                 mode='lines+markers',
-                fill='none',  # OUTLINE PURA
+                fill='none',
                 line=dict(color='#ef4444', width=3),
                 marker=dict(size=8, color='#ef4444'),
                 name=p['Name']
@@ -321,11 +423,11 @@ if page == "👤 Perfil":
 
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning("⚠️ Marque pelo menos uma estatística na lista acima para exibir o gráfico.")
+            st.warning("⚠️ Marque pelo menos uma estatística para exibir o gráfico.")
 
         st.markdown("---")
 
-        # 3. ESTATÍSTICAS DETALHADAS DINÂMICAS DO JOGADOR (IMAGEM 2)
+        # 3. ESTATÍSTICAS DETALHADAS DINÂMICAS DO JOGADOR
         st.markdown("### 📊 Estatísticas Detalhadas do Jogador")
 
         col1, col2, col3, col4 = st.columns(4)
