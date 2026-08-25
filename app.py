@@ -1,12 +1,13 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="SoFIFA Stats Dashboard",
+    page_title="SoFIFA Dashboard",
     page_icon="⚽",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -18,45 +19,41 @@ st.markdown("""
         background-color: #0e1117;
         color: #ffffff;
     }
-    .player-card {
-        background-color: #1f2937;
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid #374151;
+    .metric-card {
+        background-color: #1a1f2c;
+        border-radius: 10px;
+        padding: 15px;
+        border: 1px solid #2d3748;
+        text-align: center;
     }
-    .badge-overall {
+    .badge-ovr {
         background-color: #10b981;
-        color: #ffffff;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
         font-weight: bold;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 1.2rem;
-        display: inline-block;
     }
-    .badge-potential {
+    .badge-pot {
         background-color: #3b82f6;
-        color: #ffffff;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
         font-weight: bold;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 1.2rem;
-        display: inline-block;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. CARREGAMENTO E MAPEAMENTO EXATO DO CSV
+# 2. CARREGAMENTO DOS DADOS
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     try:
         df = pd.read_csv("sofifa_players.csv")
     except FileNotFoundError:
-        st.error("❌ Arquivo 'sofifa_players.csv' não encontrado no repositório.")
+        st.error("❌ Arquivo 'sofifa_players.csv' não encontrado.")
         st.stop()
 
-    # Mapeamento com base nas colunas reais do arquivo raspado
     rename_dict = {
         'is-preload': 'short_name',
         'is-preload (2)': 'club_name',
@@ -68,10 +65,8 @@ def load_data():
         'd6 (2)': 'wage',
         'player-check src': 'player_face_url'
     }
-
     df.rename(columns=rename_dict, inplace=True)
 
-    # Tratamento de nulos e tipos de dados
     df['short_name'] = df['short_name'].fillna('Jogador Sem Nome').astype(str)
     df['club_name'] = df['club_name'].fillna('Sem Clube').astype(str)
     df['positions'] = df['positions'].fillna('N/A').astype(str)
@@ -83,132 +78,213 @@ def load_data():
     df['potential'] = pd.to_numeric(df['potential'], errors='coerce').fillna(50).astype(int)
     df['age'] = pd.to_numeric(df['age'], errors='coerce').fillna(0).astype(int)
 
-    # Como a tabela raspada não contém estatísticas detalhadas (pace, shooting, etc.),
-    # definimos valores genéricos baseados no overall para evitar erros no gráfico radar.
     for stat in ['pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic']:
         if stat not in df.columns:
             df[stat] = df['overall']
 
     return df
 
-df = load_data()
+df_raw = load_data()
 
 # -----------------------------------------------------------------------------
-# 3. BARRA LATERAL (FILTROS)
+# 3. BARRA LATERAL
 # -----------------------------------------------------------------------------
 st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
 st.sidebar.title("⚽ Dashboard SoFIFA")
 st.sidebar.markdown("---")
 
-all_clubs = sorted([c for c in df['club_name'].unique() if c != 'Sem Clube'])
-selected_clubs = st.sidebar.multiselect("Filtrar por Clube(s):", options=all_clubs)
-
-filtered_df = df.copy()
-if selected_clubs:
-    filtered_df = filtered_df[filtered_df['club_name'].isin(selected_clubs)]
-
-min_ovr = int(df['overall'].min())
-max_ovr = int(df['overall'].max())
-
-if min_ovr >= max_ovr:
-    min_ovr, max_ovr = 40, 99
-
-selected_ovr = st.sidebar.slider(
-    "Faixa de Overall:",
-    min_value=min_ovr,
-    max_value=max_ovr,
-    value=(min_ovr, max_ovr)
+page = st.sidebar.radio(
+    "Navegação:",
+    ["👤 Perfil", "🛡️ Equipes", "⚽ Jogadores", "⚔️ Comparar"]
 )
 
-filtered_df = filtered_df[
-    (filtered_df['overall'] >= selected_ovr[0]) & 
-    (filtered_df['overall'] <= selected_ovr[1])
-]
-
 st.sidebar.markdown("---")
-mode = st.sidebar.radio("Navegação:", ["Perfil do Jogador", "Comparador (1 vs 1)", "Visão Geral do Elenco"])
+st.sidebar.subheader("⚙️ Customização de Dados")
+
+all_available_columns = list(df_raw.columns)
+default_cols = ['short_name', 'club_name', 'positions', 'age', 'overall', 'potential', 'value', 'wage']
+
+selected_columns = st.sidebar.multiselect(
+    "Colunas Ativas na Exibição:",
+    options=all_available_columns,
+    default=[c for c in default_cols if c in all_available_columns]
+)
+
+clubs_list = sorted([c for c in df_raw['club_name'].unique() if c != 'Sem Clube'])
+selected_club_filter = st.sidebar.selectbox("Filtrar por Clube (Geral):", options=["Todos"] + clubs_list)
+
+df = df_raw.copy()
+if selected_club_filter != "Todos":
+    df = df[df['club_name'] == selected_club_filter]
 
 # -----------------------------------------------------------------------------
-# 4. EXIBIÇÃO DE CONTEÚDO
+# 4. PÁGINAS
 # -----------------------------------------------------------------------------
-if mode == "Perfil do Jogador":
-    player_options = sorted(filtered_df['short_name'].unique().tolist())
+
+# =============================================================================
+# PÁGINA 1: PERFIL (JOGADOR OU TIME)
+# =============================================================================
+if page == "👤 Perfil":
+    st.title("👤 Perfil Detalhado")
     
-    if not player_options:
-        st.warning("Nenhum jogador encontrado com os filtros selecionados.")
-    else:
-        selected_player = st.selectbox("Selecione o Jogador:", options=player_options)
-        player = filtered_df[filtered_df['short_name'] == selected_player].iloc[0]
+    # Alternador de tipo de perfil
+    profile_type = st.radio("Visualizar Perfil de:", ["Jogador", "Time"], horizontal=True)
+    st.markdown("---")
 
-        st.markdown(f"## 👤 {player['short_name']}")
-        st.markdown(f"**Clube:** {player['club_name']} | **Posição:** `{player['positions']}` | **Idade:** {player['age']} anos")
+    if profile_type == "Jogador":
+        player_list = sorted(df['short_name'].unique().tolist())
+        if not player_list:
+            st.warning("Nenhum jogador disponível para os filtros selecionados.")
+        else:
+            player_name = st.selectbox("Selecione o Jogador:", options=player_list)
+            p = df[df['short_name'] == player_name].iloc[0]
 
-        col_img, col_metrics, col_radar = st.columns([1, 1.5, 2.5])
+            st.markdown(f"### 🏃 {p['short_name']}")
+            st.markdown(f"**Clube:** {p['club_name']} | **Posição:** `{p['positions']}` | **Idade:** {p['age']} anos")
 
-        with col_img:
-            st.markdown('<div class="player-card" style="text-align: center;">', unsafe_allow_html=True)
-            if str(player['player_face_url']).startswith("http"):
-                st.image(player['player_face_url'], width=150)
-            else:
-                st.markdown("📷 *(Foto indisponível)*")
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(f'<span class="badge-overall">OVR: {player["overall"]}</span> ', unsafe_allow_html=True)
-            st.markdown(f'<span class="badge-potential">POT: {player["potential"]}</span>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+            c1, c2, c3 = st.columns([1, 1.5, 2.5])
 
-        with col_metrics:
-            st.markdown("### 📊 Informações Gerais")
-            st.metric("Valor Estimado", str(player['value']))
-            st.metric("Salário Semanal", str(player['wage']))
+            with c1:
+                st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+                if str(p['player_face_url']).startswith("http"):
+                    st.image(p['player_face_url'], width=140)
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown(f'<span class="badge-ovr">OVR: {p["overall"]}</span> ', unsafe_allow_html=True)
+                st.markdown(f'<span class="badge-pot">POT: {p["potential"]}</span>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
-        with col_radar:
-            categories = ['Ritmo', 'Chute', 'Passe', 'Drible', 'Defesa', 'Físico']
-            values = [
-                player['pace'], player['shooting'], player['passing'],
-                player['dribbling'], player['defending'], player['physic']
-            ]
-            
-            categories_closed = categories + [categories[0]]
-            values_closed = values + [values[0]]
+            with c2:
+                st.markdown("#### 📊 Métricas Financeiras")
+                st.metric("Valor de Mercado", str(p['value']))
+                st.metric("Salário Semanal", str(p['wage']))
 
-            fig = go.Figure()
-            fig.add_trace(go.Scatterpolar(
-                r=values_closed,
-                theta=categories_closed,
-                fill='toself',
-                fillcolor='rgba(16, 185, 129, 0.4)',
-                line=dict(color='#10b981', width=3),
-                name=player['short_name']
-            ))
+            with c3:
+                st.markdown("#### 🎯 Atributos Principais")
+                cats = ['Ritmo', 'Chute', 'Passe', 'Drible', 'Defesa', 'Físico']
+                vals = [p['pace'], p['shooting'], p['passing'], p['dribbling'], p['defending'], p['physic']]
+                
+                fig = go.Figure(go.Scatterpolar(
+                    r=vals + [vals[0]],
+                    theta=cats + [cats[0]],
+                    fill='toself',
+                    fillcolor='rgba(16, 185, 129, 0.4)',
+                    line=dict(color='#10b981', width=2)
+                ))
+                fig.update_layout(
+                    polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    margin=dict(l=30, r=30, t=20, b=20)
+                )
+                st.plotly_chart(fig, use_container_width=True)
 
-            fig.update_layout(
-                polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                showlegend=False,
-                title="Estimativa de Atributos",
-                margin=dict(l=40, r=40, t=40, b=40)
+    else:  # Perfil do Time
+        target_club = st.selectbox("Selecione o Time:", options=clubs_list)
+        club_df = df_raw[df_raw['club_name'] == target_club]
+
+        st.markdown(f"### 🛡️ {target_club}")
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Total no Elenco", f"{len(club_df)} jogadores")
+        c2.metric("Média de OVR", f"{club_df['overall'].mean():.1f}")
+        c3.metric("Média de Potencial", f"{club_df['potential'].mean():.1f}")
+        c4.metric("Idade Média", f"{club_df['age'].mean():.1f} anos")
+
+        st.markdown("---")
+        col_left, col_right = st.columns([1.5, 1])
+
+        with col_left:
+            st.markdown("#### 📊 Desempenho Geral do Elenco")
+            fig_bar = px.bar(
+                club_df.sort_values(by="overall", ascending=False),
+                x='short_name',
+                y='overall',
+                color='overall',
+                labels={'short_name': 'Jogador', 'overall': 'Overall'},
+                color_continuous_scale="Greens"
             )
+            fig_bar.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_bar, use_container_width=True)
 
-            st.plotly_chart(fig, use_container_width=True)
+        with col_right:
+            st.markdown("#### ⚽ Distribuição por Posição")
+            pos_counts = club_df['positions'].value_counts().reset_index()
+            pos_counts.columns = ['Posição', 'Quantidade']
+            
+            fig_pie = px.pie(
+                pos_counts,
+                names='Posição',
+                values='Quantidade',
+                hole=0.4,
+                color_discrete_sequence=px.colors.qualitative.Set3
+            )
+            fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_pie, use_container_width=True)
 
-elif mode == "Comparador (1 vs 1)":
-    st.markdown("## ⚔️ Comparativo Head-to-Head")
-    
+# =============================================================================
+# PÁGINA 2: EQUIPES
+# =============================================================================
+elif page == "🛡️ Equipes":
+    st.title("🛡️ Comparação de Equipes")
+
+    club_stats = df_raw.groupby('club_name').agg(
+        Total_Jogadores=('short_name', 'count'),
+        Media_Overall=('overall', 'mean'),
+        Media_Potencial=('potential', 'mean'),
+        Media_Idade=('age', 'mean')
+    ).reset_index()
+
+    club_stats['Media_Overall'] = club_stats['Media_Overall'].round(1)
+    club_stats['Media_Potencial'] = club_stats['Media_Potencial'].round(1)
+    club_stats['Media_Idade'] = club_stats['Media_Idade'].round(1)
+
+    st.dataframe(
+        club_stats.rename(columns={
+            'club_name': 'Equipe',
+            'Total_Jogadores': 'Qtd. Jogadores',
+            'Media_Overall': 'Média OVR',
+            'Media_Potencial': 'Média POT',
+            'Media_Idade': 'Média Idade'
+        }).sort_values(by="Média OVR", ascending=False),
+        use_container_width=True,
+        hide_index=True
+    )
+
+# =============================================================================
+# PÁGINA 3: JOGADORES
+# =============================================================================
+elif page == "⚽ Jogadores":
+    st.title("⚽ Visão Geral dos Jogadores")
+    st.markdown(f"Exibindo **{len(df)}** registros.")
+
+    st.dataframe(
+        df[selected_columns] if selected_columns else df,
+        use_container_width=True,
+        hide_index=True
+    )
+
+# =============================================================================
+# PÁGINA 4: COMPARAR
+# =============================================================================
+elif page == "⚔️ Comparar":
+    st.title("⚔️ Comparativo de Jogadores (1 vs 1)")
+
+    all_players = sorted(df_raw['short_name'].unique().tolist())
+
     col1, col2 = st.columns(2)
-    player_options = sorted(df['short_name'].unique().tolist())
-
     with col1:
-        p1_name = st.selectbox("Selecione o Jogador 1:", options=player_options, index=0)
-        p1 = df[df['short_name'] == p1_name].iloc[0]
+        p1_name = st.selectbox("Jogador 1:", options=all_players, index=0)
+        p1 = df_raw[df_raw['short_name'] == p1_name].iloc[0]
+        st.markdown(f"**Clube:** {p1['club_name']} | **OVR:** `{p1['overall']}` | **POT:** `{p1['potential']}`")
 
     with col2:
-        idx2 = 1 if len(player_options) > 1 else 0
-        p2_name = st.selectbox("Selecione o Jogador 2:", options=player_options, index=idx2)
-        p2 = df[df['short_name'] == p2_name].iloc[0]
+        idx2 = 1 if len(all_players) > 1 else 0
+        p2_name = st.selectbox("Jogador 2:", options=all_players, index=idx2)
+        p2 = df_raw[df_raw['short_name'] == p2_name].iloc[0]
+        st.markdown(f"**Clube:** {p2['club_name']} | **OVR:** `{p2['overall']}` | **POT:** `{p2['potential']}`")
 
-    categories = ['Ritmo', 'Chute', 'Passe', 'Drible', 'Defesa', 'Físico']
-    cats_closed = categories + [categories[0]]
+    cats = ['Ritmo', 'Chute', 'Passe', 'Drible', 'Defesa', 'Físico']
+    cats_closed = cats + [cats[0]]
 
     v1 = [p1['pace'], p1['shooting'], p1['passing'], p1['dribbling'], p1['defending'], p1['physic']]
     v2 = [p2['pace'], p2['shooting'], p2['passing'], p2['dribbling'], p2['defending'], p2['physic']]
@@ -241,24 +317,3 @@ elif mode == "Comparador (1 vs 1)":
     )
 
     st.plotly_chart(fig, use_container_width=True)
-
-elif mode == "Visão Geral do Elenco":
-    st.markdown("## 📋 Tabela de Jogadores Filtrados")
-    st.markdown(f"Exibindo **{len(filtered_df)}** jogadores.")
-
-    display_cols = ['short_name', 'club_name', 'positions', 'age', 'overall', 'potential', 'value', 'wage']
-
-    st.dataframe(
-        filtered_df[display_cols].rename(columns={
-            'short_name': 'Nome',
-            'club_name': 'Clube',
-            'positions': 'Posição',
-            'age': 'Idade',
-            'overall': 'Overall',
-            'potential': 'Potencial',
-            'value': 'Valor',
-            'wage': 'Salário'
-        }),
-        use_container_width=True,
-        hide_index=True
-    )
