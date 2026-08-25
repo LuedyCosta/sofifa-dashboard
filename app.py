@@ -353,8 +353,8 @@ if page == "👤 Perfil":
         with c_info:
             st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
             st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
-            st.markdown(f"**Posição:** `<span class='var-text'>{p['Position']}</span>` | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
-            st.markdown(f"**Overall:** `<span class='var-text'>{p['OVR']}</span>` | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
+            st.markdown(f"**Posição:** <code><span class='var-text'>{p['Position']}</span></code> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
+            st.markdown(f"**Overall:** <code><span class='var-text'>{p['OVR']}</span></code> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
         with c_details:
             st.markdown(f"""
@@ -401,7 +401,6 @@ if page == "👤 Perfil":
             for k in all_stat_keys:
                 st.session_state[k] = False
 
-        # Ajuste de largura das colunas para impedir quebra de linha nos botões
         c_title, c_btn1, c_btn2, _ = st.columns([2.5, 1.2, 1.2, 3])
         with c_title:
             st.markdown("### 2 · Indicadores de Performance")
