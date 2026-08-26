@@ -189,13 +189,16 @@ STAT_GROUPS = {
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("sofifa_players_2.csv")
+        df = pd.read_csv("EAFC26.csv")
     except FileNotFoundError:
         try:
-            df = pd.read_csv("sofifa_players.csv")
+            df = pd.read_csv("sofifa_players_2.csv")
         except FileNotFoundError:
-            st.error("❌ Arquivo de dados não encontrado.")
-            st.stop()
+            try:
+                df = pd.read_csv("sofifa_players.csv")
+            except FileNotFoundError:
+                st.error("❌ Arquivo EAFC26.csv não encontrado.")
+                st.stop()
 
     df['Name'] = df['Name'].fillna('Jogador Sem Nome').astype(str)
     df['Team'] = df['Team'].fillna('Sem Clube').astype(str)
@@ -307,7 +310,6 @@ if page == "👤 Perfil":
         with col_sim_title:
             st.markdown("### 👥 Jogadores Parecidos")
 
-        # Inicializa o estado do filtro de similares se não existir
         if "sim_filter_mode" not in st.session_state:
             st.session_state["sim_filter_mode"] = "Todos"
 
