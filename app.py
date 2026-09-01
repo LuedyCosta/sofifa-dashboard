@@ -1119,13 +1119,10 @@ elif page_selection == "Formações":
 
     st.markdown("---")
 
-    # Lógica Dinâmica para adaptar os textos baseada no Build-Up Style selecionado
     base_tact_data = TACTICAL_DATABASE.get(selected_formation, TACTICAL_DATABASE["4-3-3 Holding"])
-    
-    # Cópia para mutação dinâmica sem alterar o dicionário global permanentemente
     tact_data = base_tact_data.copy()
     
-    style_keyword = selected_bu_style.split()[0] # Balanced, Short, Counter
+    style_keyword = selected_bu_style.split()[0]
     
     if style_keyword == "Short":
         tact_data['info'] = f"Com foco em circulação paciente e posse prolongada, o esquema {selected_formation} utiliza o estilo **Short Passing** para atrair a pressão rival e envolver blocos compactos através de triangulações curtas e seguras."
@@ -1137,7 +1134,7 @@ elif page_selection == "Formações":
         tact_data['pros'] = f"Rapidez impressionante para surpreender defesas desorganizadas antes que o adversário consiga recompor a linha de marcação."
         tact_data['cons'] = f"Deixa espaços consideráveis no meio-campo e nas costas dos alas/laterais caso o primeiro bote seja quebrado."
         tact_data['counter'] = f"Adote uma postura equilibrada, reforce a cobertura dos volantes e evite perder a bola no terço ofensivo sem retaguarda protegida."
-    else:  # Balanced
+    else:
         tact_data['info'] = f"O esquema {selected_formation} operando no estilo **Balanced** alterna organicamente entre a retenção prudente de bola e a busca inteligente pelos espaços vazios deixados pelo adversário."
         tact_data['pros'] = f"Grande flexibilidade tática, excelente ocupação de espaços e equilíbrio natural entre solidez e criação ofensiva."
         tact_data['cons'] = f"Exige rigor físico elevado e pode perder eficácia se enfrentado por blocos ultra-especializados (retranca total ou pressão sufocante)."
@@ -1148,10 +1145,9 @@ elif page_selection == "Formações":
     with col_pitch:
         st.markdown("#### ⚽ Painel Tático em Campo")
         
-        # Renderização do Campo de Futebol Estilizado no Plotly
         fig_pitch = go.Figure()
         
-        # Desenhar o gramado e linhas de campo
+        # Desenhar o gramado e linhas de campo com proporção corrigida
         fig_pitch.add_shape(type="rect", x0=0, y0=0, x1=100, y1=100, line=dict(color="#ffffff", width=2), fillcolor="#1b4d3e")
         fig_pitch.add_shape(type="line", x0=0, y0=50, x1=100, y1=50, line=dict(color="#ffffff", width=1.5, dash="dash"))
         fig_pitch.add_shape(type="circle", x0=40, y0=40, x1=60, y1=60, line=dict(color="#ffffff", width=1.5))
@@ -1173,11 +1169,11 @@ elif page_selection == "Formações":
         ))
         
         fig_pitch.update_layout(
-            xaxis=dict(range=[-5, 105], showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(range=[-5, 105], showgrid=False, zeroline=False, showticklabels=False),
+            xaxis=dict(range=[-10, 110], showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(range=[-10, 110], showgrid=False, zeroline=False, showticklabels=False, scaleanchor="x", scaleratio=0.68),
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            height=460,
+            height=480,
             margin=dict(l=10, r=10, t=10, b=10),
             showlegend=False
         )
@@ -1207,11 +1203,10 @@ elif page_selection == "Formações":
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("#### 🛡️ Estratégia de Combate")
-    st.markdown(f"""
-    <div class="tactical-card" style="border-left: 4px solid #f59e0b;">
-        <span style="color:#f59e0b; font-weight:bold; font-size: 1.05rem;">Como Jogar Contra este Esquema:</span><br>
-        <p style="color: #ffffff; font-size: 1rem; margin-top: 6px;">{tact_data['counter']}</p>
-    </div>
-    """, unsafe_allow_html=True)
+        # Estratégia de Combate reposicionada logo abaixo das informações da formação
+        st.markdown(f"""
+        <div class="tactical-card" style="border-left: 4px solid #f59e0b;">
+            <span style="color:#f59e0b; font-weight:bold; font-size: 1.05rem;">🛡️ Estratégia de Combate (Como Jogar Contra):</span><br>
+            <p style="color: #ffffff; font-size: 0.95rem; margin-top: 6px;">{tact_data['counter']}</p>
+        </div>
+        """, unsafe_allow_html=True)
