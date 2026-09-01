@@ -12,13 +12,6 @@ from perfil import renderizar_perfil
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS GLOBAIS
 # -----------------------------------------------------------------------------
-st.set_page_config(
-    page_title="SoFIFA & FC26 Dashboard",
-    page_icon="⚽",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 st.markdown("""
 <style>
     .stApp, .stApp > header {
@@ -30,8 +23,19 @@ st.markdown("""
         color: #ffffff !important;
         font-weight: 500 !important;
     }
-    .streamlit-expanderHeader { color: #ffffff !important; }
-    .stCheckbox label { color: #ffffff !important; }
+    
+    /* CORREÇÃO DA COR DAS ABAS DO STREAMLIT PARA O VERDE/CIANO DO DESIGN */
+    div[data-baseweb="tab-list"] button div[data-testid="stMarkdownContainer"] p {
+        color: #94a3b8 !important;
+    }
+    div[data-baseweb="tab-list"] button[aria-selected="true"] div[data-testid="stMarkdownContainer"] p {
+        color: #00ffcc !important;
+        font-weight: bold !important;
+    }
+    div[data-baseweb="tab-list"] button[aria-selected="true"] {
+        border-bottom-color: #00ffcc !important;
+    }
+    
     .var-text {
         color: #00ffcc !important;
         font-weight: bold;
@@ -52,6 +56,7 @@ st.markdown("""
         font-weight: 600 !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
         transition: all 0.3s ease !important;
+        width: 100% !important;
     }
     div[data-testid="stButton"] button:hover {
         background-color: #00ffcc !important;
@@ -62,10 +67,11 @@ st.markdown("""
     .profile-info-box, .similar-card, .tactical-card, .custom-box {
         background-color: #131b2e !important;
         border-radius: 12px !important;
-        padding: 20px !important;
+        padding: 16px !important;
         border: 1px solid rgba(0, 255, 204, 0.2) !important;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
-        margin-bottom: 20px !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
     }
     .similar-card {
         background-color: #0b0f19;
@@ -86,11 +92,11 @@ st.markdown("""
     .stat-box {
         display: flex;
         align-items: center;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
     .stat-badge {
-        width: 34px;
-        height: 25px;
+        width: 36px;
+        height: 26px;
         border-radius: 4px;
         display: inline-flex;
         align-items: center;
@@ -98,14 +104,15 @@ st.markdown("""
         font-weight: bold;
         font-size: 0.85rem;
         color: #ffffff !important;
-        margin-right: 8px;
+        margin-right: 10px;
+        flex-shrink: 0;
     }
     .stat-green { background-color: #10b981; }
     .stat-yellow { background-color: #f59e0b; }
     .stat-red { background-color: #ef4444; }
     .stat-label {
         color: #ffffff !important;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 </style>
 """, unsafe_allow_html=True)
