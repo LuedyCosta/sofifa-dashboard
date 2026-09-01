@@ -8,7 +8,7 @@ import ast
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="SoFIFA Dashboard",
+    page_title="SoFIFA & FC26 Dashboard",
     page_icon="⚽",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -126,11 +126,20 @@ st.markdown("""
         font-size: 0.8rem;
         color: #ffffff !important;
     }
+    
+    /* Cards de Conteúdo Tático */
+    .tactical-card {
+        background-color: #111111;
+        border: 1px solid #333333;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 15px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. MAPEAMENTO DOS GRUPOS
+# 2. MAPEAMENTO DOS GRUPOS E DADOS TÁTICOS
 # -----------------------------------------------------------------------------
 STAT_GROUPS = {
     'Ofensivo': {
@@ -180,6 +189,515 @@ STAT_GROUPS = {
         'Chute GL': 'GK Kicking',
         'Posicion. GL': 'GK Positioning',
         'Reflexos GL': 'GK Reflexes'
+    }
+}
+
+# Base de Conhecimento Tático Baseada no PDF Analítico do FC26
+TACTICAL_DATABASE = {
+    "3-1-4-2": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "O time usa a superioridade numérica central gerada pelos 4 meias e 2 atacantes para manter a posse curta, atraindo a pressão do adversário para o miolo do campo.",
+        "pros": "Triangulações constantes, extrema facilidade para manter a posse e envolver defesas fechadas.",
+        "cons": "Vulnerável a pressões sufocantes nas laterais, já que os alas precisam dar toda a largura sozinhos.",
+        "counter": "Feche o centro com um 4-2-3-1 compacto e force o adversário a tocar a bola para os alas, anulando a progressão pelo meio.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "CB", "x": 30, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 70, "y": 22},
+            {"pos": "CDM", "x": 50, "y": 40},
+            {"pos": "LM", "x": 15, "y": 55}, {"pos": "CM", "x": 38, "y": 52}, {"pos": "CM", "x": 62, "y": 52}, {"pos": "RM", "x": 85, "y": 55},
+            {"pos": "ST", "x": 40, "y": 85}, {"pos": "ST", "x": 60, "y": 85}
+        ]
+    },
+    "3-4-1-2": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Assim que a bola é recuperada pelos 3 zagueiros ou pelo ala, a equipe dispara em transição vertical fulminante em direção aos dois centroavantes e ao CAM.",
+        "pros": "Rapidez impressionante na transição ofensiva, gerando situações de superioridade numérica no ataque antes da defesa voltar.",
+        "cons": "Deixa buracos imensos no meio-campo caso o contra-ataque inicial seja interceptado.",
+        "counter": "Adote uma postura defensiva equilibrada e recue os volantes para cobrir o espaço vazio deixado nas costas dos alas adversários.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "CB", "x": 30, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 70, "y": 22},
+            {"pos": "LM", "x": 15, "y": 52}, {"pos": "CM", "x": 38, "y": 48}, {"pos": "CM", "x": 62, "y": 48}, {"pos": "RM", "x": 85, "y": 52},
+            {"pos": "CAM", "x": 50, "y": 70},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "3-4-2-1": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Os dois meias ofensivos (CFs) flutuam inteligentemente enquanto a equipe alterna entre manter a posse e buscar o espaço vazio de forma natural.",
+        "pros": "Grande imprevisibilidade ofensiva e excelente ocupação da entrelinha adversária.",
+        "cons": "Exige alto vigor físico dos alas e pode sofrer defensivamente contra pontas velozes.",
+        "counter": "Use laterais e pontas abertos (como em um 4-3-3) para esticar a linha defensiva de 3 zagueiros pelos lados.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "CB", "x": 30, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 70, "y": 22},
+            {"pos": "LM", "x": 15, "y": 52}, {"pos": "CM", "x": 38, "y": 48}, {"pos": "CM", "x": 62, "y": 48}, {"pos": "RM", "x": 85, "y": 52},
+            {"pos": "CF", "x": 35, "y": 78}, {"pos": "CF", "x": 65, "y": 78},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "3-4-3": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Os pontas abertos ficam esticados no campo defensivo rival esperando o lançamento longo ou a enfiada de bola rápida após o roubo.",
+        "pros": "Potencial letal em contra-ataques verticais com pontas disparando em velocidade máxima.",
+        "cons": "Meio-campo extremamente vulnerável ao controle de posse de adversários organizados.",
+        "counter": "Tenha volantes com instruções de cobertura defensiva rigorosa e não suba os dois laterais ao mesmo tempo.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "CB", "x": 30, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 70, "y": 22},
+            {"pos": "LM", "x": 15, "y": 52}, {"pos": "CM", "x": 38, "y": 48}, {"pos": "CM", "x": 62, "y": 48}, {"pos": "RM", "x": 85, "y": 52},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "3-4-3 Diamond": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Variação do 3-4-3 com meias em formato de losango no centro e pontas agudos no ataque.",
+        "pros": "Excelente equilíbrio entre largura nas pontas e transição rápida central.",
+        "cons": "Espaço considerável nas costas dos alas quando a pressão é quebrada.",
+        "counter": "Domine o meio-campo com superioridade numérica e bloqueie os corredores laterais.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "CB", "x": 30, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 70, "y": 22},
+            {"pos": "CDM", "x": 50, "y": 38}, {"pos": "LM", "x": 15, "y": 55}, {"pos": "RM", "x": 85, "y": 55}, {"pos": "CAM", "x": 50, "y": 68},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 92}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "3-4-3 Flat": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Linha tradicional de 4 meias planos com 3 atacantes abertos.",
+        "pros": "Amplitude máxima e chegada rápida ao terço final.",
+        "cons": "Menor densidade central defensiva.",
+        "counter": "Feche as linhas com um bloco compacto e use volantes focados em interceptação.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "CB", "x": 30, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 70, "y": 22},
+            {"pos": "LM", "x": 15, "y": 52}, {"pos": "CM", "x": 38, "y": 50}, {"pos": "CM", "x": 62, "y": 50}, {"pos": "RM", "x": 85, "y": 52},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "3-5-1-1": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Foco absoluto em dominar o ritmo da partida através da circulação de bola no miolo de campo com 5 meio-campistas.",
+        "pros": "Controle territorial impecável e baixa incidência de erros de passe não forçados.",
+        "cons": "O único centroavante pode ficar isolado se o adversário fechar bem a entrada da área.",
+        "counter": "Mantenha uma linha defensiva compacta e não dê espaço para o segundo atacante (CF/CAM) girar na intermediária.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "CB", "x": 30, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 70, "y": 22},
+            {"pos": "LM", "x": 15, "y": 52}, {"pos": "CM", "x": 35, "y": 48}, {"pos": "CDM", "x": 50, "y": 38}, {"pos": "CM", "x": 65, "y": 48}, {"pos": "RM", "x": 85, "y": 52},
+            {"pos": "CF", "x": 50, "y": 75},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "3-5-2": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "O esquema clássico de 3 zagueiros com dupla de ataque que equilibra transições e construção de jogadas de forma orgânica.",
+        "pros": "Solidez central e presença constante de gente tanto no meio quanto na área adversária.",
+        "cons": "As costas dos alas são corredores livres para pontas rápidos do adversário.",
+        "counter": "Explore os flancos com alas ou pontas velozes para forçar os zagueiros laterais a saírem da linha de 3.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "CB", "x": 30, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 70, "y": 22},
+            {"pos": "LM", "x": 15, "y": 55}, {"pos": "CDM", "x": 40, "y": 42}, {"pos": "CDM", "x": 60, "y": 42}, {"pos": "RM", "x": 85, "y": 55},
+            {"pos": "CAM", "x": 50, "y": 68},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "4-1-2-1-2 Narrow": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "O famoso 'losango fechado' potencializado pelo toque curto, criando uma teia de passes na zona central do campo.",
+        "pros": "Domínio absoluto do centro e tabelas mortais entre o CAM e a dupla de atacantes.",
+        "cons": "Totalmente nulo nas extremidades do campo; sofre demais com jogadas de linha de fundo.",
+        "counter": "Jogue com uma formação aberta (como 4-3-3 Wide ou 4-4-2) e explore os corredores laterais onde o adversário não tem jogadores de origem.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 50, "y": 38},
+            {"pos": "CM", "x": 35, "y": 52}, {"pos": "CM", "x": 65, "y": 52},
+            {"pos": "CAM", "x": 50, "y": 70},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "4-1-2-1-2 Wide": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Corrige a falta de largura do losango fechado adicionando meias abertos que participam da construção equilibrada.",
+        "pros": "Mantém a força central do losango com maior proteção e opções de cruzamento pelas pontas.",
+        "cons": "Exige que os meias laterais tenham estamina infinita para fechar por dentro e cobrir as pontas.",
+        "counter": "Asfixie o único volante defensivo do adversário com dois meias centrais, cortando a conexão entre a defesa e o CAM.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 50, "y": 38},
+            {"pos": "LM", "x": 15, "y": 58}, {"pos": "RM", "x": 85, "y": 58},
+            {"pos": "CAM", "x": 50, "y": 70},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "4-1-3-2": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Uma linha de 3 meias compacta que recupera a bola e aciona imediatamente os dois atacantes em velocidade vertiginosa.",
+        "pros": "Transições ofensivas diretas, pegando o adversário desorganizado no campo de ataque.",
+        "cons": "O único volante pode ser facilmente superado por tabelas rápidas pelo centro.",
+        "counter": "Use um meio-campo com superioridade numérica central (como 4-3-3 Holding) para neutralizar a linha de 3 armadores.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 50, "y": 38},
+            {"pos": "LM", "x": 20, "y": 58}, {"pos": "CAM", "x": 50, "y": 62}, {"pos": "RM", "x": 80, "y": 58},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "4-1-4-1": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Bloco defensivo ultra-compacto de 4 homens no meio com foco em posse de bola paciente e segura.",
+        "pros": "Impossível de ser infiltrado pelo centro; excelente para segurar resultados.",
+        "cons": "Extrema falta de presença de jogadores na área adversária (apenas 1 atacante).",
+        "counter": "Avance sua linha defensiva e pressione a saída de bola para forçar o erro do único volante adversário.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 50, "y": 38},
+            {"pos": "LM", "x": 15, "y": 60}, {"pos": "CM", "x": 38, "y": 55}, {"pos": "CM", "x": 62, "y": 55}, {"pos": "RM", "x": 85, "y": 60},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "4-2-1-3": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Duplo pivô seguro na base e um trio de frente dinâmico conectado por um CAM criativo.",
+        "pros": "Equilíbrio perfeito entre solidez defensiva e poder de fogo nas pontas.",
+        "cons": "Se o CAM se desgastar, o time perde o elo de ligação com o centroavante.",
+        "counter": "Monitore rigorosamente os movimentos do CAM adversário e feche as diagonais dos pontas com os laterais.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 38, "y": 42}, {"pos": "CDM", "x": 62, "y": 42},
+            {"pos": "CAM", "x": 50, "y": 65},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "4-2-2-2": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Os dois meias ofensivos fechados e os dois atacantes disparam em contra-ataques fulminantes apoiados pelo duplo pivô.",
+        "pros": "Perigoso em transições rápidas e muito seguro defensivamente pelo miolo central.",
+        "cons": "Jogo previsível e fechado se o adversário optar por se retrancar.",
+        "counter": "Jogue com laterais bem postados e evite perder a bola no campo ofensivo sem cobertura na retaguarda.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 38, "y": 42}, {"pos": "CDM", "x": 62, "y": 42},
+            {"pos": "CAM", "x": 35, "y": 68}, {"pos": "CAM", "x": 65, "y": 68},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "4-2-3-1 Narrow": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "O ápice do controle de jogo tático: posse de bola paciente, circulação segura pelo duplo pivô e construção metódica.",
+        "pros": "Controle total do ritmo da partida, baixíssimo índice de exposição defensiva.",
+        "cons": "Pode se tornar enfadonho ou estéril se o adversário fechar todas as linhas de passe na entrada da área.",
+        "counter": "Mantenha linhas muito baixas e compactas (bloco baixo), impedindo infiltrações e apostando em roubadas de bola para contra-atacar.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 38, "y": 42}, {"pos": "CDM", "x": 62, "y": 42},
+            {"pos": "LAM", "x": 25, "y": 70}, {"pos": "CAM", "x": 50, "y": 72}, {"pos": "RAM", "x": 75, "y": 70},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "4-2-3-1 Wide": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Variação do 4-2-3-1 com alas de origem aberta pelas pontas ao invés de meias ofensivos centralizados.",
+        "pros": "Melhor cobertura das pontas defensivas e ofensivas mantendo a solidez do duplo pivô.",
+        "cons": "Menor densidade central comparado à versão Narrow.",
+        "counter": "Controle o centro do campo com um trio de meias e explore a lentidão na transição dos pontas adversários.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 38, "y": 42}, {"pos": "CDM", "x": 62, "y": 42},
+            {"pos": "LM", "x": 15, "y": 70}, {"pos": "CAM", "x": 50, "y": 70}, {"pos": "RM", "x": 85, "y": 70},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "4-2-4": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "O estilo kamikaze do jogo: quatro homens fixos no ataque esperando o bote para acelerar ao máximo rumo ao gol.",
+        "pros": "Sufoca a saída de bola do adversário e gera muitas chances claras de gol rapidamente.",
+        "cons": "O meio-campo fica totalmente despovoado, facilitando o domínio total do rival no setor.",
+        "counter": "Simplesmente controle a posse de bola no meio-campo com uma formação densa (como 4-3-3 Holding ou 3-5-2); o adversário correrá atrás da bola e se desgastará.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CM", "x": 38, "y": 48}, {"pos": "CM", "x": 62, "y": 48},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 40, "y": 90}, {"pos": "ST", "x": 60, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "4-3-1-2": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Triangulações incessantes por dentro com foco em envolver a zaga rival através de passes curtos e infiltrações do CAM.",
+        "pros": "Envolvimento técnico excelente e superioridade no terço final central.",
+        "cons": "Totalmente vulnerável a equipes que atacam pelas pontas.",
+        "counter": "Explore os corredores laterais com pontas rápidos e cruzamentos para a área.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CM", "x": 30, "y": 48}, {"pos": "CDM", "x": 50, "y": 40}, {"pos": "CM", "x": 70, "y": 48},
+            {"pos": "CAM", "x": 50, "y": 68},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "4-3-2-1": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "A formação meta por excelência, combinando os dois CFs e o ST em uma movimentação fluida e equilibrada.",
+        "pros": "Quebra qualquer linha defensiva com tabelas rápidas e infiltrações surpresa pelo meio-espaço.",
+        "cons": "Exige mecânicas manuais refinadas e posicionamento impecável dos laterais.",
+        "counter": "Utilize marcação por zona rigorosa com volantes focados em cortar a linha de passe para os dois meias avançados.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CM", "x": 28, "y": 48}, {"pos": "CM", "x": 50, "y": 42}, {"pos": "CM", "x": 72, "y": 48},
+            {"pos": "CF", "x": 35, "y": 75}, {"pos": "CF", "x": 65, "y": 75},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "4-3-3 Flat": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "A base do futebol mundial adaptada ao FC 26, focando em largura com pontas e solidez de trio de meio plano.",
+        "pros": "Geometria perfeita de campo, oferecendo opções de passes curtos e compridos em todas as direções.",
+        "cons": "Se o estilo for rígido demais, perde flexibilidade contra esquemas superpopulosos no meio.",
+        "counter": "Espelhe a formação ou utilize um 4-2-3-1 para neutralizar os criadores de jogadas no setor central.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CM", "x": 30, "y": 48}, {"pos": "CM", "x": 50, "y": 45}, {"pos": "CM", "x": 70, "y": 48},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "4-3-3 Holding": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Variação defensiva do 4-3-3 com um volante fixo protegendo a zaga e dois meias interiores armando o jogo.",
+        "pros": "Excelente equilíbrio na transição defensiva e proteção contra contra-ataques.",
+        "cons": "Pode pecar em volume ofensivo caso os meias interiores não avancem com frequência.",
+        "counter": "Pressione a saída de bola do volante central e mantenha a linha defensiva concentrada.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 50, "y": 38},
+            {"pos": "CM", "x": 35, "y": 55}, {"pos": "CM", "x": 65, "y": 55},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "4-3-3 Defend": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Possui dois volantes na base do meio-campo e um meia central avançado.",
+        "pros": "Muro defensivo formidável sem perder o poder de fogo dos pontas.",
+        "cons": "Pouca criatividade caso o único meia central seja neutralizado.",
+        "counter": "Feche os espaços centrais e deixe o adversário circular a bola sem perigo nas alas.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 38, "y": 42}, {"pos": "CDM", "x": 62, "y": 42},
+            {"pos": "CM", "x": 50, "y": 58},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "4-3-3 Attack": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Possui um volante e dois meias ofensivos (CAMs) logo atrás do trio de ataque.",
+        "pros": "Poder ofensivo avassalador com muitos jogadores chegando na área.",
+        "cons": "Extremamente vulnerável a contra-ataques rápidos nas costas dos meias.",
+        "counter": "Atacar com velocidade pelos espaços deixados pelos meias ofensivos ao subirem.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CDM", "x": 50, "y": 38},
+            {"pos": "CAM", "x": 35, "y": 62}, {"pos": "CAM", "x": 65, "y": 62},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "4-3-3 False 9": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "O centroavante recua para armar o jogo, criando caos na linha defensiva adversária.",
+        "pros": "Imprevisibilidade total na movimentação do ataque e superioridade no meio.",
+        "cons": "Falta um homem de referência fixa dentro da pequena área.",
+        "counter": "Não siga o centroavante quando ele recuar; mantenha a linha de zaga firme e compacta.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "CM", "x": 30, "y": 48}, {"pos": "CM", "x": 50, "y": 42}, {"pos": "CM", "x": 70, "y": 48},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "CF", "x": 50, "y": 72}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "4-4-1-1 Attack": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Duas linhas de 4 sólidas com um segundo atacante (CF) muito ativo logo atrás do centroavante.",
+        "pros": "Excelente organização defensiva com ótima ocupação de espaços.",
+        "cons": "Pode faltar profundidade caso os pontas/meias laterais não acompanhem.",
+        "counter": "Utilize meias criativos que flutuem entre as duas linhas de 4.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "LM", "x": 15, "y": 55}, {"pos": "CM", "x": 38, "y": 50}, {"pos": "CM", "x": 62, "y": 50}, {"pos": "RM", "x": 85, "y": 55},
+            {"pos": "CF", "x": 50, "y": 75},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "4-4-1-1 Midfield": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Variação voltada para a contenção e posse no meio-campo com o segundo atacante mais recuado.",
+        "pros": "Controle absoluto do ritmo e consistência defensiva alta.",
+        "cons": "Transição ofensiva mais lenta e dependente de lampejos.",
+        "counter": "Acelere o ritmo da partida e force erros na saída de bola.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "LM", "x": 15, "y": 55}, {"pos": "CM", "x": 38, "y": 50}, {"pos": "CM", "x": 62, "y": 50}, {"pos": "RM", "x": 85, "y": 55},
+            {"pos": "CAM", "x": 50, "y": 70},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "4-4-2 Flat": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Duas linhas de quatro compactas aliadas a uma dupla de ataque clássica, priorizando transições organizadas e solidez.",
+        "pros": "Altamente intuitiva, segura e excelente para manter o bloco defensivo uníssono.",
+        "cons": "Pode sofrer contra o toque de bola refinado de equipes com 3 ou mais meias centrais.",
+        "counter": "Supere o meio-campo adversário utilizando jogadores que saibam flutuar entre as linhas (como um CAM ágil).",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "LM", "x": 15, "y": 55}, {"pos": "CM", "x": 38, "y": 52}, {"pos": "CM", "x": 62, "y": 52}, {"pos": "RM", "x": 85, "y": 55},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "4-4-2 Holding": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Variação da linha de 4 com maior foco na proteção defensiva central dos meias centrais.",
+        "pros": "Maior contenção de jogadas pelo meio mantendo o esquema clássico de dois atacantes.",
+        "cons": "Menor liberdade criativa para os meias centrais.",
+        "counter": "Explore as laterais com ultrapassagens rápidas.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "LM", "x": 15, "y": 55}, {"pos": "CDM", "x": 38, "y": 48}, {"pos": "CDM", "x": 62, "y": 48}, {"pos": "RM", "x": 85, "y": 55},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "4-5-1 Attack": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Retenção máxima de bola com 5 homens no meio-campo, sufocando o adversário pela posse prolongada.",
+        "pros": "Impossível de roubar a bola facilmente se o jogador souber trocar passes com paciência.",
+        "cons": "Lentidão crônica nas transições ofensivas e isolamento do centroavante.",
+        "counter": "Mantenha a calma, não dê botes precipitados na intermediária e aguarde o erro de aproximação do adversário.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "LM", "x": 15, "y": 58}, {"pos": "CAM", "x": 35, "y": 62}, {"pos": "CDM", "x": 50, "y": 42}, {"pos": "CAM", "x": 65, "y": 62}, {"pos": "RM", "x": 85, "y": 58},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "4-5-1 Flat": {
+        "default_style": "Short Passing (Toque Curto)",
+        "info": "Linha compacta de 5 meias planos com 1 atacante isolado.",
+        "pros": "Densidade defensiva intransponível no setor intermediário.",
+        "cons": "Pouquíssima presença na área rival.",
+        "counter": "Avance as linhas e force cruzamentos de longa distância.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LB", "x": 15, "y": 25}, {"pos": "CB", "x": 38, "y": 20}, {"pos": "CB", "x": 62, "y": 20}, {"pos": "RB", "x": 85, "y": 25},
+            {"pos": "LM", "x": 15, "y": 55}, {"pos": "CM", "x": 32, "y": 52}, {"pos": "CM", "x": 50, "y": 50}, {"pos": "CM", "x": 68, "y": 52}, {"pos": "RM", "x": 85, "y": 55},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "5-1-2-2": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Sistemas defensivos pesados focados em fechar completamente a própria área e disparar em contra-ataques rápidos com os alas e atacantes.",
+        "pros": "Linha defensiva praticamente intransponível por bolas enfiadas terrestres; solidez extrema.",
+        "cons": "Ofensivamente pobres se jogados estritamente na retranca; podem sofrer com chutes de longa distância.",
+        "counter": "Arrisque chutes de fora da área com jogadores que possuem PlayStyles adequados, utilize cruzamentos na medida e mantenha a paciência.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LWB", "x": 10, "y": 38}, {"pos": "CB", "x": 28, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 72, "y": 22}, {"pos": "RWB", "x": 90, "y": 38},
+            {"pos": "CDM", "x": 50, "y": 42},
+            {"pos": "CM", "x": 38, "y": 58}, {"pos": "CM", "x": 62, "y": 58},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "5-2-1-2": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Linha de 5 defensiva com duplo pivô e um CAM articulando o jogo para a dupla de ataque.",
+        "pros": "Segurança defensiva impecável com ótima ligação central.",
+        "cons": "Exige alas com muita capacidade física para apoiar o ataque e voltar.",
+        "counter": "Pressione a saída pelos flancos e obrigue os alas a se defenderem o tempo todo.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LWB", "x": 10, "y": 38}, {"pos": "CB", "x": 28, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 72, "y": 22}, {"pos": "RWB", "x": 90, "y": 38},
+            {"pos": "CDM", "x": 38, "y": 45}, {"pos": "CDM", "x": 62, "y": 45},
+            {"pos": "CAM", "x": 50, "y": 68},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "5-2-2-1": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Linha de 5 com dois alas, dois meias centrais e um trio de ataque rápido.",
+        "pros": "Contra-ataques mortais com pontas e ala disparando em velocidade.",
+        "cons": "Meio-campo pode sofrer contra equipes que dominam a posse.",
+        "counter": "Mantenha posse paciente e não perca a bola no campo de ataque sem cobertura.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LWB", "x": 10, "y": 38}, {"pos": "CB", "x": 28, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 72, "y": 22}, {"pos": "RWB", "x": 90, "y": 38},
+            {"pos": "CM", "x": 38, "y": 50}, {"pos": "CM", "x": 62, "y": 50},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "5-2-3": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Formação ultra defensiva com trio ofensivo fixo nas pontas.",
+        "pros": "Três atacantes sempre prontos para puxar o contra-ataque em velocidade.",
+        "cons": "Buraco criativo no meio-campo entre a defesa e o ataque.",
+        "counter": "Domine o meio-campo com superioridade numérica absoluta.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LWB", "x": 10, "y": 38}, {"pos": "CB", "x": 28, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 72, "y": 22}, {"pos": "RWB", "x": 90, "y": 38},
+            {"pos": "CM", "x": 38, "y": 48}, {"pos": "CM", "x": 62, "y": 48},
+            {"pos": "LW", "x": 20, "y": 85}, {"pos": "ST", "x": 50, "y": 90}, {"pos": "RW", "x": 80, "y": 85}
+        ]
+    },
+    "5-3-2": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Linha defensiva de 5 encorpada com trio de meio-campo e dupla de ataque.",
+        "pros": "Solidez defensiva máxima sem abdicar de ter duas referências na frente.",
+        "cons": "Pouca criatividade nas pontas sem alas muito dinâmicos.",
+        "counter": "Explore as costas dos alas defensivos com pontas velozes.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LWB", "x": 10, "y": 38}, {"pos": "CB", "x": 28, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 72, "y": 22}, {"pos": "RWB", "x": 90, "y": 38},
+            {"pos": "CM", "x": 30, "y": 52}, {"pos": "CDM", "x": 50, "y": 45}, {"pos": "CM", "x": 70, "y": 52},
+            {"pos": "ST", "x": 40, "y": 88}, {"pos": "ST", "x": 60, "y": 88}
+        ]
+    },
+    "5-4-1 Flat": {
+        "default_style": "Counter (Contra-Ataque)",
+        "info": "Retranca clássica com duas linhas de 4 e 5 muito compactas e um atacante isolado.",
+        "pros": "Quase impossível de ser penetrada pelo centro.",
+        "cons": "Nenhum poder ofensivo real sem contra-ataques encaixados.",
+        "counter": "Chutes de longa distância, paciência e cruzamentos altos.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LWB", "x": 10, "y": 38}, {"pos": "CB", "x": 28, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 72, "y": 22}, {"pos": "RWB", "x": 90, "y": 38},
+            {"pos": "LM", "x": 15, "y": 58}, {"pos": "CM", "x": 38, "y": 55}, {"pos": "CM", "x": 62, "y": 55}, {"pos": "RM", "x": 85, "y": 58},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
+    },
+    "5-4-1 Diamond": {
+        "default_style": "Balanced (Equilibrado)",
+        "info": "Variação da linha de 5 com meio-campo em formato losango compactado.",
+        "pros": "Proteção lateral e central equilibrada com apoio no ataque.",
+        "cons": "Exige extremo rigor tático para não abrir espaços.",
+        "counter": "Inverta o jogo rapidamente de um lado para o outro para cansar a defesa.",
+        "coords": [
+            {"pos": "GK", "x": 50, "y": 5},
+            {"pos": "LWB", "x": 10, "y": 38}, {"pos": "CB", "x": 28, "y": 22}, {"pos": "CB", "x": 50, "y": 20}, {"pos": "CB", "x": 72, "y": 22}, {"pos": "RWB", "x": 90, "y": 38},
+            {"pos": "CDM", "x": 50, "y": 42}, {"pos": "LM", "x": 20, "y": 58}, {"pos": "RM", "x": 80, "y": 58}, {"pos": "CAM", "x": 50, "y": 70},
+            {"pos": "ST", "x": 50, "y": 90}
+        ]
     }
 }
 
@@ -234,7 +752,6 @@ def render_stat_item(label, value):
 
 def find_similar_players(df, target_player, top_n=3, regens_only=False):
     gender = target_player.get('GENDER', 'M')
-    
     cond = (df['GENDER'] == gender) & (df['Name'] != target_player['Name'])
     
     if regens_only:
@@ -245,7 +762,6 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
         return candidates
 
     stat_cols = ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age']
-    
     target_vec = np.array([get_val(target_player, col, 50) for col in stat_cols], dtype=float)
     cand_vecs = candidates[stat_cols].apply(pd.to_numeric, errors='coerce').fillna(50).to_numpy(dtype=float)
 
@@ -253,7 +769,6 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
     std_vec = np.where((np.isnan(std_vec)) | (std_vec == 0), 1.0, std_vec)
 
     dist = np.linalg.norm((cand_vecs - target_vec) / std_vec, axis=1)
-
     target_pos = str(target_player['Position'])
     pos_penalty = np.where(candidates['Position'] == target_pos, 0.0, 1.2)
 
@@ -273,369 +788,409 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
             return 1.0
 
     style_penalties = candidates['play style'].apply(style_dist).to_numpy(dtype=float) * 1.0
-
     candidates['similarity_score'] = dist + pos_penalty + style_penalties
     return candidates.sort_values('similarity_score').head(top_n)
 
 # -----------------------------------------------------------------------------
-# 4. BARRA LATERAL
+# 4. BARRA LATERAL E NAVEGAÇÃO ENTRE PÁGINAS
 # -----------------------------------------------------------------------------
 st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
-st.sidebar.title("⚽ Dashboard SoFIFA")
+st.sidebar.title("⚽ Dashboard FC26")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Navegação")
-st.sidebar.markdown("👤 **Perfil Detalhado**")
+
+page_selection = st.sidebar.radio("Ir para:", ["Perfil Detalhado", "Formações"])
 
 df = df_raw.copy()
 
 # -----------------------------------------------------------------------------
-# 5. PÁGINA PERFIL (ÚNICA PÁGINA ATIVA)
+# 5. PÁGINA 1: PERFIL DETALHADO
 # -----------------------------------------------------------------------------
-st.title("👤 Perfil Detalhado")
+if page_selection == "Perfil Detalhado":
+    st.title("👤 Perfil Detalhado")
 
-# SELETOR DE JOGADOR ("QUEM") EM CIMA PARA DEFINIR O JOGADOR ATIVO PRIMEIRO
-col_quem, _ = st.columns([1, 2])
-player_list = sorted(df['Name'].unique().tolist())
-default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
+    col_quem, _ = st.columns([1, 2])
+    player_list = sorted(df['Name'].unique().tolist())
+    default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
 
-with col_quem:
-    target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
+    with col_quem:
+        target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
 
-p = df[df['Name'] == target_player_name].iloc[0]
+    p = df[df['Name'] == target_player_name].iloc[0]
 
-# --- BLOCO PRINCIPAL (PRIMEIRO NO MOBILE) ---
-play_styles_raw = str(p.get('play style', '[]'))
-try:
-    play_styles = ast.literal_eval(play_styles_raw)
-    if not isinstance(play_styles, list):
+    play_styles_raw = str(p.get('play style', '[]'))
+    try:
+        play_styles = ast.literal_eval(play_styles_raw)
+        if not isinstance(play_styles, list):
+            play_styles = []
+    except:
         play_styles = []
-except:
-    play_styles = []
 
-perna_boa = "Esq." if p.get('Preferred foot', 'Right') == 'Left' else "Dir."
-fintas = p.get('Skill moves', 2)
-perna_ruim = p.get('Weak foot', 2)
-rep_int = p.get('Rank', 1)
+    perna_boa = "Esq." if p.get('Preferred foot', 'Right') == 'Left' else "Dir."
+    fintas = p.get('Skill moves', 2)
+    perna_ruim = p.get('Weak foot', 2)
+    rep_int = p.get('Rank', 1)
 
-c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
+    c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
 
-with c_face:
-    card_img = p.get('card', '')
-    if pd.notna(card_img) and str(card_img).startswith("http"):
-        st.image(card_img, width=140)
-    else:
-        st.image("https://cdn.sofifa.net/player_0.png", width=130)
+    with c_face:
+        card_img = p.get('card', '')
+        if pd.notna(card_img) and str(card_img).startswith("http"):
+            st.image(card_img, width=140)
+        else:
+            st.image("https://cdn.sofifa.net/player_0.png", width=130)
 
-with c_info:
-    st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
-    st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
-    st.markdown(f"**Posição:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
-    st.markdown(f"**Overall:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
+    with c_info:
+        st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
+        st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
+        st.markdown(f"**Posição:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
+        st.markdown(f"**Overall:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
-with c_details:
-    st.markdown(f"""
-    <div class="profile-info-box">
-        <div style="display: flex; justify-content: space-between;">
-            <div>
-                <strong style="color:#ffffff;">Perfil</strong><br>
-                <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
-                <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
-                <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
-                <span>Rank: <b class="var-text">#{rep_int}</b></span>
-            </div>
-            <div>
-                <strong style="color:#ffffff;">Atributos Globais</strong><br>
-                <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
-                <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
-                <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
-                <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
-                <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
-                <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
-            </div>
-            <div>
-                <strong style="color:#ffffff;">Clube</strong><br>
-                <span><b class="var-text">{p['Team']}</b></span><br>
-                <span>Posição <b class="var-text">{p['Position']}</b></span>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("---")
-
-# --- SEGUNDO BLOCO: JOGADORES PARECIDOS ---
-col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
-with col_sim_title:
-    st.markdown("### 👥 Jogadores Parecidos")
-
-if "sim_filter_mode" not in st.session_state:
-    st.session_state["sim_filter_mode"] = "Todos"
-
-with col_btn_todos:
-    if st.button("Todos", use_container_width=True):
-        st.session_state["sim_filter_mode"] = "Todos"
-with col_btn_regen:
-    if st.button("Regen", use_container_width=True):
-        st.session_state["sim_filter_mode"] = "Regen"
-
-is_regens = (st.session_state["sim_filter_mode"] == "Regen")
-similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
-
-sim_cols = st.columns(3)
-if not similar_df.empty:
-    for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
-        with sim_cols[idx]:
-            try:
-                s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
-                styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
-            except:
-                styles_txt = "Padrão"
-
-            st.markdown(f"""
-            <div class="similar-card">
-                <div class="similar-name">⚽ {sim_p['Name']}</div>
-                <div class="similar-meta">
-                    <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
-                    <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
-                    <span style="color:#a3a3a3; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
+    with c_details:
+        st.markdown(f"""
+        <div class="profile-info-box">
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <strong style="color:#ffffff;">Perfil</strong><br>
+                    <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
+                    <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
+                    <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
+                    <span>Rank: <b class="var-text">#{rep_int}</b></span>
+                </div>
+                <div>
+                    <strong style="color:#ffffff;">Atributos Globais</strong><br>
+                    <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
+                    <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
+                    <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
+                    <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
+                    <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
+                    <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
+                </div>
+                <div>
+                    <strong style="color:#ffffff;">Clube</strong><br>
+                    <span><b class="var-text">{p['Team']}</b></span><br>
+                    <span>Posição <b class="var-text">{p['Position']}</b></span>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
-else:
-    st.info("Nenhum jogador semelhante encontrado com esses critérios.")
+        </div>
+        """, unsafe_allow_html=True)
 
-st.markdown("---")
+    st.markdown("---")
 
-# 2. INDICADORES DE PERFORMANCE E COMPARAÇÃO
-all_stat_keys = []
-for g_name, g_stats in STAT_GROUPS.items():
-    for stat_label in g_stats.keys():
-        all_stat_keys.append(f"chk_{g_name}_{stat_label}")
+    col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
+    with col_sim_title:
+        st.markdown("### 👥 Jogadores Parecidos")
 
-def select_all_stats():
-    for k in all_stat_keys:
-        st.session_state[k] = True
+    if "sim_filter_mode" not in st.session_state:
+        st.session_state["sim_filter_mode"] = "Todos"
 
-def deselect_all_stats():
-    for k in all_stat_keys:
-        st.session_state[k] = False
+    with col_btn_todos:
+        if st.button("Todos", use_container_width=True):
+            st.session_state["sim_filter_mode"] = "Todos"
+    with col_btn_regen:
+        if st.button("Regen", use_container_width=True):
+            st.session_state["sim_filter_mode"] = "Regen"
 
-# Regras de sugestão de atributos por posição
-POSITION_SUGGESTIONS = {
-    'ST': ['Finalização', 'Pos. ataque', 'Aceleração', 'Pique', 'Força chute', 'Compostura'],
-    'CF': ['Finalização', 'Dribles', 'Controle bola', 'Visão de jogo', 'Pos. ataque', 'Agilidade'],
-    'LW': ['Aceleração', 'Pique', 'Dribles', 'Agilidade', 'Cruzamento', 'Finalização'],
-    'RW': ['Aceleração', 'Pique', 'Dribles', 'Agilidade', 'Cruzamento', 'Finalização'],
-    'LM': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Passe curto', 'Dribles'],
-    'RM': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Passe curto', 'Dribles'],
-    'CAM': ['Visão de jogo', 'Passe curto', 'Lançamento', 'Dribles', 'Controle bola', 'Compostura'],
-    'CM': ['Passe curto', 'Lançamento', 'Visão de jogo', 'Fôlego', 'Reação', 'Combatividade'],
-    'CDM': ['Intercept.', 'Hab. defensiva', 'Dividida pé', 'Combatividade', 'Fôlego', 'Força'],
-    'CB': ['Hab. defensiva', 'Dividida pé', 'Prec. Cabeceio', 'Força', 'Combatividade', 'Intercept.'],
-    'LB': ['Aceleração', 'Pique', 'Cruzamento', 'Hab. defensiva', 'Dividida pé', 'Fôlego'],
-    'RB': ['Aceleração', 'Pique', 'Cruzamento', 'Hab. defensiva', 'Dividida pé', 'Fôlego'],
-    'LWB': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Hab. defensiva', 'Dividida pé'],
-    'RWB': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Hab. defensiva', 'Dividida pé'],
-    'GK': ['Elasticidade GL', 'Manejo GL', 'Chute GL', 'Posicion. GL', 'Reflexos GL', 'Reação']
-}
+    is_regens = (st.session_state["sim_filter_mode"] == "Regen")
+    similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
 
-def suggest_stats():
-    # Desmarca tudo primeiro
-    for k in all_stat_keys:
-        st.session_state[k] = False
-    
-    pos = str(p.get('Position', 'CM')).upper()
-    # Pega os atributos recomendados para a posição (ou fallback para CM caso não encontre)
-    suggested_list = POSITION_SUGGESTIONS.get(pos, POSITION_SUGGESTIONS['CM'])
-    
+    sim_cols = st.columns(3)
+    if not similar_df.empty:
+        for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
+            with sim_cols[idx]:
+                try:
+                    s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
+                    styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
+                except:
+                    styles_txt = "Padrão"
+
+                st.markdown(f"""
+                <div class="similar-card">
+                    <div class="similar-name">⚽ {sim_p['Name']}</div>
+                    <div class="similar-meta">
+                        <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
+                        <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
+                        <span style="color:#a3a3a3; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.info("Nenhum jogador semelhante encontrado com esses critérios.")
+
+    st.markdown("---")
+
+    all_stat_keys = []
     for g_name, g_stats in STAT_GROUPS.items():
         for stat_label in g_stats.keys():
-            if stat_label in suggested_list:
-                st.session_state[f"chk_{g_name}_{stat_label}"] = True
+            all_stat_keys.append(f"chk_{g_name}_{stat_label}")
 
-c_title, c_btn1, c_btn2, c_btn3 = st.columns([2.2, 1.1, 1.1, 1.1])
-with c_title:
-    st.markdown("### 2 · Indicadores de Performance")
-with c_btn1:
-    st.button("✅ Marcar Todos", on_click=select_all_stats, use_container_width=True)
-with c_btn2:
-    st.button("❌ Desmarcar", on_click=deselect_all_stats, use_container_width=True)
-with c_btn3:
-    st.button("💡 Sugestão", on_click=suggest_stats, use_container_width=True)
+    def select_all_stats():
+        for k in all_stat_keys:
+            st.session_state[k] = True
 
-selected_stats_map = {}
+    def deselect_all_stats():
+        for k in all_stat_keys:
+            st.session_state[k] = False
 
-with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=True):
-    cols = st.columns(4)
-    group_keys = list(STAT_GROUPS.keys())
-    
-    for idx, group_name in enumerate(group_keys):
-        col_target = cols[idx % 4]
-        with col_target:
-            st.markdown(f"**{group_name}**")
-            for stat_label, csv_col in STAT_GROUPS[group_name].items():
-                chk_key = f"chk_{group_name}_{stat_label}"
-                if chk_key not in st.session_state:
-                    # Estado padrão inicial caso não tenha mexido ainda
-                    st.session_state[chk_key] = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
-                
-                checked = st.checkbox(stat_label, key=chk_key)
-                if checked:
-                    selected_stats_map[stat_label] = csv_col
+    POSITION_SUGGESTIONS = {
+        'ST': ['Finalização', 'Pos. ataque', 'Aceleração', 'Pique', 'Força chute', 'Compostura'],
+        'CF': ['Finalização', 'Dribles', 'Controle bola', 'Visão de jogo', 'Pos. ataque', 'Agilidade'],
+        'LW': ['Aceleração', 'Pique', 'Dribles', 'Agilidade', 'Cruzamento', 'Finalização'],
+        'RW': ['Aceleração', 'Pique', 'Dribles', 'Agilidade', 'Cruzamento', 'Finalização'],
+        'LM': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Passe curto', 'Dribles'],
+        'RM': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Passe curto', 'Dribles'],
+        'CAM': ['Visão de jogo', 'Passe curto', 'Lançamento', 'Dribles', 'Controle bola', 'Compostura'],
+        'CM': ['Passe curto', 'Lançamento', 'Visão de jogo', 'Fôlego', 'Reação', 'Combatividade'],
+        'CDM': ['Intercept.', 'Hab. defensiva', 'Dividida pé', 'Combatividade', 'Fôlego', 'Força'],
+        'CB': ['Hab. defensiva', 'Dividida pé', 'Prec. Cabeceio', 'Força', 'Combatividade', 'Intercept.'],
+        'LB': ['Aceleração', 'Pique', 'Cruzamento', 'Hab. defensiva', 'Dividida pé', 'Fôlego'],
+        'RB': ['Aceleração', 'Pique', 'Cruzamento', 'Hab. defensiva', 'Dividida pé', 'Fôlego'],
+        'LWB': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Hab. defensiva', 'Dividida pé'],
+        'RWB': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Hab. defensiva', 'Dividida pé'],
+        'GK': ['Elasticidade GL', 'Manejo GL', 'Chute GL', 'Posicion. GL', 'Reflexos GL', 'Reação']
+    }
 
-# ÁREA DE COMPARAÇÃO NO LADO ESQUERDO DO GRÁFICO
-col_comp_left, col_chart_right = st.columns([1, 2.5])
+    def suggest_stats():
+        for k in all_stat_keys:
+            st.session_state[k] = False
+        pos = str(p.get('Position', 'CM')).upper()
+        suggested_list = POSITION_SUGGESTIONS.get(pos, POSITION_SUGGESTIONS['CM'])
+        for g_name, g_stats in STAT_GROUPS.items():
+            for stat_label in g_stats.keys():
+                if stat_label in suggested_list:
+                    st.session_state[f"chk_{g_name}_{stat_label}"] = True
 
-with col_comp_left:
-    st.markdown("#### ⚔️ Comparar Jogadores")
-    st.caption("Adicione até 3 jogadores para comparar com o selecionado:")
+    c_title, c_btn1, c_btn2, c_btn3 = st.columns([2.2, 1.1, 1.1, 1.1])
+    with c_title:
+        st.markdown("### 2 · Indicadores de Performance")
+    with c_btn1:
+        st.button("✅ Marcar Todos", on_click=select_all_stats, use_container_width=True)
+    with c_btn2:
+        st.button("❌ Desmarcar", on_click=deselect_all_stats, use_container_width=True)
+    with c_btn3:
+        st.button("💡 Sugestão", on_click=suggest_stats, use_container_width=True)
 
-    st.markdown("""
-    <style>
-        /* Jogador 1 - Azul */
-        div[data-testid="stSelectbox"]:nth-of-type(1) label { color: #3b82f6 !important; font-weight: bold !important; }
-        div[data-testid="stSelectbox"]:nth-of-type(1) div[data-baseweb="select"] > div { border: 2px solid #3b82f6 !important; background-color: #111111 !important; color: #ffffff !important; }
-        
-        /* Jogador 2 - Verde */
-        div[data-testid="stSelectbox"]:nth-of-type(2) label { color: #10b981 !important; font-weight: bold !important; }
-        div[data-testid="stSelectbox"]:nth-of-type(2) div[data-baseweb="select"] > div { border: 2px solid #10b981 !important; background-color: #111111 !important; color: #ffffff !important; }
-        
-        /* Jogador 3 - Amarelo */
-        div[data-testid="stSelectbox"]:nth-of-type(3) label { color: #f59e0b !important; font-weight: bold !important; }
-        div[data-testid="stSelectbox"]:nth-of-type(3) div[data-baseweb="select"] > div { border: 2px solid #f59e0b !important; background-color: #f59e0b !important; background-color: #111111 !important; color: #ffffff !important; }
-    </style>
-    """, unsafe_allow_html=True)
+    selected_stats_map = {}
 
-    other_players = ["Nenhum"] + [name for name in player_list if name != target_player_name]
-    
-    comp1 = st.selectbox("🔵 Jogador Comparado 1:", options=other_players, index=0, key="comp_slot_1")
-    
-    options_p2 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1]] if comp1 != "Nenhum" else ["Nenhum"]
-    comp2 = st.selectbox("🟢 Jogador Comparado 2:", options=options_p2, index=0, key="comp_slot_2", disabled=(comp1 == "Nenhum"))
-    
-    options_p3 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1, comp2]] if comp2 != "Nenhum" else ["Nenhum"]
-    comp3 = st.selectbox("🟡 Jogador Comparado 3:", options=options_p3, index=0, key="comp_slot_3", disabled=(comp2 == "Nenhum"))
+    with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=True):
+        cols = st.columns(4)
+        group_keys = list(STAT_GROUPS.keys())
+        for idx, group_name in enumerate(group_keys):
+            col_target = cols[idx % 4]
+            with col_target:
+                st.markdown(f"**{group_name}**")
+                for stat_label, csv_col in STAT_GROUPS[group_name].items():
+                    chk_key = f"chk_{group_name}_{stat_label}"
+                    if chk_key not in st.session_state:
+                        st.session_state[chk_key] = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
+                    checked = st.checkbox(stat_label, key=chk_key)
+                    if checked:
+                        selected_stats_map[stat_label] = csv_col
 
-with col_chart_right:
-    if selected_stats_map:
-        radar_labels = list(selected_stats_map.keys())
-        theta_labs = radar_labels + [radar_labels[0]]
+    col_comp_left, col_chart_right = st.columns([1, 2.5])
 
-        fig = go.Figure()
+    with col_comp_left:
+        st.markdown("#### ⚔️ Comparar Jogadores")
+        st.caption("Adicione até 3 jogadores para comparar com o selecionado:")
 
-        # 1. Jogador Principal (Vermelho)
-        radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
-        r_vals = radar_values + [radar_values[0]]
+        other_players = ["Nenhum"] + [name for name in player_list if name != target_player_name]
+        comp1 = st.selectbox("🔵 Jogador Comparado 1:", options=other_players, index=0, key="comp_slot_1")
+        options_p2 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1]] if comp1 != "Nenhum" else ["Nenhum"]
+        comp2 = st.selectbox("🟢 Jogador Comparado 2:", options=options_p2, index=0, key="comp_slot_2", disabled=(comp1 == "Nenhum"))
+        options_p3 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1, comp2]] if comp2 != "Nenhum" else ["Nenhum"]
+        comp3 = st.selectbox("🟡 Jogador Comparado 3:", options=options_p3, index=0, key="comp_slot_3", disabled=(comp2 == "Nenhum"))
 
-        fig.add_trace(go.Scatterpolar(
-            r=r_vals,
-            theta=theta_labs,
-            mode='lines+markers',
-            fill='none',
-            line=dict(color='#ef4444', width=3),
-            marker=dict(size=8, color='#ef4444'),
-            name=f"{p['Name']} (Principal)"
-        ))
+    with col_chart_right:
+        if selected_stats_map:
+            radar_labels = list(selected_stats_map.keys())
+            theta_labs = radar_labels + [radar_labels[0]]
 
-        slot_colors = {'comp_slot_1': '#3b82f6', 'comp_slot_2': '#10b981', 'comp_slot_3': '#f59e0b'}
-        active_slots = [('comp_slot_1', comp1), ('comp_slot_2', comp2), ('comp_slot_3', comp3)]
+            fig = go.Figure()
+            radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
+            r_vals = radar_values + [radar_values[0]]
 
-        # 2. Jogadores Selecionados para Comparação
-        for slot_key, comp_name in active_slots:
-            if comp_name != "Nenhum":
-                comp_row = df[df['Name'] == comp_name].iloc[0]
-                comp_radar_values = [get_val(comp_row, csv_col) for csv_col in selected_stats_map.values()]
-                comp_r_vals = comp_radar_values + [comp_radar_values[0]]
-                color = slot_colors[slot_key]
+            fig.add_trace(go.Scatterpolar(
+                r=r_vals, theta=theta_labs, mode='lines+markers', fill='none',
+                line=dict(color='#ef4444', width=3), marker=dict(size=8, color='#ef4444'),
+                name=f"{p['Name']} (Principal)"
+            ))
 
-                fig.add_trace(go.Scatterpolar(
-                    r=comp_r_vals,
-                    theta=theta_labs,
-                    mode='lines+markers',
-                    fill='none',
-                    line=dict(color=color, width=2.5, dash='solid'),
-                    marker=dict(size=7, color=color),
-                    name=f"{comp_row['Name']} ({comp_row['OVR']})"
-                ))
+            slot_colors = {'comp_slot_1': '#3b82f6', 'comp_slot_2': '#10b981', 'comp_slot_3': '#f59e0b'}
+            active_slots = [('comp_slot_1', comp1), ('comp_slot_2', comp2), ('comp_slot_3', comp3)]
 
-        fig.update_layout(
-            title=dict(
-                text=f"Análise Comparativa Radar: {p['Name']} (OVR: {p['OVR']})",
-                font=dict(color='#ffffff', size=16)
-            ),
-            polar=dict(
-                bgcolor='rgba(0,0,0,0)',
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 100],
-                    tickfont=dict(color='#cbd5e1'),
-                    gridcolor='#333333'
+            for slot_key, comp_name in active_slots:
+                if comp_name != "Nenhum":
+                    comp_row = df[df['Name'] == comp_name].iloc[0]
+                    comp_radar_values = [get_val(comp_row, csv_col) for csv_col in selected_stats_map.values()]
+                    comp_r_vals = comp_radar_values + [comp_radar_values[0]]
+                    color = slot_colors[slot_key]
+
+                    fig.add_trace(go.Scatterpolar(
+                        r=comp_r_vals, theta=theta_labs, mode='lines+markers', fill='none',
+                        line=dict(color=color, width=2.5, dash='solid'), marker=dict(size=7, color=color),
+                        name=f"{comp_row['Name']} ({comp_row['OVR']})"
+                    ))
+
+            fig.update_layout(
+                title=dict(text=f"Análise Comparativa Radar: {p['Name']} (OVR: {p['OVR']})", font=dict(color='#ffffff', size=16)),
+                polar=dict(
+                    bgcolor='rgba(0,0,0,0)',
+                    radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color='#cbd5e1'), gridcolor='#333333'),
+                    angularaxis=dict(tickfont=dict(color='#ffffff', size=13), gridcolor='#333333')
                 ),
-                angularaxis=dict(
-                    tickfont=dict(color='#ffffff', size=13),
-                    gridcolor='#333333'
-                )
-            ),
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=480,
+                margin=dict(l=30, r=30, t=50, b=40),
+                legend=dict(font=dict(color='#ffffff'), orientation="h", yanchor="bottom", y=-0.18, xanchor="center", x=0.5)
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("⚠️ Marque pelo menos uma estatística para exibir o gráfico.")
+
+    st.markdown("---")
+
+    st.markdown("### 📊 Estatísticas Detalhadas do Jogador")
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.markdown("#### Ofensivo")
+        for lbl, col in STAT_GROUPS['Ofensivo'].items():
+            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+        st.markdown("#### Mentalidade")
+        for lbl, col in STAT_GROUPS['Mentalidade'].items():
+            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("#### Habilidade")
+        for lbl, col in STAT_GROUPS['Habilidade'].items():
+            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+        st.markdown("#### Defesa")
+        for lbl, col in STAT_GROUPS['Defesa'].items():
+            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+
+    with col3:
+        st.markdown("#### Movimentação")
+        for lbl, col in STAT_GROUPS['Movimentação'].items():
+            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+        st.markdown("#### Atributos GL")
+        for lbl, col in STAT_GROUPS['Atributos GL'].items():
+            st.markdown(render_stat_item(lbl, get_val(p, col, 10)), unsafe_allow_html=True)
+
+    with col4:
+        st.markdown("#### Força")
+        for lbl, col in STAT_GROUPS['Força'].items():
+            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+        st.markdown("#### Estilos de Jogo")
+        if play_styles:
+            for style in play_styles:
+                st.markdown(f"- **<span class='var-text'>{style}</span>**", unsafe_allow_html=True)
+        else:
+            st.markdown("- *<span class='var-text'>Nenhum estilo de jogo específico</span>*", unsafe_allow_html=True)
+
+
+# -----------------------------------------------------------------------------
+# 6. PÁGINA 2: FORMAÇÕES E ANÁLISE TÁTICA (NOVA)
+# -----------------------------------------------------------------------------
+elif page_selection == "Formações":
+    st.title("📋 Guia de Formações & Build-Up Styles (FC26)")
+    st.markdown("Analise a disposição tática em campo, os estilos de construção de jogada e as estratégias completas extraídas do guia tático oficial do FC26.")
+    
+    col_sel1, col_sel2 = st.columns(2)
+    
+    with col_sel1:
+        all_formations = sorted(list(TACTICAL_DATABASE.keys()))
+        selected_formation = st.selectbox("Selecione a Formação:", options=all_formations, index=all_formations.index("4-3-3 Holding") if "4-3-3 Holding" in all_formations else 0)
+        
+    with col_sel2:
+        build_up_styles = [
+            "Balanced (Equilibrado)",
+            "Short Passing (Toque Curto)",
+            "Counter (Contra-Ataque)"
+        ]
+        default_bu = TACTICAL_DATABASE.get(selected_formation, {}).get("default_style", "Balanced (Equilibrado)")
+        default_bu_index = 0
+        for i, bu in enumerate(build_up_styles):
+            if default_bu.split()[0] in bu:
+                default_bu_index = i
+                break
+        selected_bu_style = st.selectbox("Selecione o Build-Up Style:", options=build_up_styles, index=default_bu_index)
+
+    st.markdown("---")
+
+    col_pitch, col_info = st.columns([1.3, 1.7])
+    
+    with col_pitch:
+        st.markdown("#### ⚽ Painel Tático em Campo")
+        
+        # Renderização do Campo de Futebol Estilizado no Plotly
+        fig_pitch = go.Figure()
+        
+        # Desenhar o gramado e linhas de campo
+        fig_pitch.add_shape(type="rect", x0=0, y0=0, x1=100, y1=100, line=dict(color="#ffffff", width=2), fillcolor="#1b4d3e")
+        # Linha do meio-campo
+        fig_pitch.add_shape(type="line", x0=0, y0=50, x1=100, y1=50, line=dict(color="#ffffff", width=1.5, dash="dash"))
+        # Círculo central
+        fig_pitch.add_shape(type="circle", x0=40, y0=40, x1=60, y1=60, line=dict(color="#ffffff", width=1.5))
+        # Área penal superior
+        fig_pitch.add_shape(type="rect", x0=20, y0=80, x1=80, y1=100, line=dict(color="#ffffff", width=1.5))
+        # Área penal inferior
+        fig_pitch.add_shape(type="rect", x0=20, y0=0, x1=80, y1=20, line=dict(color="#ffffff", width=1.5))
+        
+        tact_data = TACTICAL_DATABASE.get(selected_formation, TACTICAL_DATABASE["4-3-3 Holding"])
+        coords = tact_data["coords"]
+        
+        pos_x = [c["x"] for c in coords]
+        pos_y = [c["y"] for c in coords]
+        pos_labels = [c["pos"] for c in coords]
+        
+        fig_pitch.add_trace(go.Scatter(
+            x=pos_x, y=pos_y,
+            mode='text+markers',
+            text=pos_labels,
+            textposition="top center",
+            textfont=dict(color="#ffffff", size=12, family="Arial Black"),
+            marker=dict(size=18, color="#10b981", line=dict(color="#ffffff", width=2))
+        ))
+        
+        fig_pitch.update_layout(
+            xaxis=dict(range=[-5, 105], showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(range=[-5, 105], showgrid=False, zeroline=False, showticklabels=False),
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            height=480,
-            margin=dict(l=30, r=30, t=50, b=40),
-            legend=dict(
-                font=dict(color='#ffffff'),
-                orientation="h",
-                yanchor="bottom",
-                y=-0.18,
-                xanchor="center",
-                x=0.5
-            )
+            height=460,
+            margin=dict(l=10, r=10, t=10, b=10),
+            showlegend=False
         )
+        st.plotly_chart(fig_pitch, use_container_width=True)
+        st.caption(f"Esquema tático ativo: **{selected_formation}** com estilo **{selected_bu_style}**")
 
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning("⚠️ Marque pelo menos uma estatística para exibir o gráfico.")
+    with col_info:
+        st.markdown(f"#### 📑 Informações da Formação ({selected_formation})")
+        st.markdown(f"""
+        <div class="tactical-card">
+            <span style="color:#a3a3a3; font-size: 0.85rem;">Explicação Breve:</span><br>
+            <p style="color: #ffffff; font-size: 0.95rem; margin-top: 4px;">{tact_data['info']}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-st.markdown("---")
+        st.markdown(f"""
+        <div class="tactical-card">
+            <span style="color:#10b981; font-weight:bold;">🟢 Vantagens (Prós):</span><br>
+            <p style="color: #ffffff; font-size: 0.95rem; margin-top: 4px;">{tact_data['pros']}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-# 3. ESTATÍSTICAS DETALHADAS DINÂMICAS DO JOGADOR
-st.markdown("### 📊 Estatísticas Detalhadas do Jogador")
+        st.markdown(f"""
+        <div class="tactical-card">
+            <span style="color:#ef4444; font-weight:bold;">🔴 Desvantagens (Contras):</span><br>
+            <p style="color: #ffffff; font-size: 0.95rem; margin-top: 4px;">{tact_data['cons']}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.markdown("#### Ofensivo")
-    for lbl, col in STAT_GROUPS['Ofensivo'].items():
-        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-
-    st.markdown("#### Mentalidade")
-    for lbl, col in STAT_GROUPS['Mentalidade'].items():
-        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-
-with col2:
-    st.markdown("#### Habilidade")
-    for lbl, col in STAT_GROUPS['Habilidade'].items():
-        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-
-    st.markdown("#### Defesa")
-    for lbl, col in STAT_GROUPS['Defesa'].items():
-        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-
-with col3:
-    st.markdown("#### Movimentação")
-    for lbl, col in STAT_GROUPS['Movimentação'].items():
-        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-
-    st.markdown("#### Atributos GL")
-    for lbl, col in STAT_GROUPS['Atributos GL'].items():
-        st.markdown(render_stat_item(lbl, get_val(p, col, 10)), unsafe_allow_html=True)
-
-with col4:
-    st.markdown("#### Força")
-    for lbl, col in STAT_GROUPS['Força'].items():
-        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-
-    st.markdown("#### Estilos de Jogo")
-    if play_styles:
-        for style in play_styles:
-            st.markdown(f"- **<span class='var-text'>{style}</span>**", unsafe_allow_html=True)
-    else:
-        st.markdown("- *<span class='var-text'>Nenhum estilo de jogo específico</span>*", unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown("#### 🛡️ Estratégia de Combate")
+    st.markdown(f"""
+    <div class="tactical-card" style="border-left: 4px solid #f59e0b;">
+        <span style="color:#f59e0b; font-weight:bold; font-size: 1.05rem;">Como Jogar Contra este Esquema:</span><br>
+        <p style="color: #ffffff; font-size: 1rem; margin-top: 6px;">{tact_data['counter']}</p>
+    </div>
+    """, unsafe_allow_html=True)
