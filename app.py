@@ -172,8 +172,9 @@ st.sidebar.markdown("---")
 df = df_raw.copy()
 
 # Wrapper function para injetar o dataframe e a função de similares no perfil
+# No app.py, altere o wrapper do perfil para:
 def wrapper_perfil():
-    renderizar_perfil(df, find_similar_players)
+    renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val)
 
 # Definindo as páginas usando st.Page e st.navigation
 pagina_perfil = st.Page(wrapper_perfil, title="Perfil Detalhado", icon="👤", default=True)
