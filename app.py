@@ -24,16 +24,21 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
-    /* CORREÇÃO DA COR DAS ABAS DO STREAMLIT PARA O VERDE/CIANO DO DESIGN */
-    div[data-baseweb="tab-list"] button div[data-testid="stMarkdownContainer"] p {
+    /* CORREÇÃO DEFINITIVA DA COR DAS ABAS PARA O VERDE/CIANO */
+    div[data-baseweb="tab-list"] button {
         color: #94a3b8 !important;
     }
-    div[data-baseweb="tab-list"] button[aria-selected="true"] div[data-testid="stMarkdownContainer"] p {
+    div[data-baseweb="tab-list"] button[aria-selected="true"] {
+        color: #00ffcc !important;
+        border-bottom-color: #00ffcc !important;
+    }
+    div[data-baseweb="tab-list"] button[aria-selected="true"] p {
         color: #00ffcc !important;
         font-weight: bold !important;
     }
-    div[data-baseweb="tab-list"] button[aria-selected="true"] {
-        border-bottom-color: #00ffcc !important;
+    /* Força a cor da barra indicadora ativa que era vermelha */
+    div[data-baseweb="tab-highlight"] {
+        background-color: #00ffcc !important;
     }
     
     .var-text {
@@ -64,7 +69,22 @@ st.markdown("""
         color: #0b0f19 !important;
         box-shadow: 0 0 15px rgba(0, 255, 204, 0.4) !important;
     }
-    .profile-info-box, .similar-card, .tactical-card, .custom-box {
+    
+    /* CAIXA DE PERFIL CORRIGIDA (CONTEÚDO DENTRO DO BLOCO) */
+    .profile-info-box {
+        background-color: #131b2e !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        border: 1px solid rgba(0, 255, 204, 0.2) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+        margin-top: 15px !important;
+        margin-bottom: 20px !important;
+        width: 100% !important;
+        display: block !important;
+        overflow: hidden !important;
+    }
+    
+    .similar-card, .tactical-card, .custom-box {
         background-color: #131b2e !important;
         border-radius: 12px !important;
         padding: 16px !important;
