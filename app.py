@@ -834,13 +834,21 @@ if page_selection == "Perfil Detalhado":
     c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
 
     # Exemplo de verificação segura para a foto/card do jogador:
-# Garanta que o 'if' e o 'else' tenham exatamente o mesmo nível de recuo (espaços)
-    card_img = player_data.get("card_img", None) if isinstance(player_data, dict) else None
+player_df = df[df['Name'] == selected_player]
 
-    if card_img and pd.notna(card_img) and str(card_img).startswith("http"):
-        st.image(card_img)
-    else:
-        st.write("Imagem não disponível.")
+    if not player_df.empty:
+        player_data = player_df.iloc[0]
+
+        # 2. Busca a URL da imagem (checa se existe a coluna 'card_img' ou 'Photo')
+        card_img = None
+        if "card_img" in player_data and pd.notna(player_data["card_img"]):
+            card_img = player_data["card_img"]
+        elif "Photo" in player_data and pd.notna(player_data["Photo"]):
+            card_img = player_data["Photo"]
+
+        # 3. Renderiza a imagem
+        if card_img and str(card_img).startswith("http"):
+            st.image(card_img)
 
     with c_info:
         st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
