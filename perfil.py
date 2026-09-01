@@ -7,16 +7,13 @@ import plotly.graph_objects as go
 def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     st.title("👤 Perfil Detalhado")
 
-    col_quem, _ = st.columns([1, 2])
     player_list = sorted(df['Name'].unique().tolist())
     default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
 
-    with col_quem:
-        target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
+    target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
 
     p = df[df['Name'] == target_player_name].iloc[0]
     
-    # Extração segura dos playstyles do jogador
     play_styles_raw = str(p.get('play style', '[]'))
     try:
         play_styles = ast.literal_eval(play_styles_raw)
@@ -29,14 +26,15 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     perna_ruim = p.get('Weak foot', 2)
     rep_int = p.get('Rank', 1)
 
-    c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
+    # Layout responsivo do topo adaptado para mobile/desktop
+    c_face, c_info = st.columns([1, 2.5])
 
     with c_face:
         card_img = p.get('card', '')
         if pd.notna(card_img) and str(card_img).startswith("http"):
-            st.image(card_img, width=140)
+            st.image(card_img, width=130)
         else:
-            st.image("https://cdn.sofifa.net/player_0.png", width=130)
+            st.image("https://cdn.sofifa.net/player_0.png", width=120)
 
     with c_info:
         st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
@@ -44,34 +42,34 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         st.markdown(f"**Posição:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
         st.markdown(f"**Overall:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
-    with c_details:
+    # Bloco de detalhes responsivo em colunas internas
+    st.markdown("<div class='profile-info-box'>", unsafe_allow_html=True)
+    b_col1, b_col2, b_col3 = st.columns(3)
+    with b_col1:
         st.markdown(f"""
-        <div class="profile-info-box">
-            <div style="display: flex; justify-content: space-between;">
-                <div>
-                    <strong style="color:#ffffff;">Perfil</strong><br>
-                    <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
-                    <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
-                    <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
-                    <span>Rank: <b class="var-text">#{rep_int}</b></span>
-                </div>
-                <div>
-                    <strong style="color:#ffffff;">Atributos Globais</strong><br>
-                    <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
-                    <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
-                    <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
-                    <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
-                    <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
-                    <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
-                </div>
-                <div>
-                    <strong style="color:#ffffff;">Clube</strong><br>
-                    <span><b class="var-text">{p['Team']}</b></span><br>
-                    <span>Posição <b class="var-text">{p['Position']}</b></span>
-                </div>
-            </div>
-        </div>
+        <strong style="color:#ffffff;">Perfil</strong><br>
+        <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
+        <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
+        <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
+        <span>Rank: <b class="var-text">#{rep_int}</b></span>
         """, unsafe_allow_html=True)
+    with b_col2:
+        st.markdown(f"""
+        <strong style="color:#ffffff;">Atributos Globais</strong><br>
+        <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
+        <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
+        <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
+        <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
+        <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
+        <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
+        """, unsafe_allow_html=True)
+    with b_col3:
+        st.markdown(f"""
+        <strong style="color:#ffffff;">Clube</strong><br>
+        <span><b class="var-text">{p['Team']}</b></span><br>
+        <span>Posição: <b class="var-text">{p['Position']}</b></span>
+        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -88,7 +86,6 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                 if not play_styles:
                     st.info("Não tem")
                 else:
-                    # Dicionário de descrições padrão para os Playstyles do FC
                     descriptions = {
                         "Power Shot": "Disparos com força significativamente maior e velocidade extrema de chute.",
                         "Technical": "Habilidade para realizar curvas e precisão em passes/chutes rasteiros.",
@@ -159,11 +156,11 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
 
     c_b1, c_b2, c_b3 = st.columns(3)
     with c_b1:
-        if st.button("✅ Marcar Todos", use_container_width=True):
+        if st.button("✅ Marcar", use_container_width=True):
             st.session_state["selected_indicators"] = list(all_attributes.keys())
             st.rerun()
     with c_b2:
-        if st.button("❌ Desmarcar", use_container_width=True):
+        if st.button("❌ Limpar", use_container_width=True):
             st.session_state["selected_indicators"] = []
             st.rerun()
     with c_b3:
@@ -200,14 +197,11 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     col_comp1, col_comp2, col_comp3 = st.columns(3)
     
     with col_comp1:
-        st.markdown("🔵 **Jogador Comparado 1:**")
-        comp1_name = st.selectbox("Selecione o 1º jogador", options=["Nenhum"] + player_list, index=0, key="comp1")
+        comp1_name = st.selectbox("🔵 Jogador 1", options=["Nenhum"] + player_list, index=0, key="comp1")
     with col_comp2:
-        st.markdown("🟢 **Jogador Comparado 2:**")
-        comp2_name = st.selectbox("Selecione o 2º jogador", options=["Nenhum"] + player_list, index=0, key="comp2")
+        comp2_name = st.selectbox("🟢 Jogador 2", options=["Nenhum"] + player_list, index=0, key="comp2")
     with col_comp3:
-        st.markdown("🟡 **Jogador Comparado 3:**")
-        comp3_name = st.selectbox("Selecione o 3º jogador", options=["Nenhum"] + player_list, index=0, key="comp3")
+        comp3_name = st.selectbox("🟡 Jogador 3", options=["Nenhum"] + player_list, index=0, key="comp3")
 
     st.markdown("---")
     st.markdown(f"### Análise Comparativa Radar: <span class='var-text'>{p['Name']}</span>", unsafe_allow_html=True)
@@ -228,8 +222,8 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             theta=categories + [categories[0]],
             fill='toself',
             name=p['Name'],
-            fillcolor='rgba(239, 68, 68, 0.2)',
-            line=dict(color='#ef4444', width=2)
+            fillcolor='rgba(0, 255, 204, 0.15)',
+            line=dict(color='#00ffcc', width=2)
         ))
 
         if comp1_name != "Nenhum":
@@ -290,7 +284,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     # -------------------------------------------------------------------------
     # 3. JOGADORES PARECIDOS
     # -------------------------------------------------------------------------
-    col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
+    col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.7, 0.7])
     with col_sim_title:
         st.markdown("### 👥 Jogadores Parecidos")
 
