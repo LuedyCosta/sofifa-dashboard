@@ -303,7 +303,7 @@ with col_quem:
 
 p = df[df['Name'] == target_player_name].iloc[0]
 
-# --- BLOCO PRINCIPAL (AGORA O PRIMEIRO A APARECER NO MOBILE) ---
+# --- BLOCO PRINCIPAL (PRIMEIRO NO MOBILE) ---
 play_styles_raw = str(p.get('play style', '[]'))
 try:
     play_styles = ast.literal_eval(play_styles_raw)
@@ -420,13 +420,48 @@ def deselect_all_stats():
     for k in all_stat_keys:
         st.session_state[k] = False
 
-c_title, c_btn1, c_btn2, _ = st.columns([2.5, 1.2, 1.2, 3])
+# Regras de sugestão de atributos por posição
+POSITION_SUGGESTIONS = {
+    'ST': ['Finalização', 'Pos. ataque', 'Aceleração', 'Pique', 'Força chute', 'Compostura'],
+    'CF': ['Finalização', 'Dribles', 'Controle bola', 'Visão de jogo', 'Pos. ataque', 'Agilidade'],
+    'LW': ['Aceleração', 'Pique', 'Dribles', 'Agilidade', 'Cruzamento', 'Finalização'],
+    'RW': ['Aceleração', 'Pique', 'Dribles', 'Agilidade', 'Cruzamento', 'Finalização'],
+    'LM': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Passe curto', 'Dribles'],
+    'RM': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Passe curto', 'Dribles'],
+    'CAM': ['Visão de jogo', 'Passe curto', 'Lançamento', 'Dribles', 'Controle bola', 'Compostura'],
+    'CM': ['Passe curto', 'Lançamento', 'Visão de jogo', 'Fôlego', 'Reação', 'Combatividade'],
+    'CDM': ['Intercept.', 'Hab. defensiva', 'Dividida pé', 'Combatividade', 'Fôlego', 'Força'],
+    'CB': ['Hab. defensiva', 'Dividida pé', 'Prec. Cabeceio', 'Força', 'Combatividade', 'Intercept.'],
+    'LB': ['Aceleração', 'Pique', 'Cruzamento', 'Hab. defensiva', 'Dividida pé', 'Fôlego'],
+    'RB': ['Aceleração', 'Pique', 'Cruzamento', 'Hab. defensiva', 'Dividida pé', 'Fôlego'],
+    'LWB': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Hab. defensiva', 'Dividida pé'],
+    'RWB': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Hab. defensiva', 'Dividida pé'],
+    'GK': ['Elasticidade GL', 'Manejo GL', 'Chute GL', 'Posicion. GL', 'Reflexos GL', 'Reação']
+}
+
+def suggest_stats():
+    # Desmarca tudo primeiro
+    for k in all_stat_keys:
+        st.session_state[k] = False
+    
+    pos = str(p.get('Position', 'CM')).upper()
+    # Pega os atributos recomendados para a posição (ou fallback para CM caso não encontre)
+    suggested_list = POSITION_SUGGESTIONS.get(pos, POSITION_SUGGESTIONS['CM'])
+    
+    for g_name, g_stats in STAT_GROUPS.items():
+        for stat_label in g_stats.keys():
+            if stat_label in suggested_list:
+                st.session_state[f"chk_{g_name}_{stat_label}"] = True
+
+c_title, c_btn1, c_btn2, c_btn3 = st.columns([2.2, 1.1, 1.1, 1.1])
 with c_title:
     st.markdown("### 2 · Indicadores de Performance")
 with c_btn1:
     st.button("✅ Marcar Todos", on_click=select_all_stats, use_container_width=True)
 with c_btn2:
     st.button("❌ Desmarcar", on_click=deselect_all_stats, use_container_width=True)
+with c_btn3:
+    st.button("💡 Sugestão", on_click=suggest_stats, use_container_width=True)
 
 selected_stats_map = {}
 
@@ -441,6 +476,7 @@ with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Gr
             for stat_label, csv_col in STAT_GROUPS[group_name].items():
                 chk_key = f"chk_{group_name}_{stat_label}"
                 if chk_key not in st.session_state:
+                    # Estado padrão inicial caso não tenha mexido ainda
                     st.session_state[chk_key] = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
                 
                 checked = st.checkbox(stat_label, key=chk_key)
@@ -466,7 +502,7 @@ with col_comp_left:
         
         /* Jogador 3 - Amarelo */
         div[data-testid="stSelectbox"]:nth-of-type(3) label { color: #f59e0b !important; font-weight: bold !important; }
-        div[data-testid="stSelectbox"]:nth-of-type(3) div[data-baseweb="select"] > div { border: 2px solid #f59e0b !important; background-color: #111111 !important; color: #ffffff !important; }
+        div[data-testid="stSelectbox"]:nth-of-type(3) div[data-baseweb="select"] > div { border: 2px solid #f59e0b !important; background-color: #f59e0b !important; background-color: #111111 !important; color: #ffffff !important; }
     </style>
     """, unsafe_allow_html=True)
 
