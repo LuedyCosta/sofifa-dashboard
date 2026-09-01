@@ -6,6 +6,7 @@ import ast
 
 # Importação da função do arquivo painel_tatico.py
 from painel_tatico import renderizar_painel_tatico
+from explicando_stats import renderizar_explicando_stats
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
