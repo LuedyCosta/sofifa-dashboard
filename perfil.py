@@ -14,6 +14,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
 
     p = df[df['Name'] == target_player_name].iloc[0]
     
+    # Extração segura dos playstyles do jogador
     play_styles_raw = str(p.get('play style', '[]'))
     try:
         play_styles = ast.literal_eval(play_styles_raw)
@@ -26,7 +27,6 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     perna_ruim = p.get('Weak foot', 2)
     rep_int = p.get('Rank', 1)
 
-    # Layout responsivo do topo adaptado para mobile/desktop
     c_face, c_info = st.columns([1, 2.5])
 
     with c_face:
@@ -42,7 +42,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         st.markdown(f"**Posição:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
         st.markdown(f"**Overall:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
-    # Bloco de detalhes responsivo em colunas internas
+    # Bloco de detalhes responsivo perfeitamente contido na caixa
     st.markdown("<div class='profile-info-box'>", unsafe_allow_html=True)
     b_col1, b_col2, b_col3 = st.columns(3)
     with b_col1:
