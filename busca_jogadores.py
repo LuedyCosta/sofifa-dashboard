@@ -175,7 +175,7 @@ def renderizar_busca_jogadores():
 
                     # Checkbox com a opção Comparar
                     id_jogador = jogador.get('sofifa_id', nome_jogador)
-                    st.checkbox("Comparar", key=f"comp_{id_jogador}")
+                    st.checkbox("Comparar", key=f"comp_{id_jogador}_{idx}")
 
 # Executa a função caso o arquivo seja chamado diretamente ou importado
 if __name__ == "__main__":
