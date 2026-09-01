@@ -283,358 +283,326 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
 st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
 st.sidebar.title("⚽ Dashboard SoFIFA")
 st.sidebar.markdown("---")
-page = st.sidebar.radio("Navegação:", ["👤 Perfil", "🛡️ Equipes", "⚽ Jogadores", "⚔️ Comparar"])
+st.sidebar.markdown("### Navegação")
+st.sidebar.markdown("👤 **Perfil Detalhado**")
 
 df = df_raw.copy()
 
 # -----------------------------------------------------------------------------
-# 5. PÁGINA PERFIL
+# 5. PÁGINA PERFIL (ÚNICA PÁGINA ATIVA)
 # -----------------------------------------------------------------------------
-if page == "👤 Perfil":
-    st.title("👤 Perfil Detalhado")
+st.title("👤 Perfil Detalhado")
 
-    col_quem, col_similar = st.columns([1, 2.3])
+col_quem, col_similar = st.columns([1, 2.3])
 
-    player_list = sorted(df['Name'].unique().tolist())
-    default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
-    
-    with col_quem:
-        st.markdown("### 1 · Quem")
-        target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
+player_list = sorted(df['Name'].unique().tolist())
+default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
 
-    p = df[df['Name'] == target_player_name].iloc[0]
+with col_quem:
+    st.markdown("### 1 · Quem")
+    target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
 
-    # PAINEL DE JOGADORES PARECIDOS COM BOTÕES IDÊNTICOS PARA O FILTRO
-    with col_similar:
-        col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
-        with col_sim_title:
-            st.markdown("### 👥 Jogadores Parecidos")
+p = df[df['Name'] == target_player_name].iloc[0]
 
-        if "sim_filter_mode" not in st.session_state:
+# PAINEL DE JOGADORES PARECIDOS COM BOTÕES IDÊNTICOS PARA O FILTRO
+with col_similar:
+    col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
+    with col_sim_title:
+        st.markdown("### 👥 Jogadores Parecidos")
+
+    if "sim_filter_mode" not in st.session_state:
+        st.session_state["sim_filter_mode"] = "Todos"
+
+    with col_btn_todos:
+        if st.button("Todos", use_container_width=True):
             st.session_state["sim_filter_mode"] = "Todos"
+    with col_btn_regen:
+        if st.button("Regen", use_container_width=True):
+            st.session_state["sim_filter_mode"] = "Regen"
 
-        with col_btn_todos:
-            if st.button("Todos", use_container_width=True):
-                st.session_state["sim_filter_mode"] = "Todos"
-        with col_btn_regen:
-            if st.button("Regen", use_container_width=True):
-                st.session_state["sim_filter_mode"] = "Regen"
+    is_regens = (st.session_state["sim_filter_mode"] == "Regen")
+    similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
 
-        is_regens = (st.session_state["sim_filter_mode"] == "Regen")
-        similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
+    sim_cols = st.columns(3)
+    if not similar_df.empty:
+        for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
+            with sim_cols[idx]:
+                try:
+                    s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
+                    styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
+                except:
+                    styles_txt = "Padrão"
 
-        sim_cols = st.columns(3)
-        if not similar_df.empty:
-            for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
-                with sim_cols[idx]:
-                    try:
-                        s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
-                        styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
-                    except:
-                        styles_txt = "Padrão"
-
-                    st.markdown(f"""
-                    <div class="similar-card">
-                        <div class="similar-name">⚽ {sim_p['Name']}</div>
-                        <div class="similar-meta">
-                            <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
-                            <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
-                            <span style="color:#a3a3a3; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
-                        </div>
+                st.markdown(f"""
+                <div class="similar-card">
+                    <div class="similar-name">⚽ {sim_p['Name']}</div>
+                    <div class="similar-meta">
+                        <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
+                        <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
+                        <span style="color:#a3a3a3; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
                     </div>
-                    """, unsafe_allow_html=True)
-        else:
-            st.info("Nenhum jogador semelhante encontrado com esses critérios.")
+                </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.info("Nenhum jogador semelhante encontrado com esses critérios.")
 
-    st.markdown("---")
+st.markdown("---")
 
-    # Estilo de jogo do jogador selecionado
-    play_styles_raw = str(p.get('play style', '[]'))
-    try:
-        play_styles = ast.literal_eval(play_styles_raw)
-        if not isinstance(play_styles, list):
-            play_styles = []
-    except:
+# Estilo de jogo do jogador selecionado
+play_styles_raw = str(p.get('play style', '[]'))
+try:
+    play_styles = ast.literal_eval(play_styles_raw)
+    if not isinstance(play_styles, list):
         play_styles = []
+except:
+    play_styles = []
 
-    perna_boa = "Esq." if p.get('Preferred foot', 'Right') == 'Left' else "Dir."
-    fintas = p.get('Skill moves', 2)
-    perna_ruim = p.get('Weak foot', 2)
-    rep_int = p.get('Rank', 1)
+perna_boa = "Esq." if p.get('Preferred foot', 'Right') == 'Left' else "Dir."
+fintas = p.get('Skill moves', 2)
+perna_ruim = p.get('Weak foot', 2)
+rep_int = p.get('Rank', 1)
 
-    # PAINEL DE PERFIL DO JOGADOR
-    c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
-    
-    with c_face:
-        card_img = p.get('card', '')
-        if pd.notna(card_img) and str(card_img).startswith("http"):
-            st.image(card_img, width=140)
-        else:
-            st.image("https://cdn.sofifa.net/player_0.png", width=130)
+# PAINEL DE PERFIL DO JOGADOR
+c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
 
-    with c_info:
-        st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
-        st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
-        st.markdown(f"**Posição:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
-        st.markdown(f"**Overall:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
+with c_face:
+    card_img = p.get('card', '')
+    if pd.notna(card_img) and str(card_img).startswith("http"):
+        st.image(card_img, width=140)
+    else:
+        st.image("https://cdn.sofifa.net/player_0.png", width=130)
 
-    with c_details:
-        st.markdown(f"""
-        <div class="profile-info-box">
-            <div style="display: flex; justify-content: space-between;">
-                <div>
-                    <strong style="color:#ffffff;">Perfil</strong><br>
-                    <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
-                    <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
-                    <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
-                    <span>Rank: <b class="var-text">#{rep_int}</b></span>
-                </div>
-                <div>
-                    <strong style="color:#ffffff;">Atributos Globais</strong><br>
-                    <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
-                    <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
-                    <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
-                    <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
-                    <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
-                    <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
-                </div>
-                <div>
-                    <strong style="color:#ffffff;">Clube</strong><br>
-                    <span><b class="var-text">{p['Team']}</b></span><br>
-                    <span>Posição <b class="var-text">{p['Position']}</b></span>
-                </div>
+with c_info:
+    st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
+    st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
+    st.markdown(f"**Posição:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
+    st.markdown(f"**Overall:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
+
+with c_details:
+    st.markdown(f"""
+    <div class="profile-info-box">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <strong style="color:#ffffff;">Perfil</strong><br>
+                <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
+                <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
+                <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
+                <span>Rank: <b class="var-text">#{rep_int}</b></span>
+            </div>
+            <div>
+                <strong style="color:#ffffff;">Atributos Globais</strong><br>
+                <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
+                <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
+                <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
+                <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
+                <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
+                <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
+            </div>
+            <div>
+                <strong style="color:#ffffff;">Clube</strong><br>
+                <span><b class="var-text">{p['Team']}</b></span><br>
+                <span>Posição <b class="var-text">{p['Position']}</b></span>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("---")
+st.markdown("---")
 
-    # 2. INDICADORES DE PERFORMANCE E COMPARAÇÃO
-    all_stat_keys = []
-    for g_name, g_stats in STAT_GROUPS.items():
-        for stat_label in g_stats.keys():
-            all_stat_keys.append(f"chk_{g_name}_{stat_label}")
+# 2. INDICADORES DE PERFORMANCE E COMPARAÇÃO
+all_stat_keys = []
+for g_name, g_stats in STAT_GROUPS.items():
+    for stat_label in g_stats.keys():
+        all_stat_keys.append(f"chk_{g_name}_{stat_label}")
 
-    def select_all_stats():
-        for k in all_stat_keys:
-            st.session_state[k] = True
+def select_all_stats():
+    for k in all_stat_keys:
+        st.session_state[k] = True
 
-    def deselect_all_stats():
-        for k in all_stat_keys:
-            st.session_state[k] = False
+def deselect_all_stats():
+    for k in all_stat_keys:
+        st.session_state[k] = False
 
-    c_title, c_btn1, c_btn2, _ = st.columns([2.5, 1.2, 1.2, 3])
-    with c_title:
-        st.markdown("### 2 · Indicadores de Performance")
-    with c_btn1:
-        st.button("✅ Marcar Todos", on_click=select_all_stats, use_container_width=True)
-    with c_btn2:
-        st.button("❌ Desmarcar", on_click=deselect_all_stats, use_container_width=True)
+c_title, c_btn1, c_btn2, _ = st.columns([2.5, 1.2, 1.2, 3])
+with c_title:
+    st.markdown("### 2 · Indicadores de Performance")
+with c_btn1:
+    st.button("✅ Marcar Todos", on_click=select_all_stats, use_container_width=True)
+with c_btn2:
+    st.button("❌ Desmarcar", on_click=deselect_all_stats, use_container_width=True)
 
-    selected_stats_map = {}
+selected_stats_map = {}
 
-    with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=True):
-        cols = st.columns(4)
-        group_keys = list(STAT_GROUPS.keys())
+with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=True):
+    cols = st.columns(4)
+    group_keys = list(STAT_GROUPS.keys())
+    
+    for idx, group_name in enumerate(group_keys):
+        col_target = cols[idx % 4]
+        with col_target:
+            st.markdown(f"**{group_name}**")
+            for stat_label, csv_col in STAT_GROUPS[group_name].items():
+                chk_key = f"chk_{group_name}_{stat_label}"
+                if chk_key not in st.session_state:
+                    st.session_state[chk_key] = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
+                
+                checked = st.checkbox(stat_label, key=chk_key)
+                if checked:
+                    selected_stats_map[stat_label] = csv_col
+
+# ÁREA DE COMPARAÇÃO NO LADO ESQUERDO DO GRÁFICO
+col_comp_left, col_chart_right = st.columns([1, 2.5])
+
+with col_comp_left:
+    st.markdown("#### ⚔️ Comparar Jogadores")
+    st.caption("Adicione até 3 jogadores para comparar com o selecionado:")
+
+    st.markdown("""
+    <style>
+        /* Jogador 1 - Azul */
+        div[data-testid="stSelectbox"]:nth-of-type(1) label { color: #3b82f6 !important; font-weight: bold !important; }
+        div[data-testid="stSelectbox"]:nth-of-type(1) div[data-baseweb="select"] > div { border: 2px solid #3b82f6 !important; background-color: #111111 !important; color: #ffffff !important; }
         
-        for idx, group_name in enumerate(group_keys):
-            col_target = cols[idx % 4]
-            with col_target:
-                st.markdown(f"**{group_name}**")
-                for stat_label, csv_col in STAT_GROUPS[group_name].items():
-                    chk_key = f"chk_{group_name}_{stat_label}"
-                    if chk_key not in st.session_state:
-                        st.session_state[chk_key] = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
-                    
-                    checked = st.checkbox(stat_label, key=chk_key)
-                    if checked:
-                        selected_stats_map[stat_label] = csv_col
-
-    # ÁREA DE COMPARAÇÃO NO LADO ESQUERDO DO GRÁFICO
-    col_comp_left, col_chart_right = st.columns([1, 2.5])
-
-    with col_comp_left:
-        st.markdown("#### ⚔️ Comparar Jogadores")
-        st.caption("Adicione até 3 jogadores para comparar com o selecionado:")
-
-        st.markdown("""
-        <style>
-            /* Jogador 1 - Azul */
-            div[data-testid="stSelectbox"]:nth-of-type(1) label { color: #3b82f6 !important; font-weight: bold !important; }
-            div[data-testid="stSelectbox"]:nth-of-type(1) div[data-baseweb="select"] > div { border: 2px solid #3b82f6 !important; background-color: #111111 !important; color: #ffffff !important; }
-            
-            /* Jogador 2 - Verde */
-            div[data-testid="stSelectbox"]:nth-of-type(2) label { color: #10b981 !important; font-weight: bold !important; }
-            div[data-testid="stSelectbox"]:nth-of-type(2) div[data-baseweb="select"] > div { border: 2px solid #10b981 !important; background-color: #111111 !important; color: #ffffff !important; }
-            
-            /* Jogador 3 - Amarelo */
-            div[data-testid="stSelectbox"]:nth-of-type(3) label { color: #f59e0b !important; font-weight: bold !important; }
-            div[data-testid="stSelectbox"]:nth-of-type(3) div[data-baseweb="select"] > div { border: 2px solid #f59e0b !important; background-color: #111111 !important; color: #ffffff !important; }
-        </style>
-        """, unsafe_allow_html=True)
-
-        other_players = ["Nenhum"] + [name for name in player_list if name != target_player_name]
+        /* Jogador 2 - Verde */
+        div[data-testid="stSelectbox"]:nth-of-type(2) label { color: #10b981 !important; font-weight: bold !important; }
+        div[data-testid="stSelectbox"]:nth-of-type(2) div[data-baseweb="select"] > div { border: 2px solid #10b981 !important; background-color: #111111 !important; color: #ffffff !important; }
         
-        comp1 = st.selectbox("🔵 Jogador Comparado 1:", options=other_players, index=0, key="comp_slot_1")
-        
-        options_p2 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1]] if comp1 != "Nenhum" else ["Nenhum"]
-        comp2 = st.selectbox("🟢 Jogador Comparado 2:", options=options_p2, index=0, key="comp_slot_2", disabled=(comp1 == "Nenhum"))
-        
-        options_p3 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1, comp2]] if comp2 != "Nenhum" else ["Nenhum"]
-        comp3 = st.selectbox("🟡 Jogador Comparado 3:", options=options_p3, index=0, key="comp_slot_3", disabled=(comp2 == "Nenhum"))
+        /* Jogador 3 - Amarelo */
+        div[data-testid="stSelectbox"]:nth-of-type(3) label { color: #f59e0b !important; font-weight: bold !important; }
+        div[data-testid="stSelectbox"]:nth-of-type(3) div[data-baseweb="select"] > div { border: 2px solid #f59e0b !important; background-color: #111111 !important; color: #ffffff !important; }
+    </style>
+    """, unsafe_allow_html=True)
 
-    with col_chart_right:
-        if selected_stats_map:
-            radar_labels = list(selected_stats_map.keys())
-            theta_labs = radar_labels + [radar_labels[0]]
+    other_players = ["Nenhum"] + [name for name in player_list if name != target_player_name]
+    
+    comp1 = st.selectbox("🔵 Jogador Comparado 1:", options=other_players, index=0, key="comp_slot_1")
+    
+    options_p2 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1]] if comp1 != "Nenhum" else ["Nenhum"]
+    comp2 = st.selectbox("🟢 Jogador Comparado 2:", options=options_p2, index=0, key="comp_slot_2", disabled=(comp1 == "Nenhum"))
+    
+    options_p3 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1, comp2]] if comp2 != "Nenhum" else ["Nenhum"]
+    comp3 = st.selectbox("🟡 Jogador Comparado 3:", options=options_p3, index=0, key="comp_slot_3", disabled=(comp2 == "Nenhum"))
 
-            fig = go.Figure()
+with col_chart_right:
+    if selected_stats_map:
+        radar_labels = list(selected_stats_map.keys())
+        theta_labs = radar_labels + [radar_labels[0]]
 
-            # 1. Jogador Principal (Vermelho)
-            radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
-            r_vals = radar_values + [radar_values[0]]
+        fig = go.Figure()
 
-            fig.add_trace(go.Scatterpolar(
-                r=r_vals,
-                theta=theta_labs,
-                mode='lines+markers',
-                fill='none',
-                line=dict(color='#ef4444', width=3),
-                marker=dict(size=8, color='#ef4444'),
-                name=f"{p['Name']} (Principal)"
-            ))
+        # 1. Jogador Principal (Vermelho)
+        radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
+        r_vals = radar_values + [radar_values[0]]
 
-            slot_colors = {'comp_slot_1': '#3b82f6', 'comp_slot_2': '#10b981', 'comp_slot_3': '#f59e0b'}
-            active_slots = [('comp_slot_1', comp1), ('comp_slot_2', comp2), ('comp_slot_3', comp3)]
+        fig.add_trace(go.Scatterpolar(
+            r=r_vals,
+            theta=theta_labs,
+            mode='lines+markers',
+            fill='none',
+            line=dict(color='#ef4444', width=3),
+            marker=dict(size=8, color='#ef4444'),
+            name=f"{p['Name']} (Principal)"
+        ))
 
-            # 2. Jogadores Selecionados para Comparação
-            for slot_key, comp_name in active_slots:
-                if comp_name != "Nenhum":
-                    comp_row = df[df['Name'] == comp_name].iloc[0]
-                    comp_radar_values = [get_val(comp_row, csv_col) for csv_col in selected_stats_map.values()]
-                    comp_r_vals = comp_radar_values + [comp_radar_values[0]]
-                    color = slot_colors[slot_key]
+        slot_colors = {'comp_slot_1': '#3b82f6', 'comp_slot_2': '#10b981', 'comp_slot_3': '#f59e0b'}
+        active_slots = [('comp_slot_1', comp1), ('comp_slot_2', comp2), ('comp_slot_3', comp3)]
 
-                    fig.add_trace(go.Scatterpolar(
-                        r=comp_r_vals,
-                        theta=theta_labs,
-                        mode='lines+markers',
-                        fill='none',
-                        line=dict(color=color, width=2.5, dash='solid'),
-                        marker=dict(size=7, color=color),
-                        name=f"{comp_row['Name']} ({comp_row['OVR']})"
-                    ))
+        # 2. Jogadores Selecionados para Comparação
+        for slot_key, comp_name in active_slots:
+            if comp_name != "Nenhum":
+                comp_row = df[df['Name'] == comp_name].iloc[0]
+                comp_radar_values = [get_val(comp_row, csv_col) for csv_col in selected_stats_map.values()]
+                comp_r_vals = comp_radar_values + [comp_radar_values[0]]
+                color = slot_colors[slot_key]
 
-            fig.update_layout(
-                title=dict(
-                    text=f"Análise Comparativa Radar: {p['Name']} (OVR: {p['OVR']})",
-                    font=dict(color='#ffffff', size=16)
+                fig.add_trace(go.Scatterpolar(
+                    r=comp_r_vals,
+                    theta=theta_labs,
+                    mode='lines+markers',
+                    fill='none',
+                    line=dict(color=color, width=2.5, dash='solid'),
+                    marker=dict(size=7, color=color),
+                    name=f"{comp_row['Name']} ({comp_row['OVR']})"
+                ))
+
+        fig.update_layout(
+            title=dict(
+                text=f"Análise Comparativa Radar: {p['Name']} (OVR: {p['OVR']})",
+                font=dict(color='#ffffff', size=16)
+            ),
+            polar=dict(
+                bgcolor='rgba(0,0,0,0)',
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 100],
+                    tickfont=dict(color='#cbd5e1'),
+                    gridcolor='#333333'
                 ),
-                polar=dict(
-                    bgcolor='rgba(0,0,0,0)',
-                    radialaxis=dict(
-                        visible=True,
-                        range=[0, 100],
-                        tickfont=dict(color='#cbd5e1'),
-                        gridcolor='#333333'
-                    ),
-                    angularaxis=dict(
-                        tickfont=dict(color='#ffffff', size=13),
-                        gridcolor='#333333'
-                    )
-                ),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                height=480,
-                margin=dict(l=30, r=30, t=50, b=40),
-                legend=dict(
-                    font=dict(color='#ffffff'),
-                    orientation="h",
-                    yanchor="bottom",
-                    y=-0.18,
-                    xanchor="center",
-                    x=0.5
+                angularaxis=dict(
+                    tickfont=dict(color='#ffffff', size=13),
+                    gridcolor='#333333'
                 )
+            ),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            height=480,
+            margin=dict(l=30, r=30, t=50, b=40),
+            legend=dict(
+                font=dict(color='#ffffff'),
+                orientation="h",
+                yanchor="bottom",
+                y=-0.18,
+                xanchor="center",
+                x=0.5
             )
+        )
 
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.warning("⚠️ Marque pelo menos uma estatística para exibir o gráfico.")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("⚠️ Marque pelo menos uma estatística para exibir o gráfico.")
 
-    st.markdown("---")
+st.markdown("---")
 
-    # 3. ESTATÍSTICAS DETALHADAS DINÂMICAS DO JOGADOR
-    st.markdown("### 📊 Estatísticas Detalhadas do Jogador")
+# 3. ESTATÍSTICAS DETALHADAS DINÂMICAS DO JOGADOR
+st.markdown("### 📊 Estatísticas Detalhadas do Jogador")
 
-    col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4 = st.columns(4)
 
-    with col1:
-        st.markdown("#### Ofensivo")
-        for lbl, col in STAT_GROUPS['Ofensivo'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+with col1:
+    st.markdown("#### Ofensivo")
+    for lbl, col in STAT_GROUPS['Ofensivo'].items():
+        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
-        st.markdown("#### Mentalidade")
-        for lbl, col in STAT_GROUPS['Mentalidade'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+    st.markdown("#### Mentalidade")
+    for lbl, col in STAT_GROUPS['Mentalidade'].items():
+        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
-    with col2:
-        st.markdown("#### Habilidade")
-        for lbl, col in STAT_GROUPS['Habilidade'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+with col2:
+    st.markdown("#### Habilidade")
+    for lbl, col in STAT_GROUPS['Habilidade'].items():
+        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
-        st.markdown("#### Defesa")
-        for lbl, col in STAT_GROUPS['Defesa'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+    st.markdown("#### Defesa")
+    for lbl, col in STAT_GROUPS['Defesa'].items():
+        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
-    with col3:
-        st.markdown("#### Movimentação")
-        for lbl, col in STAT_GROUPS['Movimentação'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+with col3:
+    st.markdown("#### Movimentação")
+    for lbl, col in STAT_GROUPS['Movimentação'].items():
+        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
-        st.markdown("#### Atributos GL")
-        for lbl, col in STAT_GROUPS['Atributos GL'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col, 10)), unsafe_allow_html=True)
+    st.markdown("#### Atributos GL")
+    for lbl, col in STAT_GROUPS['Atributos GL'].items():
+        st.markdown(render_stat_item(lbl, get_val(p, col, 10)), unsafe_allow_html=True)
 
-    with col4:
-        st.markdown("#### Força")
-        for lbl, col in STAT_GROUPS['Força'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
+with col4:
+    st.markdown("#### Força")
+    for lbl, col in STAT_GROUPS['Força'].items():
+        st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
 
-        st.markdown("#### Estilos de Jogo")
-        if play_styles:
-            for style in play_styles:
-                st.markdown(f"- **<span class='var-text'>{style}</span>**", unsafe_allow_html=True)
-        else:
-            st.markdown("- *<span class='var-text'>Nenhum estilo de jogo específico</span>*", unsafe_allow_html=True)
-
-# -----------------------------------------------------------------------------
-# DEMAIS PÁGINAS
-# -----------------------------------------------------------------------------
-elif page == "🛡️ Equipes":
-    st.title("🛡️ Comparação de Equipes")
-    club_stats = df_raw.groupby('Team').agg(
-        Total_Jogadores=('Name', 'count'),
-        Media_Overall=('OVR', 'mean')
-    ).reset_index()
-    st.dataframe(club_stats, use_container_width=True, hide_index=True)
-
-elif page == "⚽ Jogadores":
-    st.title("⚽ Visão Geral dos Jogadores")
-    st.dataframe(df_raw, use_container_width=True, hide_index=True)
-
-elif page == "⚔️ Comparar":
-    st.title("⚔️ Comparativo 1vs1")
-    all_players = sorted(df_raw['Name'].unique().tolist())
-    p1_name = st.selectbox("Jogador 1:", options=all_players, index=0)
-    p2_name = st.selectbox("Jogador 2:", options=all_players, index=1 if len(all_players)>1 else 0)
-    p1, p2 = df_raw[df_raw['Name'] == p1_name].iloc[0], df_raw[df_raw['Name'] == p2_name].iloc[0]
-
-    cats = ['Aceleração', 'Finalização', 'Passe curto', 'Dribles', 'Intercept.', 'Força']
-    p1_vals = [get_val(p1, 'Acceleration'), get_val(p1, 'Finishing'), get_val(p1, 'Short Passing'), get_val(p1, 'Dribbling'), get_val(p1, 'Interceptions'), get_val(p1, 'Strength')]
-    p2_vals = [get_val(p2, 'Acceleration'), get_val(p2, 'Finishing'), get_val(p2, 'Short Passing'), get_val(p2, 'Dribbling'), get_val(p2, 'Interceptions'), get_val(p2, 'Strength')]
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=p1_vals + [p1_vals[0]], theta=cats + [cats[0]], fill='none', name=p1['Name'], line=dict(color='#ef4444')))
-    fig.add_trace(go.Scatterpolar(r=p2_vals + [p2_vals[0]], theta=cats + [cats[0]], fill='none', name=p2['Name'], line=dict(color='#3b82f6')))
-    fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-    st.plotly_chart(fig, use_container_width=True)
+    st.markdown("#### Estilos de Jogo")
+    if play_styles:
+        for style in play_styles:
+            st.markdown(f"- **<span class='var-text'>{style}</span>**", unsafe_allow_html=True)
+    else:
+        st.markdown("- *<span class='var-text'>Nenhum estilo de jogo específico</span>*", unsafe_allow_html=True)
