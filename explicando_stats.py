@@ -99,13 +99,12 @@ def renderizar_explicando_stats():
         }
     ]
 
-    # Renderiza em grade de 3 colunas horizontais
+    # Distribuição idêntica em grade de 3 colunas horizontais com os mesmos seletores de estilo
     col1, col2, col3 = st.columns(3)
     cols = [col1, col2, col3]
 
     for idx, cat in enumerate(categorias):
         with cols[idx % 3]:
-            # Substituído st.container(border=True) pelo container HTML .custom-box
             st.markdown(f"""
             <div class="custom-box">
                 <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>{cat['tag']}</span>
