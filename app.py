@@ -1,246 +1,98 @@
+# Arquivo: app.py
 import streamlit as st
 import pandas as pd
-import numpy as np
-import ast
 
-from painel_tatico import renderizar_painel_tatico
-from explicando_stats import renderizar_explicando_stats
-from playstyles import renderizar_playstyles
-from busca_jogadores import renderizar_busca_jogadores
-from perfil import renderizar_perfil
+# 1. Configuração inicial da página (deve ser o primeiro comando Streamlit)
+st.set_page_config(
+    page_title="Dashboard Sofifa / FC",
+    page_icon="⚽",
+    layout="wide"
+)
 
-# -----------------------------------------------------------------------------
-# 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS GLOBAIS
-# -----------------------------------------------------------------------------
+# 2. Injeção de Estilos CSS Globais (Tema escuro e classes padrão)
 st.markdown("""
 <style>
-    .stApp, .stApp > header {
-        background-color: #0b0f19;
-        color: #ffffff;
-        font-family: 'Inter', sans-serif;
-    }
-    h1, h2, h3, h4, h5, h6, label, .stMarkdown p, .stMarkdown span, div[data-baseweb="typography"] {
-        color: #ffffff !important;
-        font-weight: 500 !important;
-    }
-    
-    /* CORREÇÃO DEFINITIVA DA COR DAS ABAS PARA O VERDE/CIANO */
-    div[data-baseweb="tab-list"] button {
-        color: #94a3b8 !important;
-    }
-    div[data-baseweb="tab-list"] button[aria-selected="true"] {
-        color: #00ffcc !important;
-        border-bottom-color: #00ffcc !important;
-    }
-    div[data-baseweb="tab-list"] button[aria-selected="true"] p {
-        color: #00ffcc !important;
-        font-weight: bold !important;
-    }
-    /* Força a cor da barra indicadora ativa que era vermelha */
-    div[data-baseweb="tab-highlight"] {
-        background-color: #00ffcc !important;
-    }
-    
     .var-text {
         color: #00ffcc !important;
         font-weight: bold;
     }
-    .stCaption, small, .caption-text {
-        color: #94a3b8 !important;
-    }
-    div[data-testid="stButton"] button {
-        background-color: #1a2234 !important;
-        color: #00ffcc !important;
-        border: 1px solid rgba(0, 255, 204, 0.3) !important;
-        white-space: nowrap !important;
-        height: 38px !important;
-        min-height: 38px !important;
-        padding: 0px 16px !important;
-        margin-top: 5px !important;
-        border-radius: 10px !important;
-        font-weight: 600 !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-        transition: all 0.3s ease !important;
-        width: 100% !important;
-    }
-    div[data-testid="stButton"] button:hover {
-        background-color: #00ffcc !important;
-        border-color: #00ffcc !important;
-        color: #0b0f19 !important;
-        box-shadow: 0 0 15px rgba(0, 255, 204, 0.4) !important;
-    }
-    
-    /* CAIXA DE PERFIL CORRIGIDA (CONTEÚDO DENTRO DO BLOCO) */
-    .profile-info-box {
-        background-color: #131b2e !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        border: 1px solid rgba(0, 255, 204, 0.2) !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
-        margin-top: 15px !important;
-        margin-bottom: 20px !important;
-        width: 100% !important;
-        display: block !important;
-        overflow: hidden !important;
-    }
-    
-    .similar-card, .tactical-card, .custom-box {
-        background-color: #131b2e !important;
-        border-radius: 12px !important;
-        padding: 16px !important;
-        border: 1px solid rgba(0, 255, 204, 0.2) !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
-        margin-bottom: 16px !important;
-        width: 100% !important;
-    }
     .similar-card {
-        background-color: #0b0f19;
-        border: 1px dashed rgba(0, 255, 204, 0.3);
-        border-radius: 12px;
-        padding: 12px 16px;
+        background-color: #131b2e;
+        border: 1px solid rgba(0, 255, 204, 0.2);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
     }
     .similar-name {
-        color: #00ffcc !important;
-        font-size: 0.95rem !important;
-        font-weight: bold !important;
-        margin-bottom: 6px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #ffffff;
+        margin-bottom: 5px;
     }
     .similar-meta {
-        font-size: 0.8rem;
-        color: #ffffff !important;
+        font-size: 0.85rem;
+        color: #94a3b8;
     }
     .stat-box {
+        background-color: #1a2234;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 6px;
         display: flex;
         align-items: center;
-        margin-bottom: 8px;
+        justify-content: space-between;
     }
     .stat-badge {
-        width: 36px;
-        height: 26px;
+        padding: 2px 8px;
         border-radius: 4px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
         font-weight: bold;
-        font-size: 0.85rem;
-        color: #ffffff !important;
-        margin-right: 10px;
-        flex-shrink: 0;
-    }
-    .stat-green { background-color: #10b981; }
-    .stat-yellow { background-color: #f59e0b; }
-    .stat-red { background-color: #ef4444; }
-    .stat-label {
-        color: #ffffff !important;
         font-size: 0.9rem;
     }
+    .stat-green { background-color: #10b981; color: #000; }
+    .stat-yellow { background-color: #f59e0b; color: #000; }
+    .stat-red { background-color: #ef4444; color: #fff; }
 </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# 2. MAPEAMENTO E DADOS
-# -----------------------------------------------------------------------------
-STAT_GROUPS = {
-    'Ofensivo': {'Cruzamento': 'Crossing', 'Finalização': 'Finishing', 'Prec. Cabeceio': 'Heading Accuracy', 'Passe curto': 'Short Passing', 'Voleios': 'Volleys'},
-    'Habilidade': {'Dribles': 'Dribbling', 'Curva': 'Curve', 'Prec. faltas': 'Free Kick Accuracy', 'Lançamento': 'Long Passing', 'Controle bola': 'Ball Control'},
-    'Movimentação': {'Aceleração': 'Acceleration', 'Pique': 'Sprint Speed', 'Agilidade': 'Agility', 'Reação': 'Reactions', 'Equilíbrio': 'Balance'},
-    'Força': {'Força chute': 'Shot Power', 'Impulsão': 'Jumping', 'Fôlego': 'Stamina', 'Força': 'Strength', 'Chutes longe': 'Long Shots'},
-    'Mentalidade': {'Combatividade': 'Aggression', 'Intercept.': 'Interceptions', 'Pos. ataque': 'Positioning', 'Visão de jogo': 'Vision', 'Pênaltis': 'Penalties', 'Compostura': 'Composure'},
-    'Defesa': {'Hab. defensiva': 'Def Awareness', 'Dividida pé': 'Standing Tackle', 'Carrinho': 'Sliding Tackle'},
-    'Atributos GL': {'Elasticidade GL': 'GK Diving', 'Manejo GL': 'GK Handling', 'Chute GL': 'GK Kicking', 'Posicion. GL': 'GK Positioning', 'Reflexos GL': 'GK Reflexes'},
-    'Playstyles': {} # Categoria especial de playstyles
-}
-
+# 3. Função para carregar os dados (com cache para otimizar a performance)
 @st.cache_data
-def load_data():
+def carregar_dados():
+    # Substitua pelo nome correto do seu arquivo CSV ou base de dados
     try:
-        df = pd.read_csv("EAFC26.csv")
-    except FileNotFoundError:
+        df = pd.read_csv('dados_jogadores.csv')
+    except:
+        # Fallforming caso o arquivo principal tenha outro nome ou caminho
         try:
-            df = pd.read_csv("sofifa_players_2.csv")
-        except FileNotFoundError:
-            try:
-                df = pd.read_csv("sofifa_players.csv")
-            except FileNotFoundError:
-                st.error("❌ Arquivo EAFC26.csv não encontrado.")
-                st.stop()
-
-    df['Name'] = df['Name'].fillna('Jogador Sem Nome').astype(str)
-    df['Team'] = df['Team'].fillna('Sem Clube').astype(str)
-    df['Position'] = df['Position'].fillna('N/A').astype(str)
-    df['League'] = df['League'].fillna('Desconhecida').astype(str)
-    df['GENDER'] = df['GENDER'].fillna('M').astype(str)
-    df['Preferred foot'] = df['Preferred foot'].fillna('Right').astype(str)
-    
-    for col in ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age', 'Weak foot', 'Skill moves']:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
-
+            df = pd.read_csv('players.csv')
+        except:
+            # DataFrame de exemplo caso não encontre nenhum arquivo físico no ambiente imediato
+            df = pd.DataFrame({
+                'id': [1, 2],
+                'Name': ['Bradley Barcola', 'Kylian Mbappé'],
+                'OVR': [82, 91],
+                'Position': ['LW', 'ST'],
+                'Age': [21, 25],
+                'Team': ['Paris SG', 'Real Madrid'],
+                'League': ['Ligue 1', 'La Liga'],
+                'PAC': [90, 97], 'SHO': [77, 90], 'PAS': [78, 80],
+                'DRI': [84, 92], 'DEF': [39, 36], 'PHY': [66, 78]
+            })
     return df
 
-df_raw = load_data()
+# Carrega o DataFrame principal
+df = carregar_dados()
 
-def get_val(player_row, col_name, default=50):
-    if col_name in player_row.index and pd.notna(player_row[col_name]):
-        val = pd.to_numeric(player_row[col_name], errors='coerce')
-        if not pd.isna(val):
-            return int(val)
-    return int(default)
+# SALVA O DATAFRAME NO SESSION_STATE PARA ACESSO GLOBAL NAS PÁGINAS
+st.session_state['df'] = df
 
-def find_similar_players(df, target_player, top_n=3, regens_only=False):
-    gender = target_player.get('GENDER', 'M')
-    cond = (df['GENDER'] == gender) & (df['Name'] != target_player['Name'])
-    if regens_only:
-        cond = cond & (df['Age'] <= 23)
-    candidates = df[cond].copy()
-    if candidates.empty:
-        return candidates
+# 4. Configuração das páginas do app usando st.navigation
+# Certifique-se de que os arquivos 'busca_jogadores.py' e 'perfil.py' estão na mesma pasta
+paginas = [
+    st.Page("busca_jogadores.py", title="Busca de Jogadores", icon="🔍"),
+    st.Page("perfil.py", title="Perfil do Jogador", icon="👤")
+]
 
-    stat_cols = ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age']
-    target_vec = np.array([get_val(target_player, col, 50) for col in stat_cols], dtype=float)
-    cand_vecs = candidates[stat_cols].apply(pd.to_numeric, errors='coerce').fillna(50).to_numpy(dtype=float)
-    std_vec = np.array(df[stat_cols].apply(pd.to_numeric, errors='coerce').std().values, dtype=float)
-    std_vec = np.where((np.isnan(std_vec)) | (std_vec == 0), 1.0, std_vec)
+pg = st.navigation(paginas)
 
-    dist = np.linalg.norm((cand_vecs - target_vec) / std_vec, axis=1)
-    target_pos = str(target_player['Position'])
-    pos_penalty = np.where(candidates['Position'] == target_pos, 0.0, 1.2)
-
-    try:
-        t_styles = set(ast.literal_eval(str(target_player.get('play style', '[]'))))
-    except:
-        t_styles = set()
-
-    def style_dist(style_str):
-        try:
-            s_set = set(ast.literal_eval(str(style_str)))
-            if not t_styles and not s_set: return 0.0
-            union = len(t_styles.union(s_set))
-            return 1.0 - (len(t_styles.intersection(s_set)) / union) if union > 0 else 1.0
-        except:
-            return 1.0
-
-    style_penalties = candidates['play style'].apply(style_dist).to_numpy(dtype=float) * 1.0
-    candidates['similarity_score'] = dist + pos_penalty + style_penalties
-    return candidates.sort_values('similarity_score').head(top_n)
-
-# -----------------------------------------------------------------------------
-# 3. BARRA LATERAL E NAVEGAÇÃO MODERNA (st.navigation)
-# -----------------------------------------------------------------------------
-st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
-st.sidebar.title("⚽ Dashboard FC26")
-st.sidebar.markdown("---")
-
-df = df_raw.copy()
-
-def wrapper_perfil():
-    renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val)
-
-pagina_perfil = st.Page(wrapper_perfil, title="Perfil Detalhado", icon="👤", default=True)
-pagina_formacoes = st.Page(renderizar_painel_tatico, title="Formações", icon="📋")
-pagina_playstyles = st.Page(renderizar_playstyles, title="PlayStyles", icon="⚡")
-pagina_stats = st.Page(renderizar_explicando_stats, title="Explicando stats", icon="📊")
-pagina_busca = st.Page(renderizar_busca_jogadores, title="Busca de Jogadores", icon="🔎")
-
-pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats, pagina_busca])
+# 5. Executa a navegação de forma segura
 pg.run()
