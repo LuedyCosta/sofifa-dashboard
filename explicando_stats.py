@@ -105,17 +105,21 @@ def renderizar_explicando_stats():
 
     for idx, cat in enumerate(categorias):
         with cols[idx % 3]:
-            with st.container(border=True):
-                st.markdown(f"<span style='color: #888; font-family: monospace; font-size: 13px;'>{cat['tag']}</span>", unsafe_allow_html=True)
-                st.markdown(f"<h2 style='margin: 0; padding: 2px 0; font-size: 24px;'>{cat['pt']}</h2>", unsafe_allow_html=True)
-                st.markdown(f"<p style='color: #888; font-size: 13px; font-weight: bold; margin-top: -5px;'>{cat['en']}</p>", unsafe_allow_html=True)
-                st.markdown(f"<p style='color: #ccc; font-size: 12px; min-height: 48px;'>{cat['desc']}</p>", unsafe_allow_html=True)
-                
-                with st.expander("Expandir"):
-                    items = list(cat["stats"].items())
-                    for i, (nome_stat, desc_stat) in enumerate(items):
-                        st.markdown(f"**{nome_stat}**")
-                        st.caption(desc_stat)
-                        
-                        if i < len(items) - 1:
-                            st.divider()
+            # Substituído st.container(border=True) pelo container HTML .custom-box
+            st.markdown(f"""
+            <div class="custom-box">
+                <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>{cat['tag']}</span>
+                <h2 style='margin: 0; padding: 2px 0; font-size: 24px; color: #ffffff;'>{cat['pt']}</h2>
+                <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -5px;'>{cat['en']}</p>
+                <p style='color: #ffffff; font-size: 12px; min-height: 48px; opacity: 0.85;'>{cat['desc']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            with st.expander("Expandir"):
+                items = list(cat["stats"].items())
+                for i, (nome_stat, desc_stat) in enumerate(items):
+                    st.markdown(f"<span class='var-text'>{nome_stat}</span>", unsafe_allow_html=True)
+                    st.caption(desc_stat)
+                    
+                    if i < len(items) - 1:
+                        st.divider()
