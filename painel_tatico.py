@@ -1,10 +1,9 @@
-# Arquivo: painel_tatico.py
 import streamlit as st
 import streamlit.components.v1 as components
 
 def renderizar_painel_tatico():
     st.title("📋 Guia de Formações & Tactical Presets (FC26)")
-    st.markdown("Analise a disposição tática em campo, os estilos de construção de jogada e as estratégias completas.")
+    st.markdown("Analise a disposição tática em campo, os estilos de construção de jogada e as estratégias completas extraídas da análise avançada.")
 
     painel_html = """
     <!DOCTYPE html>
@@ -20,7 +19,7 @@ def renderizar_painel_tatico():
         .grande-area-esq, .grande-area-dir { position: absolute; top: 20%; bottom: 20%; width: 15%; border: 2px solid rgba(255, 255, 255, 0.7); }
         .grande-area-esq { left: 0; border-left: none; }
         .grande-area-dir { right: 0; border-right: none; }
-        .jogador { position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; background-color: #ffffff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 9px; transition: all 0.3s ease-in-out; }
+        .jogador { position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; background-color: #ffffff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 8px; transition: all 0.3s ease-in-out; }
         .informacoes { flex: 1; display: flex; flex-direction: column; gap: 10px; }
         .seletor-duplo { display: flex; gap: 10px; }
         .seletor-grupo { flex: 1; background: #2a2a2a; padding: 10px; border-radius: 6px; }
@@ -44,80 +43,124 @@ def renderizar_painel_tatico():
             <div class="seletor-grupo">
               <label for="formacao-select">Formação:</label>
               <select id="formacao-select" onchange="atualizarPainel()">
-                <option value="433-holding">4-3-3 Holding</option>
-                <option value="442">4-4-2 Tradicional</option>
-                <option value="352">3-5-2</option>
+                <option value="433-false9">4-3-3 False 9</option>
+                <option value="4312">4-3-1-2</option>
+                <option value="424">4-2-4</option>
+                <option value="4321">4-3-2-1</option>
+                <option value="541-flat">5-4-1 Flat</option>
+                <option value="532">5-3-2</option>
               </select>
             </div>
             <div class="seletor-grupo">
               <label for="preset-select">Tactical Preset:</label>
               <select id="preset-select" onchange="atualizarPainel()">
-                <option value="padrao">Padrão (Standard)</option>
-                <option value="pontas">Jogo pelas Pontas</option>
                 <option value="tikitaka">Tiki-Taka / Posse</option>
-                <option value="contra-ataque">Contra-Ataque</option>
-                <option value="gegenpress">Gegenpressing</option>
-                <option value="kick-rush">Chuta e Corre</option>
-                <option value="park-bus">Estacionar o Ônibus</option>
+                <option value="short-passing">Short Passing / Posse Estéril</option>
+                <option value="gegenpress">Gegenpress / Pressão Pós-Perda</option>
+                <option value="heavy-metal">Heavy Metal Counter / Transição Vertical</option>
+                <option value="park-bus">Park the Bus (Estacionar o Ônibus)</option>
+                <option value="counter">Counter-Attack Retrancado</option>
               </select>
             </div>
           </div>
           <div class="card-info" style="border-left-color: #3b82f6;"><h3>Explicação Breve</h3><p id="info-descricao">-</p></div>
           <div class="card-info" style="border-left-color: #10b981;"><h3>Vantagens (Prós)</h3><p id="info-pros">-</p></div>
           <div class="card-info" style="border-left-color: #ef4444;"><h3>Desvantagens (Contras)</h3><p id="info-contras">-</p></div>
-          <div class="card-info" style="border-left-color: #f59e0b;"><h3>Estratégia de Combate</h3><p id="info-combate">-</p></div>
+          <div class="card-info" style="border-left-color: #f59e0b;"><h3>Como Jogar Contra</h3><p id="info-combate">-</p></div>
         </div>
       </div>
       <script>
         const posicoes = {
-          "433-holding": [{p:"GOL",t:50,l:6},{p:"LD",t:15,l:25},{p:"ZAG",t:38,l:20},{p:"ZAG",t:62,l:20},{p:"LE",t:85,l:25},{p:"VOL",t:50,l:38},{p:"MC",t:30,l:55},{p:"MC",t:70,l:55},{p:"PE",t:15,l:78},{p:"CA",t:50,l:82},{p:"PD",t:85,l:78}],
-          "442": [{p:"GOL",t:50,l:6},{p:"LD",t:15,l:25},{p:"ZAG",t:38,l:20},{p:"ZAG",t:62,l:20},{p:"LE",t:85,l:25},{p:"MD",t:15,l:50},{p:"MC",t:38,l:45},{p:"MC",t:62,l:45},{p:"ME",t:85,l:50},{p:"ATA",t:38,l:78},{p:"ATA",t:62,l:78}],
-          "352": [{p:"GOL",t:50,l:6},{p:"ZAG",t:25,l:20},{p:"ZAG",t:50,l:18},{p:"ZAG",t:75,l:20},{p:"ALA",t:10,l:50},{p:"VOL",t:38,l:40},{p:"MC",t:50,l:55},{p:"VOL",t:62,l:40},{p:"ALA",t:90,l:50},{p:"ATA",t:35,l:80},{p:"ATA",t:65,l:80}]
+          "433-false9": [{p:"GOL",t:50,l:6},{p:"LD",t:15,l:25},{p:"ZAG",t:38,l:20},{p:"ZAG",t:62,l:20},{p:"LE",t:85,l:25},{p:"VOL",t:50,l:40},{p:"MC",t:32,l:53},{p:"MC",t:68,l:53},{p:"PE",t:15,l:75},{p:"F9",t:50,l:68},{p:"PD",t:85,l:75}],
+          "4312": [{p:"GOL",t:50,l:6},{p:"LD",t:15,l:25},{p:"ZAG",t:38,l:20},{p:"ZAG",t:62,l:20},{p:"LE",t:85,l:25},{p:"MC",t:30,l:45},{p:"MC",t:50,l:40},{p:"MC",t:70,l:45},{p:"MEI",t:50,l:62},{p:"ATA",t:38,l:80},{p:"ATA",t:62,l:80}],
+          "424": [{p:"GOL",t:50,l:6},{p:"LD",t:15,l:25},{p:"ZAG",t:38,l:20},{p:"ZAG",t:62,l:20},{p:"LE",t:85,l:25},{p:"MC",t:38,l:45},{p:"MC",t:62,l:45},{p:"PE",t:15,l:78},{p:"ATA",t:38,l:82},{p:"ATA",t:62,l:82},{p:"PD",t:85,l:78}],
+          "4321": [{p:"GOL",t:50,l:6},{p:"LD",t:15,l:25},{p:"ZAG",t:38,l:20},{p:"ZAG",t:62,l:20},{p:"LE",t:85,l:25},{p:"MC",t:28,l:45},{p:"MC",t:50,l:40},{p:"MC",t:72,l:45},{p:"MEI",t:35,l:65},{p:"MEI",t:65,l:65},{p:"ATA",t:50,l:82}],
+          "541-flat": [{p:"GOL",t:50,l:6},{p:"ALA",t:10,l:25},{p:"ZAG",t:28,l:20},{p:"ZAG",t:50,l:18},{p:"ZAG",t:72,l:20},{p:"ALA",t:90,l:25},{p:"ME",t:15,l:50},{p:"MC",t:38,l:48},{p:"MC",t:62,l:48},{p:"MD",t:85,l:50},{p:"ATA",t:50,l:80}],
+          "532": [{p:"GOL",t:50,l:6},{p:"ALA",t:10,l:25},{p:"ZAG",t:28,l:20},{p:"ZAG",t:50,l:18},{p:"ZAG",t:72,l:20},{p:"ALA",t:90,l:25},{p:"MC",t:30,l:48},{p:"MC",t:50,l:45},{p:"MC",t:70,l:48},{p:"ATA",t:38,l:78},{p:"ATA",t:62,l:78}]
         };
+
         const matriz = {
-          "433-holding": {
-            "padrao": {d:"Estrutura equilibrada com o volante assegurando a proteção defensiva.",p:"Ocupação homogênea de espaço.",c:"Pode faltar agressividade contra blocos baixos.",b:"Pressionar o volante distribuidor."},
-            "pontas": {d:"Pontas abertos buscando o fundo com apoio de laterais.",p:"Isolamento 1v1 nos corredores.",c:"Espaço vago nas costas dos laterais.",b:"Dobrar a marcação nos pontas."},
-            "tikitaka": {d:"Triangulações curtas e paciência para infiltração.",p:"Controle absoluto da posse.",c:"Risco de perda na saída de bola.",b:"Bloqueio médio-baixo compacto."},
-            "contra-ataque": {d:"Bloco recuado com passe rápido em profundidade.",p:"Letal em espaço aberto.",c:"Isolamento do centroavante.",b:"Manter contra-pressão imediata."},
-            "gegenpress": {d:"Pressão sufocante no campo de ataque.",p:"Recuperação perto do gol rival.",c:"Desgaste físico alto e linha defensiva exposta.",b:"Usar ligações diretas."},
-            "kick-rush": {d:"Bolas longas buscando o CA ou disputa de pontas.",p:"Bypassa a pressão adversária.",c:"Baixo aproveitamento de posse.",b:"Soberania nos duelos aéreos."},
-            "park-bus": {d:"Linha de 4 e volante cimentados na área.",p:"Dificuldade nula de ceder gols por dentro.",c:"Incapacidade de sair ao ataque.",b:"Chutes de média e longa distância."}
+          "433-false9": {
+            "tikitaka": {
+              d: "O centroavante recua para a zona de armação (fazendo o papel de falso 9), atraindo a zaga adversária e abrindo o corredor central para a infiltração em diagonal dos pontas (LW/RW).",
+              p: "Superioridade numérica constante no meio-campo, posse de bola sufocante e extrema dificuldade para o adversário encaixar a marcação individual.",
+              c: "Falta de presença física na área em cruzamentos tradicionais; exige jogadores com altíssimo índice de passe e visão de jogo.",
+              b: "Utilize uma linha defensiva profunda e marque por zona com um volante fixo (estilo 4-2-3-1). Não permita que seus zagueiros abandonem a linha defensiva para perseguir o falso 9."
+            }
           },
-          "442": {
-            "padrao": {d:"Duas linhas de quatro com dupla de ataque.",p:"Fácil entendimento e solidez.",c:"Inferioridade contra trios de meio.",b:"Explorar entrelinhas no meio-campo."},
-            "pontas": {d:"Dobradinhas laterais para cruzamento.",p:"Aproveitamento da dupla de área.",c:"Corredor central exposto.",b:"Atacar por dentro no mano a mano."},
-            "tikitaka": {d:"Passes curtos entre linhas de meio e ataque.",p:"Apoio constante entre setores.",c:"Falta de amplitude sem pontas natos.",b:"Afunilar a marcação no centro."},
-            "contra-ataque": {d:"Duas linhas baixas e saída vertical rápida.",p:"Muralha defensiva eficiente.",c:"Alto desgaste dos meias abertos.",b:"Balanço defensivo constante."},
-            "gegenpress": {d:"Ataque e meias abafam a saída rival.",p:"Força erros na área adversária.",c:"Espaço entre a defesa e meio.",b:"Giro rápido com inversão de jogo."},
-            "kick-rush": {d:"Lançamentos diretos para a dupla de frente.",p:"Ganha segundas bolas no ataque.",c:"Pouca criação pelo chão.",b:"Recolher sobras com os volantes."},
-            "park-bus": {d:"Linhas ultra compactas perto do gol.",p:"Fechamento total dos corredores.",c:"Presença nula no ataque.",b:"Circulação rápida para descompactar."}
+          "4312": {
+            "short-passing": {
+              d: "Compactação máxima no corredor central, unindo um losango de meias a uma dupla de ataque dinâmica focada em passes de curto alcance.",
+              p: "Trocas de passes rápidas e imprevisíveis na entrada da área rival, gerando tabelas curtas imparáveis quando encaixadas.",
+              c: "Zero amplitude ofensiva natural. A equipe sofre imensamente contra defesas que fecham o meio.",
+              b: "Jogue com formações abertas (como um 4-4-2 ou 4-2-3-1 Wide) e force o adversário a jogar pelas laterais, onde ele não tem opções de profundidade."
+            }
           },
-          "352": {
-            "padrao": {d:"Três zagueiros e alas cobrindo os lados.",p:"Superioridade numérica no meio.",c:"Costas dos alas vulneráveis.",b:"Atacar os espaços dos alas."},
-            "pontas": {d:"Alas atuam avançados como pontas.",p:"Amplitude máxima e cruzamentos.",c:"Sobrecarga física nos alas.",b:"Explorar zagueiros de lado no 1v1."},
-            "tikitaka": {d:"Saída com 3 defensores e meio povoado.",p:"Fácil saída sob pressão.",c:"Lentidão se a bola não chegar à frente.",b:"Pressionar com 3 atacantes."},
-            "contra-ataque": {d:"Linha de 5 sem a bola e transição direta.",p:"Inviolável pelo centro.",c:"Distância grande para os atacantes.",b:"Chutes de fora da área."},
-            "gegenpress": {d:"Pressão com 5 meio-campistas no alto.",p:"Domínio físico no meio.",c:"Um passe certo quebra a linha toda.",b:"Passes verticais longos."},
-            "kick-rush": {d:"Zagueiros lançam para a dupla de ataque.",p:"Simplicidade e presença física.",c:"Descarte da criação dos volantes.",b:"Dominar a primeira bola aérea."},
-            "park-bus": {d:"Linha de 5 zagueiros + 3 volantes recuados.",p:"Bloqueio total na grande área.",c:"Falta de saída de bola.",b:"Movimentação intensa sem bola."}
+          "424": {
+            "gegenpress": {
+              d: "Quatro jogadores na linha de frente sufocando a saída de bola do adversário em bloco alto, apoiados por transições verticais rápidas.",
+              p: "Pressão sufocante que induz o adversário ao erro na defesa, gerando chances claras de gol logo após a roubada.",
+              c: "Desorganização crônica do meio-campo. Apenas dois jogadores protegem a transição defensiva, abrindo enormes buracos.",
+              b: "Atraia a pressão tocando a bola de pé em pé com calma na defesa e lance imediatamente bolas longas nas costas dos alas/laterais que sobem em desespero."
+            }
+          },
+          "4321": {
+            "heavy-metal": {
+              d: "O meta competitivo por excelência. Dois meias atacantes fechados funcionam como foguetes acionados instantaneamente após a recuperação da posse.",
+              p: "Velocidade letal na transição, compactação defensiva sólida em bloco médio e infiltrações imprevisíveis por dentro.",
+              c: "Requer controle manual impecável para não perder o corredor lateral quando o adversário cria largura.",
+              b: "Feche o centro com um duplo pivô rigoroso e use laterais com instruções de não subir ao mesmo tempo para conter os meias infiltrais."
+            }
+          },
+          "541-flat": {
+            "park-bus": {
+              d: "Bloco super compacto com uma linha defensiva de cinco e uma linha de quatro logo à frente, anulando totalmente a profundidade rival.",
+              p: "Impenetrável por dentro, privando o adversário de qualquer espaço para finalizações limpas na grande área.",
+              c: "Ofensivamente estéril. Praticamente não há jogadores no campo de ataque para construir contra-ataques estruturados.",
+              b: "Tenha paciência na circulação de bola, utilize chutes de longa distância (Power Shots) e explore cruzamentos venenosos com alas abertos para forçar erros de desatenção."
+            }
+          },
+          "532": {
+            "counter": {
+              d: "Três zagueiros protegidos por um trio de meio-campo e dois alas que fecham a casinha, contando com dois atacantes rápidos isolados na frente.",
+              p: "Excelente equilíbrio entre fechar os espaços defensivos e ter uma dupla de escape veloz para puxar contragolpes.",
+              c: "Vulnerável ao controle de posse prolongado no campo defensivo do adversário, sofrendo com o desgaste físico dos alas.",
+              b: "Mantenha a linha defensiva alta para impedir que os atacantes recebam lançamentos livres e use pressão pós-perda para sufocar a saída deles."
+            }
           }
+        };
+
+        const presetRecomendado = {
+          "433-false9": "tikitaka",
+          "4312": "short-passing",
+          "424": "gegenpress",
+          "4321": "heavy-metal",
+          "541-flat": "park-bus",
+          "532": "counter"
         };
 
         function atualizarPainel() {
           const f = document.getElementById("formacao-select").value;
-          const p = document.getElementById("preset-select").value;
+          let p = document.getElementById("preset-select").value;
+          
+          if (!matriz[f][p]) {
+            p = presetRecomendado[f];
+            document.getElementById("preset-select").value = p;
+          }
+
           const campo = document.getElementById("campo");
           campo.querySelectorAll(".jogador").forEach(j => j.remove());
           
-          posicoes[f].forEach(j => {
-            const div = document.createElement("div");
-            div.className = "jogador";
-            div.style.top = j.t + "%";
-            div.style.left = j.l + "%";
-            div.innerText = j.p;
-            campo.appendChild(div);
-          });
+          if (posicoes[f]) {
+            posicoes[f].forEach(j => {
+              const div = document.createElement("div");
+              div.className = "jogador";
+              div.style.top = j.t + "%";
+              div.style.left = j.l + "%";
+              div.innerText = j.p;
+              campo.appendChild(div);
+            });
+          }
 
           const d = matriz[f][p];
           document.getElementById("info-descricao").innerText = d.d;
