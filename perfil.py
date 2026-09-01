@@ -15,6 +15,8 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
 
     p = df[df['Name'] == target_player_name].iloc[0]
+    
+    # Processamento dos PlayStyles do Jogador
     play_styles_raw = str(p.get('play style', '[]'))
     try:
         play_styles = ast.literal_eval(play_styles_raw)
@@ -74,37 +76,55 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # 1. DETALHAMENTO COMPLETO POR CATEGORIA (MOVIDO PARA ANTES)
+    # 1. DETALHAMENTO COMPLETO POR CATEGORIA (INCLUINDO PLAYSTYLES)
     # -------------------------------------------------------------------------
     st.markdown("### 📊 Detalhamento Completo por Categoria")
-    tab_names = list(STAT_GROUPS.keys())
+    
+    # Criamos cópia ou dicionário estendido para incluir PlayStyles nas abas
+    all_tabs_dict = dict(STAT_GROUPS)
+    all_tabs_dict["PlayStyles"] = {} # Aba especial tratada separadamente
+
+    tab_names = list(all_tabs_dict.keys())
     tabs = st.tabs(tab_names)
     
     for tab_idx, tab_name in enumerate(tab_names):
         with tabs[tab_idx]:
-            group_dict = STAT_GROUPS[tab_name]
-            sub_cols = st.columns(2)
-            items = list(group_dict.items())
-            half = (len(items) + 1) // 2
-            
-            def render_stat_item(label, value):
-                val_int = int(value) if str(value).isdigit() else 50
-                badge_class = "stat-green" if val_int >= 70 else ("stat-yellow" if val_int >= 60 else "stat-red")
-                return f"""
-                <div class="stat-box">
-                    <span class="stat-badge {badge_class}">{val_int}</span>
-                    <span class="stat-label">{label}</span>
-                </div>
-                """
+            if tab_name == "PlayStyles":
+                if play_styles and len(play_styles) > 0:
+                    cols_ps = st.columns(3)
+                    for idx_ps, ps_name in enumerate(play_styles):
+                        with cols_ps[idx_ps % 3]:
+                            st.markdown(f"""
+                            <div class="similar-card" style="margin-bottom: 10px; text-align: center;">
+                                <span class="var-text" style="font-size: 1rem; font-weight: bold;">⚡ {ps_name}</span>
+                            </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    st.markdown("<p style='color: #94a3b8; font-style: italic; font-size: 1.1rem; padding: 10px;'>não tem</p>", unsafe_allow_html=True)
+            else:
+                group_dict = STAT_GROUPS[tab_name]
+                sub_cols = st.columns(2)
+                items = list(group_dict.items())
+                half = (len(items) + 1) // 2
+                
+                def render_stat_item(label, value):
+                    val_int = int(value) if str(value).isdigit() else 50
+                    badge_class = "stat-green" if val_int >= 70 else ("stat-yellow" if val_int >= 60 else "stat-red")
+                    return f"""
+                    <div class="stat-box">
+                        <span class="stat-badge {badge_class}">{val_int}</span>
+                        <span class="stat-label">{label}</span>
+                    </div>
+                    """
 
-            with sub_cols[0]:
-                for label, col_csv in items[:half]:
-                    val = get_val(p, col_csv, 50)
-                    st.markdown(render_stat_item(label, val), unsafe_allow_html=True)
-            with sub_cols[1]:
-                for label, col_csv in items[half:]:
-                    val = get_val(p, col_csv, 50)
-                    st.markdown(render_stat_item(label, val), unsafe_allow_html=True)
+                with sub_cols[0]:
+                    for label, col_csv in items[:half]:
+                        val = get_val(p, col_csv, 50)
+                        st.markdown(render_stat_item(label, val), unsafe_allow_html=True)
+                with sub_cols[1]:
+                    for label, col_csv in items[half:]:
+                        val = get_val(p, col_csv, 50)
+                        st.markdown(render_stat_item(label, val), unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -255,7 +275,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # 3. JOGADORES PARECIDOS (MOVIDO PARA DEPOIS DO RADAR)
+    # 3. JOGADORES PARECIDOS
     # -------------------------------------------------------------------------
     col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
     with col_sim_title:
