@@ -34,17 +34,6 @@ st.markdown("""
     [data-testid="stSidebar"] hr {
         border-color: rgba(0, 255, 204, 0.2) !important;
     }
-    /* Estilização dos itens de navegação do st.navigation na sidebar */
-    [data-testid="stSidebar"] [data-testid="stPageLink"] a, 
-    [data-testid="stSidebar"] div[data-baseweb="radio"] div {
-        color: #94a3b8 !important;
-    }
-    [data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"] {
-        background-color: #131b2e !important;
-        color: #00ffcc !important;
-        border: 1px solid rgba(0, 255, 204, 0.3) !important;
-        border-radius: 8px !important;
-    }
 
     /* CORREÇÃO DEFINITIVA DA COR DAS ABAS PARA O VERDE/CIANO */
     div[data-baseweb="tab-list"] button {
@@ -58,7 +47,6 @@ st.markdown("""
         color: #00ffcc !important;
         font-weight: bold !important;
     }
-    /* Força a cor da barra indicadora ativa que era vermelha */
     div[data-baseweb="tab-highlight"] {
         background-color: #00ffcc !important;
     }
@@ -92,7 +80,6 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(0, 255, 204, 0.4) !important;
     }
     
-    /* CAIXA DE PERFIL CORRIGIDA (CONTEÚDO DENTRO DO BLOCO) */
     .profile-info-box {
         background-color: #131b2e !important;
         border-radius: 12px !important;
@@ -170,7 +157,7 @@ STAT_GROUPS = {
     'Mentalidade': {'Combatividade': 'Aggression', 'Intercept.': 'Interceptions', 'Pos. ataque': 'Positioning', 'Visão de jogo': 'Vision', 'Pênaltis': 'Penalties', 'Compostura': 'Composure'},
     'Defesa': {'Hab. defensiva': 'Def Awareness', 'Dividida pé': 'Standing Tackle', 'Carrinho': 'Sliding Tackle'},
     'Atributos GL': {'Elasticidade GL': 'GK Diving', 'Manejo GL': 'GK Handling', 'Chute GL': 'GK Kicking', 'Posicion. GL': 'GK Positioning', 'Reflexos GL': 'GK Reflexes'},
-    'Playstyles': {} # Categoria especial de playstyles
+    'Playstyles': {}
 }
 
 @st.cache_data
@@ -247,20 +234,33 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
     return candidates.sort_values('similarity_score').head(top_n)
 
 # -----------------------------------------------------------------------------
-# 3. BARRA LATERAL E NAVEGAÇÃO MODERNA (st.navigation)
+# 3. BARRA LATERAL COM TÍTULO NO TOPO E NAVEGAÇÃO ABAIXO
 # -----------------------------------------------------------------------------
-st.sidebar.title("Dashboard FC26 by Luedy Costa")
-st.sidebar.markdown("---")
+with st.sidebar:
+    st.markdown("### Dashboard FC26 by\n### Luedy Costa")
+    st.markdown("---")
+    
+    # Menu de navegação limpo posicionado após o título
+    pagina = st.radio(
+        "Navegação",
+        options=["Perfil Detalhado", "Formações", "PlayStyles", "Explicando stats"],
+        format_func=lambda x: {
+            "Perfil Detalhado": "👤 Perfil Detalhado",
+            "Formações": "📋 Formações",
+            "PlayStyles": "⚡ PlayStyles",
+            "Explicando stats": "📊 Explicando stats"
+        }[x],
+        label_visibility="collapsed"
+    )
 
 df = df_raw.copy()
 
-def wrapper_perfil():
+# Renderização da página selecionada
+if pagina == "Perfil Detalhado":
     renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val)
-
-pagina_perfil = st.Page(wrapper_perfil, title="Perfil Detalhado", icon="👤", default=True)
-pagina_formacoes = st.Page(renderizar_painel_tatico, title="Formações", icon="📋")
-pagina_playstyles = st.Page(renderizar_playstyles, title="PlayStyles", icon="⚡")
-pagina_stats = st.Page(renderizar_explicando_stats, title="Explicando stats", icon="📊")
-
-pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats], position="sidebar")
-pg.run()
+elif pagina == "Formações":
+    renderizar_painel_tatico()
+elif pagina == "PlayStyles":
+    renderizar_playstyles()
+elif pagina == "Explicando stats":
+    renderizar_explicando_stats()
