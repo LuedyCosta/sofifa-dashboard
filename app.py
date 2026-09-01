@@ -7,6 +7,9 @@ from painel_tatico import renderizar_painel_tatico # Importa o seu novo módulo
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
+# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="SoFIFA & FC26 Dashboard",
     page_icon="⚽",
