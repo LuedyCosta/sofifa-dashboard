@@ -7,7 +7,6 @@ from painel_tatico import renderizar_painel_tatico
 from explicando_stats import renderizar_explicando_stats
 from playstyles import renderizar_playstyles
 from busca_jogadores import renderizar_busca_jogadores
-from perfil import renderizar_perfil
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS GLOBAIS
