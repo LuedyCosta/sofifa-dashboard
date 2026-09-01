@@ -7,9 +7,6 @@ from painel_tatico import renderizar_painel_tatico # Importa o seu novo módulo
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
 # -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-# 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
-# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="SoFIFA & FC26 Dashboard",
     page_icon="⚽",
@@ -807,15 +804,30 @@ page_selection = st.sidebar.radio("Ir para:", ["Perfil Detalhado", "Formações"
 df = df_raw.copy()
 
 # -----------------------------------------------------------------------------
-# 5. PÁGINA 1: PERFIL DETALHADO
+# PÁGINA: PERFIL DETALHADO
 # -----------------------------------------------------------------------------
-if page_selection == "Perfil Detalhado":
+elif page_selection == "Perfil":
     st.title("👤 Perfil Detalhado")
 
-    col_quem, _ = st.columns([1, 2])
-    player_list = sorted(df['Name'].unique().tolist())
-    default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
+    # Garanta que a coluna 'Name' existe no seu df (ou altere para o nome correto da coluna)
+    players_list = df["Name"].unique()
+    selected_player = st.selectbox("Buscar Jogador:", players_list)
 
+    # 1. Filtra os dados
+    player_df = df[df["Name"] == selected_player]
+
+    # 2. Verificação alinhada diretamente abaixo de player_df
+    if not player_df.empty:
+        player_data = player_df.iloc[0]
+
+        card_img = None
+        if "card_img" in player_data and pd.notna(player_data["card_img"]):
+            card_img = player_data["card_img"]
+        elif "Photo" in player_data and pd.notna(player_data["Photo"]):
+            card_img = player_data["Photo"]
+
+        if card_img and str(card_img).startswith("http"):
+            st.image(card_img)
     with col_quem:
         target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
 
