@@ -1,7 +1,6 @@
 # Arquivo: busca_jogadores.py
 import streamlit as st
 import pandas as pd
-import ast
 
 def renderizar_busca_jogadores(df):
     st.title("🔍 Busca Avançada de Jogadores")
@@ -9,7 +8,6 @@ def renderizar_busca_jogadores(df):
     # Injeção de CSS específico para responsividade da tabela e filtros de busca
     st.markdown("""
     <style>
-        /* Torna a tabela de dados responsiva com barra de rolagem suave */
         div[data-testid="stDataFrame"] {
             width: 100% !important;
             overflow-x: auto !important;
@@ -17,8 +15,6 @@ def renderizar_busca_jogadores(df):
         div[data-testid="stDataFrame"] > div {
             width: 100% !important;
         }
-        
-        /* Ajuste de espaçamento para inputs em dispositivos móveis */
         @media (max-width: 768px) {
             .stTextInput, .stSelectbox, .stMultiSelect {
                 margin-bottom: 10px !important;
@@ -27,7 +23,7 @@ def renderizar_busca_jogadores(df):
     </style>
     """, unsafe_allow_html=True)
 
-    # Bloco de Filtros Responsivos (Se reorganizam automaticamente por colunas)
+    # Bloco de Filtros Responsivos
     with st.container(border=True):
         st.markdown("### 🎛️ Filtros de Pesquisa")
         
@@ -52,7 +48,7 @@ def renderizar_busca_jogadores(df):
             times_disponiveis = ["Todos"] + sorted(df['Team'].dropna().unique().tolist())
             time_busca = st.selectbox("Clube:", options=times_disponiveis)
 
-    # Filtragem do DataFrame com base nas escolhas
+    # Filtragem do DataFrame
     df_filtrado = df.copy()
 
     if nome_busca:
@@ -74,22 +70,18 @@ def renderizar_busca_jogadores(df):
     if df_filtrado.empty:
         st.warning("Nenhum jogador encontrado com os filtros selecionados.")
     else:
-        # Seleção de colunas principais para exibição limpa em qualquer tela
         colunas_exibicao = ['Name', 'OVR', 'Position', 'Age', 'Team', 'League', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY']
         colunas_disponiveis = [c for c in colunas_exibicao if c in df_filtrado.columns]
 
-        # Tabela interativa com ajuste de largura total responsiva
+        # Tabela interativa sem argumentos descontinuados
         st.dataframe(
             df_filtrado[colunas_disponiveis],
-            use_container_width=True,
             hide_index=True
         )
 
-        # Seção de comparação ou interações adicionais usando chaves blindadas contra duplicatas
         st.markdown("---")
         st.markdown("### 📋 Ações Rápidas por Jogador")
         
-        # Paginação simples para otimizar visualização mobile (mostra de 10 em 10)
         max_por_pagina = 10
         total_paginas = max(1, (len(df_filtrado) + max_por_pagina - 1) // max_por_pagina)
         
@@ -102,7 +94,6 @@ def renderizar_busca_jogadores(df):
         for idx, row in df_pagina.iterrows():
             id_jog = row.get('id', idx)
             
-            # Usando chave composta (ID do jogador + índice da linha) para evitar conflitos de chave duplicada
             col_nome, col_info, col_acao = st.columns([2, 2, 1])
             with col_nome:
                 st.markdown(f"**{row['Name']}**")
