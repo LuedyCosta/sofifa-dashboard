@@ -83,12 +83,46 @@ st.markdown("""
         font-size: 0.8rem;
         color: #ffffff !important;
     }
+    .stat-box {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .stat-badge {
+        width: 34px;
+        height: 25px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.85rem;
+        color: #ffffff !important;
+        margin-right: 8px;
+    }
+    .stat-green { background-color: #10b981; }
+    .stat-yellow { background-color: #f59e0b; }
+    .stat-red { background-color: #ef4444; }
+    .stat-label {
+        color: #ffffff !important;
+        font-size: 0.95rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. CARREGAMENTO DE DADOS E FUNÇÕES AUXILIARES
+# 2. MAPEAMENTO E DADOS
 # -----------------------------------------------------------------------------
+STAT_GROUPS = {
+    'Ofensivo': {'Cruzamento': 'Crossing', 'Finalização': 'Finishing', 'Prec. Cabeceio': 'Heading Accuracy', 'Passe curto': 'Short Passing', 'Voleios': 'Volleys'},
+    'Habilidade': {'Dribles': 'Dribbling', 'Curva': 'Curve', 'Prec. faltas': 'Free Kick Accuracy', 'Lançamento': 'Long Passing', 'Controle bola': 'Ball Control'},
+    'Movimentação': {'Aceleração': 'Acceleration', 'Pique': 'Sprint Speed', 'Agilidade': 'Agility', 'Reação': 'Reactions', 'Equilíbrio': 'Balance'},
+    'Força': {'Força chute': 'Shot Power', 'Impulsão': 'Jumping', 'Fôlego': 'Stamina', 'Força': 'Strength', 'Chutes longe': 'Long Shots'},
+    'Mentalidade': {'Combatividade': 'Aggression', 'Intercept.': 'Interceptions', 'Pos. ataque': 'Positioning', 'Visão de jogo': 'Vision', 'Pênaltis': 'Penalties', 'Compostura': 'Composure'},
+    'Defesa': {'Hab. defensiva': 'Def Awareness', 'Dividida pé': 'Standing Tackle', 'Carrinho': 'Sliding Tackle'},
+    'Atributos GL': {'Elasticidade GL': 'GK Diving', 'Manejo GL': 'GK Handling', 'Chute GL': 'GK Kicking', 'Posicion. GL': 'GK Positioning', 'Reflexos GL': 'GK Reflexes'}
+}
+
 @st.cache_data
 def load_data():
     try:
@@ -171,12 +205,9 @@ st.sidebar.markdown("---")
 
 df = df_raw.copy()
 
-# Wrapper function para injetar o dataframe e a função de similares no perfil
-# No app.py, altere o wrapper do perfil para:
 def wrapper_perfil():
     renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val)
 
-# Definindo as páginas usando st.Page e st.navigation
 pagina_perfil = st.Page(wrapper_perfil, title="Perfil Detalhado", icon="👤", default=True)
 pagina_formacoes = st.Page(renderizar_painel_tatico, title="Formações", icon="📋")
 pagina_playstyles = st.Page(renderizar_playstyles, title="PlayStyles", icon="⚡")
@@ -184,6 +215,4 @@ pagina_stats = st.Page(renderizar_explicando_stats, title="Explicando stats", ic
 pagina_busca = st.Page(renderizar_busca_jogadores, title="Busca de Jogadores", icon="🔎")
 
 pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats, pagina_busca])
-
-# Executa a navegação
 pg.run()
