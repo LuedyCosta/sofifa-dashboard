@@ -90,7 +90,7 @@ def renderizar_busca_jogadores(df):
 
         df_pagina = df_filtrado.iloc[inicio:fim]
 
-        for idx, row in df_pagina.iterrows():
+       for idx, row in df_pagina.iterrows():
             id_jog = row.get('id', idx)
             
             col_nome, col_info, col_acao = st.columns([2, 2, 1])
@@ -100,3 +100,6 @@ def renderizar_busca_jogadores(df):
                 st.markdown(f"<span style='color: #94a3b8;'>OVR: {row['OVR']} | Pos: {row['Position']}</span>", unsafe_allow_html=True)
             with col_acao:
                 st.checkbox("Comparar", key=f"comp_{id_jog}_{idx}")
+
+# <--- ADICIONE ESTA LINHA NO FINAL DO ARQUIVO BUSCA_JOGADORES.PY --->
+renderizar_busca_jogadores()
