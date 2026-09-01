@@ -42,34 +42,33 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         st.markdown(f"**Posição:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
         st.markdown(f"**Overall:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
-    # Bloco de detalhes responsivo perfeitamente contido na caixa
-    st.markdown("<div class='profile-info-box'>", unsafe_allow_html=True)
-    b_col1, b_col2, b_col3 = st.columns(3)
-    with b_col1:
-        st.markdown(f"""
-        <strong style="color:#ffffff;">Perfil</strong><br>
-        <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
-        <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
-        <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
-        <span>Rank: <b class="var-text">#{rep_int}</b></span>
-        """, unsafe_allow_html=True)
-    with b_col2:
-        st.markdown(f"""
-        <strong style="color:#ffffff;">Atributos Globais</strong><br>
-        <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
-        <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
-        <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
-        <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
-        <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
-        <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
-        """, unsafe_allow_html=True)
-    with b_col3:
-        st.markdown(f"""
-        <strong style="color:#ffffff;">Clube</strong><br>
-        <span><b class="var-text">{p['Team']}</b></span><br>
-        <span>Posição: <b class="var-text">{p['Position']}</b></span>
-        """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Bloco de detalhes usando container nativo estilizado do Streamlit
+    with st.container(border=True):
+        b_col1, b_col2, b_col3 = st.columns(3)
+        with b_col1:
+            st.markdown(f"""
+            <strong style="color:#ffffff;">Perfil</strong><br>
+            <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
+            <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
+            <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
+            <span>Rank: <b class="var-text">#{rep_int}</b></span>
+            """, unsafe_allow_html=True)
+        with b_col2:
+            st.markdown(f"""
+            <strong style="color:#ffffff;">Atributos Globais</strong><br>
+            <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
+            <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
+            <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
+            <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
+            <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
+            <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
+            """, unsafe_allow_html=True)
+        with b_col3:
+            st.markdown(f"""
+            <strong style="color:#ffffff;">Clube</strong><br>
+            <span><b class="var-text">{p['Team']}</b></span><br>
+            <span>Posição: <b class="var-text">{p['Position']}</b></span>
+            """, unsafe_allow_html=True)
 
     st.markdown("---")
 
