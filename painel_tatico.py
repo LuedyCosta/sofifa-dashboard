@@ -44,6 +44,42 @@ def renderizar_painel_tatico():
         "park-bus": "Retranca / Bloco Baixo (Park the Bus)"
     }
 
+    # Dicionário com os nomes formatados das formações com hífen
+    nomes_formacoes = {
+        "3142": "3-1-4-2",
+        "3412": "3-4-1-2",
+        "3421": "3-4-2-1",
+        "343": "3-4-3",
+        "3511": "3-5-1-1",
+        "352": "3-5-2",
+        "41212-n": "4-1-2-1-2 (Narrow)",
+        "41212-w": "4-1-2-1-2 (Wide)",
+        "4132": "4-1-3-2",
+        "4141": "4-1-4-1",
+        "4213": "4-2-1-3",
+        "4222": "4-2-2-2",
+        "4231-n": "4-2-3-1 (Narrow)",
+        "4231-w": "4-2-3-1 (Wide)",
+        "424": "4-2-4",
+        "4312": "4-3-1-2",
+        "4321": "4-3-2-1",
+        "433-flat": "4-3-3 (Flat)",
+        "433-holding": "4-3-3 (Holding)",
+        "433-defend": "4-3-3 (Defend)",
+        "433-attack": "4-3-3 (Attack)",
+        "433-false9": "4-3-3 (False 9)",
+        "4411": "4-4-1-1",
+        "442-flat": "4-4-2 (Flat)",
+        "442-holding": "4-4-2 (Holding)",
+        "451": "4-5-1",
+        "5122": "5-1-2-2",
+        "5212": "5-2-1-2",
+        "5221": "5-2-2-1",
+        "523": "5-2-3",
+        "532": "5-3-2",
+        "541": "5-4-1"
+    }
+
     # Modelo base com análises genéricas para os 10 presets
     presets_genericos = {
         "balanced": {
@@ -171,6 +207,7 @@ def renderizar_painel_tatico():
     formacao_selecionada = st.selectbox(
         "1. Escolha a Formação Tática:",
         list(matrizMatriz.keys()),
+        format_func=lambda key: nomes_formacoes.get(key, key),
         index=0
     )
 
@@ -188,6 +225,7 @@ def renderizar_painel_tatico():
     # Carrega os dados correspondentes
     dados = matrizMatriz[formacao_selecionada][preset_selecionado_key]
     posicoes = posicoes_campo.get(formacao_selecionada, {})
+    nome_exibicao = nomes_formacoes.get(formacao_selecionada, formacao_selecionada)
 
     st.markdown("---")
 
@@ -200,45 +238,53 @@ def renderizar_painel_tatico():
 
     st.markdown("---")
 
-    # Exibição dos cards analíticos estruturados em grade de 2 colunas e 2 linhas
+    # Exibição dos cards analíticos estruturados em grade de 2 colunas e 2 linhas (com altura fixa padronizada)
     col_a, col_b = st.columns(2)
 
     with col_a:
         # Linha 1, Coluna 1: Estrutura
         st.markdown(f"""
-        <div class="custom-box" style="margin-bottom: 16px;">
-            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>01 / ESTRUTURA</span>
-            <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>{formacao_selecionada}</h2>
-            <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -5px;'>Preset: {preset_labels.get(preset_selecionado_key, preset_selecionado_key)}</p>
-            <p style='color: #ffffff; font-size: 12px; min-height: 48px; opacity: 0.85;'>{dados['d']}</p>
+        <div class="custom-box" style="height: 185px; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 16px;">
+            <div>
+                <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>01 / ESTRUTURA</span>
+                <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>{nome_exibicao}</h2>
+                <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -3px;'>Preset: {preset_labels.get(preset_selecionado_key, preset_selecionado_key)}</p>
+            </div>
+            <p style='color: #ffffff; font-size: 12px; opacity: 0.85; margin: 0;'>{dados['d']}</p>
         </div>
         """, unsafe_allow_html=True)
 
         # Linha 2, Coluna 1: Desvantagens
         st.markdown(f"""
-        <div class="custom-box">
-            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02.1 / LIMITAÇÕES</span>
-            <h2 style='margin: 0; padding: 2px 0; font-size: 20px; color: #ef4444;'>🔴 Desvantagens</h2>
-            <p style='color: #ffffff; font-size: 12px; margin-top: 8px; opacity: 0.9;'>{dados['c']}</p>
+        <div class="custom-box" style="height: 185px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02.1 / LIMITAÇÕES</span>
+                <h2 style='margin: 0; padding: 2px 0; font-size: 20px; color: #ef4444;'>🔴 Desvantagens</h2>
+            </div>
+            <p style='color: #ffffff; font-size: 12px; opacity: 0.9; margin: 0;'>{dados['c']}</p>
         </div>
         """, unsafe_allow_html=True)
 
     with col_b:
         # Linha 1, Coluna 2: Vantagens
         st.markdown(f"""
-        <div class="custom-box" style="margin-bottom: 16px;">
-            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02 / DESEMPENHO</span>
-            <h2 style='margin: 0; padding: 2px 0; font-size: 20px; color: #22c55e;'>🟢 Vantagens</h2>
-            <p style='color: #ffffff; font-size: 12px; margin-top: 8px; opacity: 0.9;'>{dados['p']}</p>
+        <div class="custom-box" style="height: 185px; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 16px;">
+            <div>
+                <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02 / DESEMPENHO</span>
+                <h2 style='margin: 0; padding: 2px 0; font-size: 20px; color: #22c55e;'>🟢 Vantagens</h2>
+            </div>
+            <p style='color: #ffffff; font-size: 12px; opacity: 0.9; margin: 0;'>{dados['p']}</p>
         </div>
         """, unsafe_allow_html=True)
 
         # Linha 2, Coluna 2: Como Anular
         st.markdown(f"""
-        <div class="custom-box">
-            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>03 / ESTRATÉGIA</span>
-            <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>Como Anular</h2>
-            <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -5px;'>How to Counter</p>
-            <p style='color: #ffffff; font-size: 12px; min-height: 48px; opacity: 0.85;'>{dados['b']}</p>
+        <div class="custom-box" style="height: 185px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>03 / ESTRATÉGIA</span>
+                <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>Como Anular</h2>
+                <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -3px;'>How to Counter</p>
+            </div>
+            <p style='color: #ffffff; font-size: 12px; opacity: 0.85; margin: 0;'>{dados['b']}</p>
         </div>
         """, unsafe_allow_html=True)
