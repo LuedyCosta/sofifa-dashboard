@@ -834,12 +834,13 @@ if page_selection == "Perfil Detalhado":
     c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
 
     # Exemplo de verificação segura para a foto/card do jogador:
-card_img = player_data.get("card_img", None) if isinstance(player_data, dict) else None
+# Garanta que o 'if' e o 'else' tenham exatamente o mesmo nível de recuo (espaços)
+    card_img = player_data.get("card_img", None) if isinstance(player_data, dict) else None
 
-if card_img and pd.notna(card_img) and str(card_img).startswith("http"):
-    st.image(card_img)
-        else:
-            st.image("https://cdn.sofifa.net/player_0.png", width=130)
+    if card_img and pd.notna(card_img) and str(card_img).startswith("http"):
+        st.image(card_img)
+    else:
+        st.write("Imagem não disponível.")
 
     with c_info:
         st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
