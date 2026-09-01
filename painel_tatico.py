@@ -200,12 +200,13 @@ def renderizar_painel_tatico():
 
     st.markdown("---")
 
-    # Exibição dos cards analíticos estruturados em 3 colunas idênticas
-    c1, c2, c3 = st.columns(3)
+    # Exibição dos cards analíticos estruturados em grade de 2 colunas e 2 linhas
+    col_a, col_b = st.columns(2)
 
-    with c1:
+    with col_a:
+        # Linha 1, Coluna 1: Estrutura
         st.markdown(f"""
-        <div class="custom-box">
+        <div class="custom-box" style="margin-bottom: 16px;">
             <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>01 / ESTRUTURA</span>
             <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>{formacao_selecionada}</h2>
             <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -5px;'>Preset: {preset_labels.get(preset_selecionado_key, preset_selecionado_key)}</p>
@@ -213,17 +214,7 @@ def renderizar_painel_tatico():
         </div>
         """, unsafe_allow_html=True)
 
-    with c2:
-        # Bloco superior: Vantagens
-        st.markdown(f"""
-        <div class="custom-box" style="margin-bottom: 16px;">
-            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02 / DESEMPENHO</span>
-            <h2 style='margin: 0; padding: 2px 0; font-size: 20px; color: #22c55e;'>🟢 Vantagens</h2>
-            <p style='color: #ffffff; font-size: 12px; margin-top: 8px; opacity: 0.9;'>{dados['p']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Bloco inferior: Desvantagens
+        # Linha 2, Coluna 1: Desvantagens
         st.markdown(f"""
         <div class="custom-box">
             <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02.1 / LIMITAÇÕES</span>
@@ -232,7 +223,17 @@ def renderizar_painel_tatico():
         </div>
         """, unsafe_allow_html=True)
 
-    with c3:
+    with col_b:
+        # Linha 1, Coluna 2: Vantagens
+        st.markdown(f"""
+        <div class="custom-box" style="margin-bottom: 16px;">
+            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02 / DESEMPENHO</span>
+            <h2 style='margin: 0; padding: 2px 0; font-size: 20px; color: #22c55e;'>🟢 Vantagens</h2>
+            <p style='color: #ffffff; font-size: 12px; margin-top: 8px; opacity: 0.9;'>{dados['p']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Linha 2, Coluna 2: Como Anular
         st.markdown(f"""
         <div class="custom-box">
             <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>03 / ESTRATÉGIA</span>
