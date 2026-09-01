@@ -1,9 +1,8 @@
 # Arquivo: painel_tatico.py
+import streamlit as st
 import streamlit.components.v1 as components
 
 def renderizar_painel_tatico():
-    painel_tatico_html = """
-    elif page_selection == "Formações":
     st.title("📋 Guia de Formações & Tactical Presets (FC26)")
     st.markdown("Analise a disposição tática em campo, os estilos de construção de jogada e as estratégias completas.")
 
@@ -132,6 +131,4 @@ def renderizar_painel_tatico():
     </html>
     """
 
-    components.html(painel_html, height=530, scrolling=True)
-    """
-    components.html(painel_tatico_html, height=520, scrolling=True)
+    components.html(painel_html, height=550, scrolling=True)
