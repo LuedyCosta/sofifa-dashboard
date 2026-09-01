@@ -6,7 +6,6 @@ import ast
 from painel_tatico import renderizar_painel_tatico
 from explicando_stats import renderizar_explicando_stats
 from playstyles import renderizar_playstyles
-from busca_jogadores import renderizar_busca_jogadores
 from perfil import renderizar_perfil
 
 # -----------------------------------------------------------------------------
@@ -240,7 +239,6 @@ pagina_perfil = st.Page(wrapper_perfil, title="Perfil Detalhado", icon="👤", d
 pagina_formacoes = st.Page(renderizar_painel_tatico, title="Formações", icon="📋")
 pagina_playstyles = st.Page(renderizar_playstyles, title="PlayStyles", icon="⚡")
 pagina_stats = st.Page(renderizar_explicando_stats, title="Explicando stats", icon="📊")
-pagina_busca = st.Page(renderizar_busca_jogadores, title="Busca de Jogadores", icon="🔎")
 
-pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats, pagina_busca])
+pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats])
 pg.run()
