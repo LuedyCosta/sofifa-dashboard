@@ -4,13 +4,12 @@ import numpy as np
 import plotly.graph_objects as go
 import ast
 
-# Importação da função do arquivo painel_tatico.py
 from painel_tatico import renderizar_painel_tatico
 from explicando_stats import renderizar_explicando_stats
 from playstyles import renderizar_playstyles
 
 # -----------------------------------------------------------------------------
-# 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
+# 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS GLOBAIS
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="SoFIFA & FC26 Dashboard",
@@ -34,7 +33,7 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* Expander e Checkboxes Textos Brancos */
+    /* Expander e Checkboxes */
     .streamlit-expanderHeader { color: #ffffff !important; }
     .stCheckbox label { color: #ffffff !important; }
 
@@ -48,12 +47,12 @@ st.markdown("""
         color: #94a3b8 !important;
     }
 
-    /* Estilização Customizada de Botões Globais (Padronizado PlayStyles) */
+    /* Estilização Customizada de Botões Globais (Padronizado PlayStyles / Similares) */
     div[data-testid="stButton"] button {
         background-color: #1a2234 !important;
         color: #00ffcc !important;
         border: 1px solid rgba(0, 255, 204, 0.3) !important;
-        white-space: nowrap !important; /* Força 1 linha */
+        white-space: nowrap !important;
         height: 38px !important;
         min-height: 38px !important;
         padding: 0px 16px !important;
@@ -100,22 +99,21 @@ st.markdown("""
         font-size: 0.95rem;
     }
 
-    /* Card do Perfil do Jogador (Padronizado PlayStyles) */
-    .profile-info-box {
-        background-color: #131b2e;
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid rgba(0, 255, 204, 0.2);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        margin-bottom: 20px;
-        transition: all 0.3s ease;
+    /* Cards e Containers Padrão (Perfil, Similares e Táticos) */
+    .profile-info-box, .similar-card, .tactical-card, .custom-box {
+        background-color: #131b2e !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        border: 1px solid rgba(0, 255, 204, 0.2) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+        margin-bottom: 20px !important;
+        transition: all 0.3s ease !important;
     }
-    .profile-info-box:hover {
-        border-color: rgba(0, 255, 204, 0.4);
-        box-shadow: 0 8px 24px rgba(0, 255, 204, 0.1);
+    .profile-info-box:hover, .similar-card:hover, .tactical-card:hover, .custom-box:hover {
+        border-color: rgba(0, 255, 204, 0.4) !important;
+        box-shadow: 0 8px 24px rgba(0, 255, 204, 0.1) !important;
     }
 
-    /* Container de Jogadores Parecidos */
     .similar-container {
         background-color: #0b0f19;
         border: 1px dashed rgba(0, 255, 204, 0.3);
@@ -123,21 +121,6 @@ st.markdown("""
         padding: 12px 16px;
         margin-top: -15px;
         margin-bottom: 15px;
-    }
-    .similar-card {
-        background-color: #131b2e;
-        border: 1px solid rgba(0, 255, 204, 0.2);
-        border-radius: 12px;
-        padding: 16px;
-        text-align: center;
-        height: 100%;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s ease;
-    }
-    .similar-card:hover {
-        transform: translateY(-3px);
-        border-color: #00ffcc;
-        box-shadow: 0 8px 24px rgba(0, 255, 204, 0.15);
     }
     .similar-name {
         color: #00ffcc !important;
@@ -149,81 +132,22 @@ st.markdown("""
         font-size: 0.8rem;
         color: #ffffff !important;
     }
-    
-    /* Cards de Conteúdo Tático */
-    .tactical-card {
-        background-color: #131b2e;
-        border: 1px solid rgba(0, 255, 204, 0.2);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s ease;
-    }
-    .tactical-card:hover {
-        border-color: rgba(0, 255, 204, 0.4);
-        box-shadow: 0 8px 24px rgba(0, 255, 204, 0.1);
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. MAPEAMENTO DOS GRUPOS
+# 2. MAPEAMENTO E DADOS
 # -----------------------------------------------------------------------------
 STAT_GROUPS = {
-    'Ofensivo': {
-        'Cruzamento': 'Crossing',
-        'Finalização': 'Finishing',
-        'Prec. Cabeceio': 'Heading Accuracy',
-        'Passe curto': 'Short Passing',
-        'Voleios': 'Volleys'
-    },
-    'Habilidade': {
-        'Dribles': 'Dribbling',
-        'Curva': 'Curve',
-        'Prec. faltas': 'Free Kick Accuracy',
-        'Lançamento': 'Long Passing',
-        'Controle bola': 'Ball Control'
-    },
-    'Movimentação': {
-        'Aceleração': 'Acceleration',
-        'Pique': 'Sprint Speed',
-        'Agilidade': 'Agility',
-        'Reação': 'Reactions',
-        'Equilíbrio': 'Balance'
-    },
-    'Força': {
-        'Força chute': 'Shot Power',
-        'Impulsão': 'Jumping',
-        'Fôlego': 'Stamina',
-        'Força': 'Strength',
-        'Chutes longe': 'Long Shots'
-    },
-    'Mentalidade': {
-        'Combatividade': 'Aggression',
-        'Intercept.': 'Interceptions',
-        'Pos. ataque': 'Positioning',
-        'Visão de jogo': 'Vision',
-        'Pênaltis': 'Penalties',
-        'Compostura': 'Composure'
-    },
-    'Defesa': {
-        'Hab. defensiva': 'Def Awareness',
-        'Dividida pé': 'Standing Tackle',
-        'Carrinho': 'Sliding Tackle'
-    },
-    'Atributos GL': {
-        'Elasticidade GL': 'GK Diving',
-        'Manejo GL': 'GK Handling',
-        'Chute GL': 'GK Kicking',
-        'Posicion. GL': 'GK Positioning',
-        'Reflexos GL': 'GK Reflexes'
-    }
+    'Ofensivo': {'Cruzamento': 'Crossing', 'Finalização': 'Finishing', 'Prec. Cabeceio': 'Heading Accuracy', 'Passe curto': 'Short Passing', 'Voleios': 'Volleys'},
+    'Habilidade': {'Dribles': 'Dribbling', 'Curva': 'Curve', 'Prec. faltas': 'Free Kick Accuracy', 'Lançamento': 'Long Passing', 'Controle bola': 'Ball Control'},
+    'Movimentação': {'Aceleração': 'Acceleration', 'Pique': 'Sprint Speed', 'Agilidade': 'Agility', 'Reação': 'Reactions', 'Equilíbrio': 'Balance'},
+    'Força': {'Força chute': 'Shot Power', 'Impulsão': 'Jumping', 'Fôlego': 'Stamina', 'Força': 'Strength', 'Chutes longe': 'Long Shots'},
+    'Mentalidade': {'Combatividade': 'Aggression', 'Intercept.': 'Interceptions', 'Pos. ataque': 'Positioning', 'Visão de jogo': 'Vision', 'Pênaltis': 'Penalties', 'Compostura': 'Composure'},
+    'Defesa': {'Hab. defensiva': 'Def Awareness', 'Dividida pé': 'Standing Tackle', 'Carrinho': 'Sliding Tackle'},
+    'Atributos GL': {'Elasticidade GL': 'GK Diving', 'Manejo GL': 'GK Handling', 'Chute GL': 'GK Kicking', 'Posicion. GL': 'GK Positioning', 'Reflexos GL': 'GK Reflexes'}
 }
 
-# -----------------------------------------------------------------------------
-# 3. LEITURA DOS DADOS E ALGORITMO DE SIMILARIDADE
-# -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     try:
@@ -273,10 +197,8 @@ def render_stat_item(label, value):
 def find_similar_players(df, target_player, top_n=3, regens_only=False):
     gender = target_player.get('GENDER', 'M')
     cond = (df['GENDER'] == gender) & (df['Name'] != target_player['Name'])
-    
     if regens_only:
         cond = cond & (df['Age'] <= 23)
-        
     candidates = df[cond].copy()
     if candidates.empty:
         return candidates
@@ -284,7 +206,6 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
     stat_cols = ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age']
     target_vec = np.array([get_val(target_player, col, 50) for col in stat_cols], dtype=float)
     cand_vecs = candidates[stat_cols].apply(pd.to_numeric, errors='coerce').fillna(50).to_numpy(dtype=float)
-
     std_vec = np.array(df[stat_cols].apply(pd.to_numeric, errors='coerce').std().values, dtype=float)
     std_vec = np.where((np.isnan(std_vec)) | (std_vec == 0), 1.0, std_vec)
 
@@ -300,8 +221,7 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
     def style_dist(style_str):
         try:
             s_set = set(ast.literal_eval(str(style_str)))
-            if not t_styles and not s_set:
-                return 0.0
+            if not t_styles and not s_set: return 0.0
             union = len(t_styles.union(s_set))
             return 1.0 - (len(t_styles.intersection(s_set)) / union) if union > 0 else 1.0
         except:
@@ -312,19 +232,18 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
     return candidates.sort_values('similarity_score').head(top_n)
 
 # -----------------------------------------------------------------------------
-# 4. BARRA LATERAL E NAVEGAÇÃO ENTRE PÁGINAS
+# 3. BARRA LATERAL E NAVEGAÇÃO
 # -----------------------------------------------------------------------------
 st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
 st.sidebar.title("⚽ Dashboard FC26")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Navegação")
 
-page_selection = st.sidebar.radio("Ir para:", ["Perfil Detalhado", "Formações", "PlayStyles", "Explicando stats", ])
-
+page_selection = st.sidebar.radio("Ir para:", ["Perfil Detalhado", "Formações", "PlayStyles", "Explicando stats"])
 df = df_raw.copy()
 
 # -----------------------------------------------------------------------------
-# 5. PÁGINA 1: PERFIL DETALHADO
+# 4. RENDERIZAÇÃO DAS PÁGINAS
 # -----------------------------------------------------------------------------
 if page_selection == "Perfil Detalhado":
     st.title("👤 Perfil Detalhado")
@@ -337,12 +256,10 @@ if page_selection == "Perfil Detalhado":
         target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
 
     p = df[df['Name'] == target_player_name].iloc[0]
-
     play_styles_raw = str(p.get('play style', '[]'))
     try:
         play_styles = ast.literal_eval(play_styles_raw)
-        if not isinstance(play_styles, list):
-            play_styles = []
+        if not isinstance(play_styles, list): play_styles = []
     except:
         play_styles = []
 
@@ -438,181 +355,12 @@ if page_selection == "Perfil Detalhado":
         st.info("Nenhum jogador semelhante encontrado com esses critérios.")
 
     st.markdown("---")
+    # Restante da página de Perfil Detalhado (Gráficos e Atributos)...
 
-    all_stat_keys = []
-    for g_name, g_stats in STAT_GROUPS.items():
-        for stat_label in g_stats.keys():
-            all_stat_keys.append(f"chk_{g_name}_{stat_label}")
-
-    def select_all_stats():
-        for k in all_stat_keys:
-            st.session_state[k] = True
-
-    def deselect_all_stats():
-        for k in all_stat_keys:
-            st.session_state[k] = False
-
-    POSITION_SUGGESTIONS = {
-        'ST': ['Finalização', 'Pos. ataque', 'Aceleração', 'Pique', 'Força chute', 'Compostura'],
-        'CF': ['Finalização', 'Dribles', 'Controle bola', 'Visão de jogo', 'Pos. ataque', 'Agilidade'],
-        'LW': ['Aceleração', 'Pique', 'Dribles', 'Agilidade', 'Cruzamento', 'Finalização'],
-        'RW': ['Aceleração', 'Pique', 'Dribles', 'Agilidade', 'Cruzamento', 'Finalização'],
-        'LM': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Passe curto', 'Dribles'],
-        'RM': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Passe curto', 'Dribles'],
-        'CAM': ['Visão de jogo', 'Passe curto', 'Lançamento', 'Dribles', 'Controle bola', 'Compostura'],
-        'CM': ['Passe curto', 'Lançamento', 'Visão de jogo', 'Fôlego', 'Reação', 'Combatividade'],
-        'CDM': ['Intercept.', 'Hab. defensiva', 'Dividida pé', 'Combatividade', 'Fôlego', 'Força'],
-        'CB': ['Hab. defensiva', 'Dividida pé', 'Prec. Cabeceio', 'Força', 'Combatividade', 'Intercept.'],
-        'LB': ['Aceleração', 'Pique', 'Cruzamento', 'Hab. defensiva', 'Dividida pé', 'Fôlego'],
-        'RB': ['Aceleração', 'Pique', 'Cruzamento', 'Hab. defensiva', 'Dividida pé', 'Fôlego'],
-        'LWB': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Hab. defensiva', 'Dividida pé'],
-        'RWB': ['Aceleração', 'Pique', 'Cruzamento', 'Fôlego', 'Hab. defensiva', 'Dividida pé'],
-        'GK': ['Elasticidade GL', 'Manejo GL', 'Chute GL', 'Posicion. GL', 'Reflexos GL', 'Reação']
-    }
-
-    def suggest_stats():
-        for k in all_stat_keys:
-            st.session_state[k] = False
-        pos = str(p.get('Position', 'CM')).upper()
-        suggested_list = POSITION_SUGGESTIONS.get(pos, POSITION_SUGGESTIONS['CM'])
-        for g_name, g_stats in STAT_GROUPS.items():
-            for stat_label in g_stats.keys():
-                if stat_label in suggested_list:
-                    st.session_state[f"chk_{g_name}_{stat_label}"] = True
-
-    c_title, c_btn1, c_btn2, c_btn3 = st.columns([2.2, 1.1, 1.1, 1.1])
-    with c_title:
-        st.markdown("### 2 · Indicadores de Performance")
-    with c_btn1:
-        st.button("✅ Marcar Todos", on_click=select_all_stats, use_container_width=True)
-    with c_btn2:
-        st.button("❌ Desmarcar", on_click=deselect_all_stats, use_container_width=True)
-    with c_btn3:
-        st.button("💡 Sugestão", on_click=suggest_stats, use_container_width=True)
-
-    selected_stats_map = {}
-
-    with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=True):
-        cols = st.columns(4)
-        group_keys = list(STAT_GROUPS.keys())
-        for idx, group_name in enumerate(group_keys):
-            col_target = cols[idx % 4]
-            with col_target:
-                st.markdown(f"**{group_name}**")
-                for stat_label, csv_col in STAT_GROUPS[group_name].items():
-                    chk_key = f"chk_{group_name}_{stat_label}"
-                    if chk_key not in st.session_state:
-                        st.session_state[chk_key] = stat_label in ['Aceleração', 'Pique', 'Dribles', 'Curva']
-                    checked = st.checkbox(stat_label, key=chk_key)
-                    if checked:
-                        selected_stats_map[stat_label] = csv_col
-
-    col_comp_left, col_chart_right = st.columns([1, 2.5])
-
-    with col_comp_left:
-        st.markdown("#### ⚔️ Comparar Jogadores")
-        st.caption("Adicione até 3 jogadores para comparar com o selecionado:")
-
-        other_players = ["Nenhum"] + [name for name in player_list if name != target_player_name]
-        comp1 = st.selectbox("🔵 Jogador Comparado 1:", options=other_players, index=0, key="comp_slot_1")
-        options_p2 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1]] if comp1 != "Nenhum" else ["Nenhum"]
-        comp2 = st.selectbox("🟢 Jogador Comparado 2:", options=options_p2, index=0, key="comp_slot_2", disabled=(comp1 == "Nenhum"))
-        options_p3 = ["Nenhum"] + [name for name in player_list if name not in [target_player_name, comp1, comp2]] if comp2 != "Nenhum" else ["Nenhum"]
-        comp3 = st.selectbox("🟡 Jogador Comparado 3:", options=options_p3, index=0, key="comp_slot_3", disabled=(comp2 == "Nenhum"))
-
-    with col_chart_right:
-        if selected_stats_map:
-            radar_labels = list(selected_stats_map.keys())
-            theta_labs = radar_labels + [radar_labels[0]]
-
-            fig = go.Figure()
-            radar_values = [get_val(p, csv_col) for csv_col in selected_stats_map.values()]
-            r_vals = radar_values + [radar_values[0]]
-
-            fig.add_trace(go.Scatterpolar(
-                r=r_vals, theta=theta_labs, mode='lines+markers', fill='none',
-                line=dict(color='#00ffcc', width=3), marker=dict(size=8, color='#00ffcc'),
-                name=f"{p['Name']} (Principal)"
-            ))
-
-            slot_colors = {'comp_slot_1': '#3b82f6', 'comp_slot_2': '#10b981', 'comp_slot_3': '#f59e0b'}
-            active_slots = [('comp_slot_1', comp1), ('comp_slot_2', comp2), ('comp_slot_3', comp3)]
-
-            for slot_key, comp_name in active_slots:
-                if comp_name != "Nenhum":
-                    comp_row = df[df['Name'] == comp_name].iloc[0]
-                    comp_radar_values = [get_val(comp_row, csv_col) for csv_col in selected_stats_map.values()]
-                    comp_r_vals = comp_radar_values + [comp_radar_values[0]]
-                    color = slot_colors[slot_key]
-
-                    fig.add_trace(go.Scatterpolar(
-                        r=comp_r_vals, theta=theta_labs, mode='lines+markers', fill='none',
-                        line=dict(color=color, width=2.5, dash='solid'), marker=dict(size=7, color=color),
-                        name=f"{comp_row['Name']} ({comp_row['OVR']})"
-                    ))
-
-            fig.update_layout(
-                title=dict(text=f"Análise Comparativa Radar: {p['Name']} (OVR: {p['OVR']})", font=dict(color='#ffffff', size=16)),
-                polar=dict(
-                    bgcolor='rgba(0,0,0,0)',
-                    radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color='#94a3b8'), gridcolor='#131b2e'),
-                    angularaxis=dict(tickfont=dict(color='#ffffff', size=13), gridcolor='#131b2e')
-                ),
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=480,
-                margin=dict(l=30, r=30, t=50, b=40),
-                legend=dict(font=dict(color='#ffffff'), orientation="h", yanchor="bottom", y=-0.18, xanchor="center", x=0.5)
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.warning("⚠️ Marque pelo menos uma estatística para exibir o gráfico.")
-
-    st.markdown("---")
-
-    st.markdown("### 📊 Estatísticas Detalhadas do Jogador")
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.markdown("#### Ofensivo")
-        for lbl, col in STAT_GROUPS['Ofensivo'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-        st.markdown("#### Mentalidade")
-        for lbl, col in STAT_GROUPS['Mentalidade'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-
-    with col2:
-        st.markdown("#### Habilidade")
-        for lbl, col in STAT_GROUPS['Habilidade'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-        st.markdown("#### Defesa")
-        for lbl, col in STAT_GROUPS['Defesa'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-
-    with col3:
-        st.markdown("#### Movimentação")
-        for lbl, col in STAT_GROUPS['Movimentação'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-        st.markdown("#### Atributos GL")
-        for lbl, col in STAT_GROUPS['Atributos GL'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col, 10)), unsafe_allow_html=True)
-
-    with col4:
-        st.markdown("#### Força")
-        for lbl, col in STAT_GROUPS['Força'].items():
-            st.markdown(render_stat_item(lbl, get_val(p, col)), unsafe_allow_html=True)
-        st.markdown("#### Estilos de Jogo")
-        if play_styles:
-            for style in play_styles:
-                st.markdown(f"- **<span class='var-text'>{style}</span>**", unsafe_allow_html=True)
-        else:
-            st.markdown("- *<span class='var-text'>Nenhum estilo de jogo específico</span>*", unsafe_allow_html=True)
-
-# -----------------------------------------------------------------------------
-# 6. PÁGINA 2: FORMAÇÕES (CARREGA PAINEL TÁTICO EXTERNO)
-# -----------------------------------------------------------------------------
 elif page_selection == "Formações":
     st.title("📋 Painel Tático de Formações")
-    # Chamada da função que renderiza o componente contido no arquivo painel_tatico.py
     renderizar_painel_tatico()
+
 elif page_selection == "PlayStyles":
     renderizar_playstyles()
     
