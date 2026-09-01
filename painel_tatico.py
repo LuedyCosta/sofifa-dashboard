@@ -30,21 +30,85 @@ def renderizar_painel_tatico():
     st.title("📋 Painel de Formações Táticas (EA FC26)")
     st.markdown("Selecione a formação e o preset tático desejado para carregar a análise detalhada.")
 
-    # Mapeamento para nomes exibidos na UI do Streamlit
+    # Mapeamento universal para os 10 Tactical Presets
     preset_labels = {
+        "balanced": "Equilibrado (Balanced)",
+        "possession": "Posse de Bola (Possession)",
         "short-passing": "Passe Curtos / Construção Paciente",
-        "heavy-metal": "Heavy Metal / Pressão Total",
-        "gegenpress": "Gegenpressing / Pressão Alta",
-        "wing-play": "Jogo pelas Pontas",
-        "possession": "Posse de Bola (Tiki-Taka)",
-        "balanced": "Equilibrado",
         "tikitaka": "Tiki-Taka Central",
+        "wing-play": "Jogo pelas Pontas (Wing Play)",
+        "counter": "Contra-Ataque Rápido (Fast Break)",
         "vertical-counter": "Contra-Ataque Vertical",
-        "park-bus": "Retranca / Bloco Baixo",
-        "counter": "Contra-Ataque Rápido"
+        "gegenpress": "Gegenpressing / Pressão Alta",
+        "heavy-metal": "Heavy Metal / Pressão Total",
+        "park-bus": "Retranca / Bloco Baixo (Park the Bus)"
     }
 
-    # Posições de cada formação para o renderizador gráfico
+    # Modelo base com análises genéricas para os 10 presets
+    presets_genericos = {
+        "balanced": {
+            "d": "Estrutura equilibrada com manutenção de posse moderada e linhas defensivas intermediárias.",
+            "p": "Alta flexibilidade tática; o time responde bem a qualquer situação de jogo.",
+            "c": "Falta de especialização ostensiva em momento específico de ataque ou defesa.",
+            "b": "Imponha um ritmo extremo (pressão alta ou contra-ataque rápido) para tirar a formação da zona de conforto."
+        },
+        "possession": {
+            "d": "Foco em manter a posse de bola no campo de ataque com aproximação contínua dos meio-campistas.",
+            "p": "Diminui o ritmo do jogo e reduz drasticamente o volume de jogadas do adversário.",
+            "c": "Pode se tornar um ataque lento, previsível e suscetível a erros de passe na intermediária.",
+            "b": "Monte um bloco médio/baixo compacto e explore transições velozes pelas pontas assim que recuperar a bola."
+        },
+        "short-passing": {
+            "d": "Aproximação intensa entre os setores para troca de passes curtos e triangulações rápidas.",
+            "p": "Excelente para atrair a marcação rival e abrir espaços na entrada da grande área.",
+            "c": "Dificuldade para vencer defesas muito físicas ou linhas de 5 zagueiros.",
+            "b": "Force a marcação física no miolo de zaga e feche os corredores internos de passe."
+        },
+        "tikitaka": {
+            "d": "Troca de passes em ritmo acelerado pelo centro com movimentação constante entre as linhas.",
+            "p": "Aceleração mortal no último terço do campo e envolvimento total do setor central.",
+            "c": "Falta de amplitude lateral e dependência de alta precisão técnica nos passes de primeira.",
+            "b": "Compacte o meio-campo com três homens centrais/volantes e force o jogo para as linhas laterais."
+        },
+        "wing-play": {
+            "d": "Busca constante pelos corredores laterais com alas/pontas bem abertos para dobrar a marcação.",
+            "p": "Gera volume maciço de cruzamentos e isola pontas rápidos contra laterais vulneráveis.",
+            "c": "Deixa o setor central do meio-campo desguarnecido caso o ataque penda só para os lados.",
+            "b": "Utilize dobradinhas na lateral (Lateral + Volante) e garanta zagueiros com bom poder aéreo."
+        },
+        "counter": {
+            "d": "Linhas defensivas recuadas preparadas para roubar a bola e acionar transições letais.",
+            "p": "Aproveita instantaneamente qualquer espaço deixado pelas subidas da defesa adversária.",
+            "c": "Concede muito controle de bola e campo ao adversário durante a maior parte da partida.",
+            "b": "Mantenha o balanço defensivo com ao menos um volante fixo e evite passes arriscados na zona de construção."
+        },
+        "vertical-counter": {
+            "d": "Passe longo e direto rumo aos atacantes assim que a posse de bola é recuperada.",
+            "p": "Chegada ultra-rápida ao gol com pouquíssimos toques na bola no meio-campo.",
+            "c": "Elevado índice de perda de bola por conta da precipitação dos passes verticais.",
+            "b": "Intercepte os passes longos com uma linha defensiva atenta e dominadora na segunda bola."
+        },
+        "gegenpress": {
+            "d": "Pressão sufocante no portador da bola no exato instante em que a posse é perdida.",
+            "p": "Força erros na saída de bola do adversário perto do gol e recupera a posse rapidamente.",
+            "c": "Desgaste físico acentuado dos atletas e exposição total da defesa se a primeira linha de pressão falhar.",
+            "b": "Use passes longos em diagonal para superar a primeira linha de pressão do adversário."
+        },
+        "heavy-metal": {
+            "d": "Ataque em massa e pressão total em todo o campo com ritmo de jogo no limite físico.",
+            "p": "Poder ofensivo avassalador que encurrala o adversário na própria grande área.",
+            "c": "Linha defensiva extremamente alta e rombo nas costas dos zagueiros e laterais.",
+            "b": "Infiltre bolas rasteiras nas costas da zaga adiantada para atacantes rápidos levarem vantagem na corrida."
+        },
+        "park-bus": {
+            "d": "Bloco defensivo baixíssimo com duas linhas muito próximas e compactadas na grande área.",
+            "p": "Anula praticamente todas as tentativas de passe e infiltração rasteira pelo centro.",
+            "c": "Volume ofensivo quase inexistente e enorme pressão sofrida durante os 90 minutos.",
+            "b": "Abuse de chutes colocados da intermediária, jogadas de linha de fundo e cruzamentos para a área."
+        }
+    }
+
+    # Posições do campo
     posicoes_campo = {
         "3142": {"GOL": (50, 8), "Z1": (25, 20), "Z2": (50, 18), "Z3": (75, 20), "VOL": (50, 36), "AE": (12, 52), "MC1": (38, 52), "MC2": (62, 52), "AD": (88, 52), "ATA1": (38, 85), "ATA2": (62, 85)},
         "3412": {"GOL": (50, 8), "Z1": (25, 20), "Z2": (50, 18), "Z3": (75, 20), "ME": (12, 50), "MC1": (38, 45), "MC2": (62, 45), "MD": (88, 50), "MEI": (50, 68), "ATA1": (38, 86), "ATA2": (62, 86)},
@@ -80,264 +144,27 @@ def renderizar_painel_tatico():
         "541": {"GOL": (50, 8), "AE": (12, 32), "Z1": (30, 22), "Z2": (50, 20), "Z3": (70, 22), "AD": (88, 32), "ME": (18, 55), "MC1": (38, 52), "MC2": (62, 52), "MD": (82, 55), "ATA": (50, 86)}
     }
 
-    # Matriz Matriz exata enviada
-    matrizMatriz = {
-        "3142": {
-            "short-passing": {
-                "d": "Utiliza um volante fixo à frente de três zagueiros, uma linha de quatro intermediária com alas e meias centrais, e dois atacantes de referência.",
-                "p": "Excelente circulação de bola pelo meio e superioridade numérica imediata na construção ofensiva curta.",
-                "c": "Alas sobrecarregados defensivamente; se perdem a bola, o lado do campo fica totalmente exposto.",
-                "b": "Explore pontas velozes pelas laterais nas costas dos alas e use triangulações rápidas para isolar os três zagueiros."
-            }
-        },
-        "3412": {
-            "heavy-metal": {
-                "d": "Estrutura agressiva que une um meia armador (CAM) e dois centroavantes logo acima de quatro meio-campistas/alas.",
-                "p": "Poder ofensivo avassalador por dentro, criando tabelas contínuas na entrada da área adversária.",
-                "c": "Ausência de um volante fixo de contenção puramente defensivo deixa o miolo vulnerável a infiltrações.",
-                "b": "Jogue com um meio-campo compacto (como um 4-2-3-1) para fechar o espaço do CAM e force o jogo para as laterais."
-            }
-        },
-        "3421": {
-            "gegenpress": {
-                "d": "Dois meias atacantes flutuando por dentro apoiando um único centroavante, com alas cobrindo a largura do campo.",
-                "p": "Sufoca o adversário no campo de ataque e gera constante pressão pós-perda com os meias avançados.",
-                "c": "Estamina dos alas esgota rapidamente e o ataque pode ficar dependente da inspiração individual do centroavante.",
-                "b": "Quebre a primeira linha de pressão com passes longos e certeiros para os pontas ou alas em velocidade."
-            }
-        },
-        "343": {
-            "wing-play": {
-                "d": "Formação focada em esticar a defesa adversária com pontas abertos colados na linha lateral e forte presença ofensiva.",
-                "p": "Criação abundante de jogadas de linha de fundo e cruzamentos venenosos para a grande área.",
-                "c": "Fragilidade defensiva extrema nas diagonais defensivas dos zagueiros externos.",
-                "b": "Feche a entrada da área com uma linha de quatro zagueiros compactos e anule as opções de cruzamento bloqueando os pontas."
-            }
-        },
-        "3511": {
-            "possession": {
-                "d": "Meio-campo superpovoado com um segundo atacante (CF) atuando como elemento surpresa atrás do centroavante estático.",
-                "p": "Posse de bola segura, controle territorial absoluto e bloqueio eficiente de passes centrais.",
-                "c": "Ritmo de jogo lento e previsível se os alas não tiverem ímpeto ofensivo constante.",
-                "b": "Adote uma postura de bloco médio, feche as linhas de passe interiores e force erros de troca de bola na intermediária."
-            }
-        },
-        "352": {
-            "balanced": {
-                "d": "O esquema clássico de três zagueiros com dois volantes de contenção, um armador e dois atacantes.",
-                "p": "Equilíbrio perfeito entre solidez defensiva central e volume de jogo ofensivo com a dupla de frente.",
-                "c": "Os espaços deixados nas costas dos alas exigem cobertura manual impecável dos zagueiros laterais.",
-                "b": "Ataque pelas pontas com pontas rápidos para forçar o ala rival a recuar, transformando a linha de 3 em uma linha defensiva de 5 pressionada."
-            }
-        },
-        "41212-n": {
-            "tikitaka": {
-                "d": "Losango tradicional no meio-campo com um volante defensivo, dois meias centrais, um CAM e dois atacantes.",
-                "p": "Domínio absoluto do centro do campo, facilitando triangulações curtas e tabelas mortais.",
-                "c": "Totalmente nula em amplitude lateral, sofrendo contra equipes que exploram os corredores das pontas.",
-                "b": "Utilize formações abertas (como 4-3-3 ou 4-4-2) e force o adversário a atacar exclusivamente pelos lados, onde sua defesa está armada."
-            }
-        },
-        "41212-w": {
-            "balanced": {
-                "d": "Variação do losango que puxa os meias centrais para as posições de LM e RM, garantindo largura.",
-                "p": "Corrige a falha crônica de amplitude do losango fechado sem perder o poder de fogo central.",
-                "c": "O meio-campo central fica mais desguarnecido, contando apenas com um volante na proteção.",
-                "b": "Conquiste o controle do meio-campo com três homens no setor e explore o espaço deixado pelo volante solitário."
-            }
-        },
-        "4132": {
-            "vertical-counter": {
-                "d": "Linha de três meias avançados logo acima de um único volante, municiando dois centroavantes rápidos.",
-                "p": "Transição ofensiva extremamente rápida e vertical rumo ao gol adversário.",
-                "c": "O volante central fica totalmente isolado no combate defensivo caso o time perca a bola no campo ofensivo.",
-                "b": "Pressione a saída de bola do volante único e mantenha a zaga atenta a bolas longas nas costas."
-            }
-        },
-        "4141": {
-            "park-bus": {
-                "d": "Linha de quatro meio-campistas compactada com um volante defensivo à frente da zaga e um único atacante isolado.",
-                "p": "Linha defensiva extremamente próxima, bloqueando qualquer espaço de infiltração pelo centro.",
-                "c": "Extrema dificuldade para gerar perigo ofensivo ou contra-atacar com volume.",
-                "b": "Use chutes de longa distância, circule a bola com paciência e explore cruzamentos altos para furar o bloqueio estático."
-            }
-        },
-        "4213": {
-            "counter": {
-                "d": "Duplo pivô de volantes protegendo a zaga, com um CAM municiando um trio de ataque rápido (PE, PD e centroavante).",
-                "p": "Combinação perfeita de segurança defensiva com velocidade letal nas pontas.",
-                "c": "O CAM pode se desgastar muito tendo que transitar entre armar o jogo e recompor a linha defensiva.",
-                "b": "Feche os corredores internos com um meio-campo em bloco médio e evite perder a bola no ataque para não sofrer contra-ataques."
-            }
-        },
-        "4222": {
-            "balanced": {
-                "d": "Dois volantes, dois meias ofensivos centralizados/abertos por dentro e dois centroavantes.",
-                "p": "Estrutura extremamente simétrica e sólida, excelente para fechar os espaços entrelinhas.",
-                "c": "Falta profundidade e largura natural nas pontas, exigindo apoio constante dos laterais.",
-                "b": "Explore os espaços deixados pelos laterais quando eles sobem para tentar dar largura ao time."
-            }
-        },
-        "4231-n": {
-            "possession": {
-                "d": "O clássico esquema de segurança com dois volantes, três meias ofensivos compactos (LAM, CAM, RAM) e um centroavante.",
-                "p": "Controle absoluto de jogo, posse de bola segura e intransponibilidade no miolo de zaga.",
-                "c": "Jogo pode se tornar engessado e previsível se o adversário fechar bem a entrada da área.",
-                "b": "Adote marcação em zona rigorosa e force o adversário a arriscar passes longos inofensivos."
-            }
-        },
-        "4231-w": {
-            "gegenpress": {
-                "d": "Mantém o duplo pivô e o centroavante, mas abre dois pontas legítimos (LM e RM) nas alas com transição rápida.",
-                "p": "Junta a solidez defensiva dos volantes com a amplitude agressiva dos pontas.",
-                "c": "Exige extrema dedicação defensiva dos pontas para fechar os espaços junto aos laterais.",
-                "b": "Supere o duplo pivô trocando passes rápidos em velocidade pelo centro com meias criativos."
-            }
-        },
-        "424": {
-            "gegenpress": {
-                "d": "Quatro atacantes fixos apoiados por apenas dois volantes e a linha de defesa.",
-                "p": "Pressão sufocante na saída de bola rival e volume ofensivo máximo.",
-                "c": "Buraco gigantesco no meio-campo; qualquer erro na pressão resulta em contra-ataque livre para o rival.",
-                "b": "Atraia a pressão tocando a bola curto na defesa e lance imediatamente nas costas dos volantes que sobem sozinhos."
-            }
-        },
-        "4312": {
-            "short-passing": {
-                "d": "Três meio-campistas centrais, um armador central (CAM) e dois centroavantes.",
-                "p": "Excelente para reter a bola no campo ofensivo e envolver a zaga com passes curtos.",
-                "c": "Totalmente vulnerável a ataques rápidos pelas laterais do campo.",
-                "b": "Jogue com pontas rápidos e force o jogo pelas pontas onde o adversário não tem cobertura defensiva natural."
-            }
-        },
-        "4321": {
-            "heavy-metal": {
-                "d": "Três meio-campistas com dois atacantes flutuantes (CFs) logo atrás de um centroavante.",
-                "p": "O esquema mais eficiente do jogo, unindo infiltrações mortais dos CFs com solidez defensiva ajustável.",
-                "c": "Exige ajustes manuais precisos nas instruções para não perder o controle das laterais.",
-                "b": "Utilize um duplo pivô compacto e evite dar espaço para os CFs girarem na entrada da área."
-            }
-        },
-        "433-flat": {
-            "balanced": {
-                "d": "O desenho mais universal do futebol: linha de 4, trio de meio-campo plano, pontas abertos e centroavante.",
-                "p": "Distribuição homogênea de jogadores por todo o campo, facilitando qualquer estilo de jogo.",
-                "c": "Pode se tornar vulnerável se os três meias tiverem apenas funções passivas.",
-                "b": "Supere o meio-campo com superioridade numérica temporária vinda de descidas dos alas ou do segundo atacante."
-            }
-        },
-        "433-holding": {
-            "possession": {
-                "d": "Variação da 4-3-3 com um volante de contenção fixo protegendo a zaga e dois meias à frente.",
-                "p": "Maior estabilidade defensiva em transições sem perder a largura dos pontas.",
-                "c": "O setor de criação pode ficar lento se o volante for excessivamente defensivo.",
-                "b": "Feche os espaços entre o volante fixo e os zagueiros para sufocar a saída de bola curta."
-            }
-        },
-        "433-defend": {
-            "park-bus": {
-                "d": "Dois volantes mais recuados e um meio-campista central, mantendo os pontas e o centroavante avançados.",
-                "p": "Excelente para segurar resultados contra equipes muito técnicas.",
-                "c": "Dificuldade acentuada para criar volume de jogo no ataque.",
-                "b": "Avance sua linha defensiva até o meio-campo e pressione a saída de bola sem medo."
-            }
-        },
-        "433-attack": {
-            "gegenpress": {
-                "d": "Um meio-campista avança para se alinhar ao ataque como um armador, deixando dois volantes na base com pressão alta.",
-                "p": "Grande presença de jogadores na zona de finalização adversária.",
-                "c": "Deixa um buraco perigoso na entrelinhas defensiva.",
-                "b": "Infiltra passes rápidos rasteiros no espaço deixado pelo meia que avançou para o ataque."
-            }
-        },
-        "433-false9": {
-            "tikitaka": {
-                "d": "Centroavante recua para buscar jogo, atraindo zagueiros e abrindo caminho para os pontas.",
-                "p": "Posse de bola sufocante e extrema dificuldade de marcação individual para os zagueiros rivais.",
-                "c": "Ausência de um centroavante de referência física na grande área.",
-                "b": "Mantenha a linha defensiva recuada e por zona, proibindo os zagueiros de saírem da posição para caçar o falso 9."
-            }
-        },
-        "4411": {
-            "counter": {
-                "d": "Duas linhas de quatro compactas com um segundo atacante flutuando atrás do centroavante.",
-                "p": "Solidez defensiva exemplar combinada com transições rápidas pelos lados.",
-                "c": "Pouca criatividade central se o segundo atacante for neutralizado.",
-                "b": "Use meias criativos entrelinhas para quebrar as duas linhas de quatro do adversário."
-            }
-        },
-        "442-flat": {
-            "vertical-counter": {
-                "d": "Duas linhas rígidas de quatro jogadores e uma dupla de ataque tradicional.",
-                "p": "Simples de executar, extremamente compacta e letal em contra-ataques verticais.",
-                "c": "O meio-campo central pode ser dominado por esquemas com três ou mais homens no setor.",
-                "b": "Sobrecargue o setor central com um trio de meio-campo móvel para forçar os alas rivais a fecharem o jogo."
-            }
-        },
-        "442-holding": {
-            "balanced": {
-                "d": "Ajusta os dois meias centrais para funções de volantes de contenção, mantendo as linhas de quatro.",
-                "p": "Segurança defensiva máxima sem abrir mão da dupla de ataque.",
-                "c": "Pode faltar aproximação rápida para a construção de jogadas no campo ofensivo.",
-                "b": "Circule a bola com paciência pelos flancos e explore cruzamentos para vencer a altura dos volantes recuados."
-            }
-        },
-        "451": {
-            "possession": {
-                "d": "Linha de cinco meio-campistas compactos sufocando o adversário com um único centroavante isolado.",
-                "p": "Impossível de perder a posse de bola no meio-campo se bem executada.",
-                "c": "Ataque totalmente isolado e dependente de subidas tardias dos meias.",
-                "b": "Mantenha a calma na defesa, feche os espaços centrais e utilize bolas longas para surpreender a retarguarda alta."
-            }
-        },
-        "5122": {
-            "counter": {
-                "d": "Linha defensiva de cinco com um volante central e dois atacantes de referência na frente.",
-                "p": "Muralha defensiva intransponível por dentro com duas opções claras de escape no ataque.",
-                "c": "Meio-campo defensivo isolado do ataque durante longos períodos do jogo.",
-                "b": "Pressione a saída de bola no campo adversário e force os alas a correrem para trás, desgastando-os fisicamente."
-            }
-        },
-        "5212": {
-            "vertical-counter": {
-                "d": "Três zagueiros e dois alas, protegidos por dois volantes e armados por um CAM para servir dois centroavantes.",
-                "p": "Excelente equilíbrio entre fechar a defesa e contra-atacar com velocidade central e lateral.",
-                "c": "Espaços consideráveis entre o duplo pivô e o CAM se o time for empurrado para trás.",
-                "b": "Mantenha a posse de bola no campo ofensivo e use chutes de longa distância para furar o bloqueio duplo."
-            }
-        },
-        "5221": {
-            "wing-play": {
-                "d": "Defesa de cinco com dois volantes, dois meias/pontas abertos e um centroavante.",
-                "p": "Proteção lateral reforçada combinada com velocidade agigantada nas pontas.",
-                "c": "O meio-campo central sofre para conter equipes que tocam a bola rápido por dentro.",
-                "b": "Centralize o jogo com meias criativos e evite dar espaço para os pontas dispararem nas costas dos alas."
-            }
-        },
-        "523": {
-            "counter": {
-                "d": "Trio de zagueiros, dois alas, dois volantes centrais e um trio de ataque rápido (ponta esquerda, ponta direita e centroavante).",
-                "p": "Defesa quase intransponível contra investidas centrais e contra-ataques devastadores com três homens na frente.",
-                "c": "Meio-campo central reduzido a dois jogadores, facilitando o domínio territorial do rival.",
-                "b": "Domine o círculo central com superioridade numérica de meio-campistas e cadastre a posse de bola."
-            }
-        },
-        "532": {
-            "park-bus": {
-                "d": "Três zagueiros, dois alas, um trio de meio-campo compacto e dois centroavantes.",
-                "p": "Fechamento absoluto de todos os espaços centrais e lateral próximos à área.",
-                "c": "Ofensivamente pobre, dependendo de lances esporádicos de velocidade da dupla de ataque.",
-                "b": "Use cruzamentos venenosos, chutes de fora da área e mantenha uma linha alta para abafar qualquer tentativa de saída rápida."
-            }
-        },
-        "541": {
-            "park-bus": {
-                "d": "O nível máximo de segurança defensiva do FC 26: linha de 5 defensiva e linha de 4 intermediária.",
-                "p": "Praticamente impossível de ser penetrada por jogadas normais de toque de bola.",
-                "c": "Zero presença ofensiva; o time inteiro abdica de atacar.",
-                "b": "Tenha paciência extrema na circulação de bola, explore chutes colocados de longa distância e o recurso de cruzamentos na área para forçar erros defensivos."
-            }
-        }
+    # Inicializa a matrizMatriz completa com TODOS os 10 presets para TODAS as formações
+    matrizMatriz = {formacao: presets_genericos.copy() for formacao in posicoes_campo.keys()}
+
+    # Ajustes finos específicos para as combinações mais populares do meta
+    matrizMatriz["4321"]["heavy-metal"] = {
+        "d": "Três meio-campistas com dois atacantes flutuantes (CFs) logo atrás de um centroavante em pressão total.",
+        "p": "O esquema mais poderoso do meta, unindo infiltrações mortais dos CFs com solidez e abafa defensivo.",
+        "c": "Exige ajustes manuais precisos nas instruções para não perder o controle defensivo das laterais.",
+        "b": "Utilize um duplo pivô compacto e evite dar espaço para os CFs girarem na entrada da área."
+    }
+    matrizMatriz["41212-n"]["tikitaka"] = {
+        "d": "Losango tradicional no meio-campo focado em troca de passes de primeira pelo centro do campo.",
+        "p": "Domínio absoluto do centro do campo, facilitando triangulações curtas e tabelas mortais.",
+        "c": "Totalmente nula em amplitude lateral, sofrendo contra equipes que exploram os corredores das pontas.",
+        "b": "Utilize formações abertas (como 4-3-3 ou 4-4-2) e force o adversário a atacar exclusivamente pelos lados."
+    }
+    matrizMatriz["541"]["park-bus"] = {
+        "d": "O nível máximo de segurança defensiva: linha de 5 zagueiros e linha de 4 meio-campistas recuados.",
+        "p": "Praticamente impossível de ser penetrada por jogadas normais de toque de bola pelo meio.",
+        "c": "Zero presença ofensiva natural; o time inteiro abdica de construir jogadas trabalhadas.",
+        "b": "Tenha paciência extrema na circulação de bola e explore chutes colocados de longa distância."
     }
 
     # 1. SELETOR DE FORMAÇÃO
@@ -347,10 +174,10 @@ def renderizar_painel_tatico():
         index=0
     )
 
-    # Recupera os presets disponíveis para a formação escolhida
+    # Recupera todos os presets disponíveis
     presets_disponiveis = list(matrizMatriz[formacao_selecionada].keys())
 
-    # 2. SELETOR DE TACTICAL PRESET (Posicionado abaixo do seletor de formação)
+    # 2. SELETOR DE TACTICAL PRESET
     preset_selecionado_key = st.selectbox(
         "2. Escolha o Tactical Preset:",
         presets_disponiveis,
@@ -358,7 +185,7 @@ def renderizar_painel_tatico():
         index=0
     )
 
-    # Carrega dados específicos baseados no preset selecionado
+    # Carrega os dados correspondentes
     dados = matrizMatriz[formacao_selecionada][preset_selecionado_key]
     posicoes = posicoes_campo.get(formacao_selecionada, {})
 
@@ -373,7 +200,7 @@ def renderizar_painel_tatico():
 
     st.markdown("---")
 
-    # Seção inferior formatada em 3 cards
+    # Exibição dos cards analíticos
     c1, c2, c3 = st.columns(3)
 
     with c1:
