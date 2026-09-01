@@ -7,6 +7,7 @@ import ast
 from painel_tatico import renderizar_painel_tatico
 from explicando_stats import renderizar_explicando_stats
 from playstyles import renderizar_playstyles
+from busca_jogadores import renderizar_busca_jogadores
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS GLOBAIS
@@ -184,16 +185,6 @@ def get_val(player_row, col_name, default=50):
             return int(val)
     return int(default)
 
-def render_stat_item(label, value):
-    val_int = int(value) if str(value).isdigit() else 50
-    badge_class = "stat-green" if val_int >= 70 else ("stat-yellow" if val_int >= 60 else "stat-red")
-    return f"""
-    <div class="stat-box">
-        <span class="stat-badge {badge_class}">{val_int}</span>
-        <span class="stat-label">{label}</span>
-    </div>
-    """
-
 def find_similar_players(df, target_player, top_n=3, regens_only=False):
     gender = target_player.get('GENDER', 'M')
     cond = (df['GENDER'] == gender) & (df['Name'] != target_player['Name'])
@@ -232,20 +223,49 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
     return candidates.sort_values('similarity_score').head(top_n)
 
 # -----------------------------------------------------------------------------
-# 3. BARRA LATERAL E NAVEGAÇÃO
+# 3. BARRA LATERAL E NAVEGAÇÃO MODERNA (st.navigation)
 # -----------------------------------------------------------------------------
 st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
 st.sidebar.title("⚽ Dashboard FC26")
 st.sidebar.markdown("---")
-st.sidebar.markdown("### Navegação")
 
-page_selection = st.sidebar.radio("Ir para:", ["Perfil Detalhado", "Formações", "PlayStyles", "Explicando stats"])
 df = df_raw.copy()
+
+# Definindo as páginas usando st.Page e st.navigation
+pagina_perfil = st.Page(
+    "perfil_detalhado", 
+    title="Perfil Detalhado", 
+    icon="👤", 
+    default=True
+)
+pagina_formacoes = st.Page(
+    renderizar_painel_tatico, 
+    title="Formações", 
+    icon="📋"
+)
+pagina_playstyles = st.Page(
+    renderizar_playstyles, 
+    title="PlayStyles", 
+    icon="⚡"
+)
+pagina_stats = st.Page(
+    renderizar_explicando_stats, 
+    title="Explicando stats", 
+    icon="📊"
+)
+pagina_busca = st.Page(
+    renderizar_busca_jogadores, 
+    title="Busca de Jogadores", 
+    icon="🔎"
+)
+
+# Executa o roteador de navegação do Streamlit
+pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats, pagina_busca])
 
 # -----------------------------------------------------------------------------
 # 4. RENDERIZAÇÃO DAS PÁGINAS
 # -----------------------------------------------------------------------------
-if page_selection == "Perfil Detalhado":
+if pg.title == "Perfil Detalhado":
     st.title("👤 Perfil Detalhado")
 
     col_quem, _ = st.columns([1, 2])
@@ -355,14 +375,7 @@ if page_selection == "Perfil Detalhado":
         st.info("Nenhum jogador semelhante encontrado com esses critérios.")
 
     st.markdown("---")
-    # Restante da página de Perfil Detalhado (Gráficos e Atributos)...
 
-elif page_selection == "Formações":
-    st.title("📋 Painel Tático de Formações")
-    renderizar_painel_tatico()
-
-elif page_selection == "PlayStyles":
-    renderizar_playstyles()
-    
-elif page_selection == "Explicando stats":
-    renderizar_explicando_stats()
+else:
+    # Executa a função da página selecionada através da API moderna st.navigation
+    pg.run()
