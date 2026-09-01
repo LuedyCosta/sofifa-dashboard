@@ -293,62 +293,17 @@ df = df_raw.copy()
 # -----------------------------------------------------------------------------
 st.title("👤 Perfil Detalhado")
 
-col_quem, col_similar = st.columns([1, 2.3])
-
+# SELETOR DE JOGADOR ("QUEM") EM CIMA PARA DEFINIR O JOGADOR ATIVO PRIMEIRO
+col_quem, _ = st.columns([1, 2])
 player_list = sorted(df['Name'].unique().tolist())
 default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
 
 with col_quem:
-    st.markdown("### 1 · Quem")
     target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
 
 p = df[df['Name'] == target_player_name].iloc[0]
 
-# PAINEL DE JOGADORES PARECIDOS COM BOTÕES IDÊNTICOS PARA O FILTRO
-with col_similar:
-    col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
-    with col_sim_title:
-        st.markdown("### 👥 Jogadores Parecidos")
-
-    if "sim_filter_mode" not in st.session_state:
-        st.session_state["sim_filter_mode"] = "Todos"
-
-    with col_btn_todos:
-        if st.button("Todos", use_container_width=True):
-            st.session_state["sim_filter_mode"] = "Todos"
-    with col_btn_regen:
-        if st.button("Regen", use_container_width=True):
-            st.session_state["sim_filter_mode"] = "Regen"
-
-    is_regens = (st.session_state["sim_filter_mode"] == "Regen")
-    similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
-
-    sim_cols = st.columns(3)
-    if not similar_df.empty:
-        for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
-            with sim_cols[idx]:
-                try:
-                    s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
-                    styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
-                except:
-                    styles_txt = "Padrão"
-
-                st.markdown(f"""
-                <div class="similar-card">
-                    <div class="similar-name">⚽ {sim_p['Name']}</div>
-                    <div class="similar-meta">
-                        <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
-                        <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
-                        <span style="color:#a3a3a3; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-    else:
-        st.info("Nenhum jogador semelhante encontrado com esses critérios.")
-
-st.markdown("---")
-
-# Estilo de jogo do jogador selecionado
+# --- BLOCO PRINCIPAL (AGORA O PRIMEIRO A APARECER NO MOBILE) ---
 play_styles_raw = str(p.get('play style', '[]'))
 try:
     play_styles = ast.literal_eval(play_styles_raw)
@@ -362,7 +317,6 @@ fintas = p.get('Skill moves', 2)
 perna_ruim = p.get('Weak foot', 2)
 rep_int = p.get('Rank', 1)
 
-# PAINEL DE PERFIL DO JOGADOR
 c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
 
 with c_face:
@@ -406,6 +360,49 @@ with c_details:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+st.markdown("---")
+
+# --- SEGUNDO BLOCO: JOGADORES PARECIDOS ---
+col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
+with col_sim_title:
+    st.markdown("### 👥 Jogadores Parecidos")
+
+if "sim_filter_mode" not in st.session_state:
+    st.session_state["sim_filter_mode"] = "Todos"
+
+with col_btn_todos:
+    if st.button("Todos", use_container_width=True):
+        st.session_state["sim_filter_mode"] = "Todos"
+with col_btn_regen:
+    if st.button("Regen", use_container_width=True):
+        st.session_state["sim_filter_mode"] = "Regen"
+
+is_regens = (st.session_state["sim_filter_mode"] == "Regen")
+similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
+
+sim_cols = st.columns(3)
+if not similar_df.empty:
+    for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
+        with sim_cols[idx]:
+            try:
+                s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
+                styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
+            except:
+                styles_txt = "Padrão"
+
+            st.markdown(f"""
+            <div class="similar-card">
+                <div class="similar-name">⚽ {sim_p['Name']}</div>
+                <div class="similar-meta">
+                    <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
+                    <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
+                    <span style="color:#a3a3a3; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+else:
+    st.info("Nenhum jogador semelhante encontrado com esses critérios.")
 
 st.markdown("---")
 
