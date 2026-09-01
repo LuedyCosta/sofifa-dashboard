@@ -144,7 +144,7 @@ def renderizar_painel_tatico():
         "541": {"GOL": (50, 8), "AE": (12, 32), "Z1": (30, 22), "Z2": (50, 20), "Z3": (70, 22), "AD": (88, 32), "ME": (18, 55), "MC1": (38, 52), "MC2": (62, 52), "MD": (82, 55), "ATA": (50, 86)}
     }
 
-    # Inicializa a matrizMatriz completa com TODOS os 10 presets para TODAS as formações
+    # Inicializa a matriz completa com TODOS os 10 presets para TODAS as formações
     matrizMatriz = {formacao: presets_genericos.copy() for formacao in posicoes_campo.keys()}
 
     # Ajustes finos específicos para as combinações mais populares do meta
@@ -204,30 +204,39 @@ def renderizar_painel_tatico():
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        with st.container(border=True):
-            st.markdown("<span style='color: #888; font-family: monospace; font-size: 13px;'>01 / ESTRUTURA</span>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='margin: 0; padding: 2px 0; font-size: 22px;'>{formacao_selecionada}</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: #ff4b4b; font-size: 13px; font-weight: bold; margin-top: -5px;'>Preset: {preset_labels.get(preset_selecionado_key, preset_selecionado_key)}</p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: #ccc; font-size: 12px; min-height: 48px;'>{dados['d']}</p>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="custom-box">
+            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>01 / ESTRUTURA</span>
+            <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>{formacao_selecionada}</h2>
+            <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -5px;'>Preset: {preset_labels.get(preset_selecionado_key, preset_selecionado_key)}</p>
+            <p style='color: #ffffff; font-size: 12px; min-height: 48px; opacity: 0.85;'>{dados['d']}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     with c2:
-        with st.container(border=True):
-            st.markdown("<span style='color: #888; font-family: monospace; font-size: 13px;'>02 / DESEMPENHO</span>", unsafe_allow_html=True)
-            st.markdown("<h2 style='margin: 0; padding: 2px 0; font-size: 22px;'>Prós & Contras</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #888; font-size: 13px; font-weight: bold; margin-top: -5px;'>Pontos Chave</p>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="custom-box">
+            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02 / DESEMPENHO</span>
+            <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>Prós & Contras</h2>
+            <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -5px;'>Pontos Chave</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        with st.expander("Expandir Vantagens e Desvantagens", expanded=True):
+            st.markdown("<span class='var-text'>🟢 Vantagens:</span>", unsafe_allow_html=True)
+            st.markdown(f"- {dados['p']}")
             
-            with st.expander("Expandir Vantagens e Desvantagens", expanded=True):
-                st.markdown("**🟢 Vantagens:**")
-                st.markdown(f"- {dados['p']}")
-                
-                st.divider()
-                
-                st.markdown("**🔴 Desvantagens:**")
-                st.markdown(f"- {dados['c']}")
+            st.divider()
+            
+            st.markdown("<span class='var-text'>🔴 Desvantagens:</span>", unsafe_allow_html=True)
+            st.markdown(f"- {dados['c']}")
 
     with c3:
-        with st.container(border=True):
-            st.markdown("<span style='color: #888; font-family: monospace; font-size: 13px;'>03 / ESTRATÉGIA</span>", unsafe_allow_html=True)
-            st.markdown("<h2 style='margin: 0; padding: 2px 0; font-size: 22px;'>Como Anular</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #888; font-size: 13px; font-weight: bold; margin-top: -5px;'>How to Counter</p>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: #ccc; font-size: 12px; min-height: 48px;'>{dados['b']}</p>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="custom-box">
+            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>03 / ESTRATÉGIA</span>
+            <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>Como Anular</h2>
+            <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -5px;'>How to Counter</p>
+            <p style='color: #ffffff; font-size: 12px; min-height: 48px; opacity: 0.85;'>{dados['b']}</p>
+        </div>
+        """, unsafe_allow_html=True)
