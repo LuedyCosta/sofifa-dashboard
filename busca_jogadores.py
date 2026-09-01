@@ -5,7 +5,7 @@ import pandas as pd
 def renderizar_busca_jogadores(df):
     st.title("🔍 Busca Avançada de Jogadores")
 
-    # Injeção de CSS específico para responsividade da tabela e filtros de busca
+    # Injeção de CSS para responsividade total em dispositivos móveis
     st.markdown("""
     <style>
         div[data-testid="stDataFrame"] {
@@ -73,7 +73,6 @@ def renderizar_busca_jogadores(df):
         colunas_exibicao = ['Name', 'OVR', 'Position', 'Age', 'Team', 'League', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY']
         colunas_disponiveis = [c for c in colunas_exibicao if c in df_filtrado.columns]
 
-        # Tabela interativa sem argumentos descontinuados
         st.dataframe(
             df_filtrado[colunas_disponiveis],
             hide_index=True
