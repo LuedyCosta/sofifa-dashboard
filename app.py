@@ -140,7 +140,7 @@
 
       <!-- Jogadores (4-3-3 Holding) -->
       <!-- Goleiro -->
-      <div class="jogador" style="top: 50%; left: 6%;" title="Goleiro (GOL)">G</div>
+      <div class="jogador" style="top: 50%; left: 6%;" title="Goleiro (GOL)">GOL</div>
       
       <!-- Defesa -->
       <div class="jogador" style="top: 15%; left: 25%;" title="Lateral Direito (LD)">LD</div>
@@ -153,7 +153,7 @@
       <div class="jogador" style="top: 30%; left: 55%;" title="Meia Esquerda (MC)">MC</div>
       <div class="jogador" style="top: 70%; left: 55%;" title="Meia Direita (MC)">MC</div>
 
-      <!-- Ataque -->
+      <!-- Ataque (Corrigido: Ponta Esquerda em cima, Ponta Direita embaixo) -->
       <div class="jogador" style="top: 15%; left: 78%;" title="Ponta Esquerda (ATA)">PE</div>
       <div class="jogador" style="top: 50%; left: 82%;" title="Centroavante (ATA)">CA</div>
       <div class="jogador" style="top: 85%; left: 78%;" title="Ponta Direita (ATA)">PD</div>
