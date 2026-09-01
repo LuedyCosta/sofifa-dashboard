@@ -4,7 +4,20 @@ import pandas as pd
 import ast
 import plotly.graph_objects as go
 
-def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
+def renderizar_perfil():
+    # Resgata dados e funções do session_state se disponíveis
+    df = st.session_state.get('df', None)
+    if df is None:
+        try:
+            df = pd.read_csv('dados_jogadores.csv')
+        except:
+            st.error("DataFrame não encontrado. Certifique-se de carregar os dados na página inicial.")
+            return
+
+    find_similar_players = st.session_state.get('find_similar_players', lambda d, p, top_n, regens_only: pd.DataFrame())
+    STAT_GROUPS = st.session_state.get('STAT_GROUPS', {})
+    get_val = st.session_state.get('get_val', lambda p, k, default: p.get(k, default))
+
     st.title("👤 Perfil Detalhado")
 
     player_list = sorted(df['Name'].unique().tolist())
@@ -76,7 +89,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     # 1. DETALHAMENTO COMPLETO POR CATEGORIA (INCLUINDO PLAYSTYLES)
     # -------------------------------------------------------------------------
     st.markdown("### 📊 Detalhamento Completo por Categoria")
-    tab_names = list(STAT_GROUPS.keys())
+    tab_names = list(STAT_GROUPS.keys()) if STAT_GROUPS else ['Playstyles']
     tabs = st.tabs(tab_names)
     
     for tab_idx, tab_name in enumerate(tab_names):
@@ -107,7 +120,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                             </div>
                             """, unsafe_allow_html=True)
             else:
-                group_dict = STAT_GROUPS[tab_name]
+                group_dict = STAT_GROUPS.get(tab_name, {})
                 sub_cols = st.columns(2)
                 items = list(group_dict.items())
                 half = (len(items) + 1) // 2
@@ -210,59 +223,63 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         st.warning("Selecione pelo menos um indicador de performance acima para exibir o gráfico de radar.")
     else:
         categories = [k.split(" - ")[1] for k in selected_keys]
-        col_names = [all_attributes[k] for k in selected_keys]
+        col_names = [all_attributes[k] for k in selected_keys if k in all_attributes]
 
         fig = go.Figure()
 
         vals_main = [get_val(p, col_en, 50) for col_en in col_names]
-        vals_main.append(vals_main[0])
-        fig.add_trace(go.Scatterpolar(
-            r=vals_main,
-            theta=categories + [categories[0]],
-            fill='toself',
-            name=p['Name'],
-            fillcolor='rgba(0, 255, 204, 0.15)',
-            line=dict(color='#00ffcc', width=2)
-        ))
+        if vals_main:
+            vals_main.append(vals_main[0])
+            fig.add_trace(go.Scatterpolar(
+                r=vals_main,
+                theta=categories + [categories[0]],
+                fill='toself',
+                name=p['Name'],
+                fillcolor='rgba(0, 255, 204, 0.15)',
+                line=dict(color='#00ffcc', width=2)
+            ))
 
         if comp1_name != "Nenhum":
             p1 = df[df['Name'] == comp1_name].iloc[0]
             vals_p1 = [get_val(p1, col_en, 50) for col_en in col_names]
-            vals_p1.append(vals_p1[0])
-            fig.add_trace(go.Scatterpolar(
-                r=vals_p1,
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=p1['Name'],
-                fillcolor='rgba(59, 130, 246, 0.15)',
-                line=dict(color='#3b82f6', width=2)
-            ))
+            if vals_p1:
+                vals_p1.append(vals_p1[0])
+                fig.add_trace(go.Scatterpolar(
+                    r=vals_p1,
+                    theta=categories + [categories[0]],
+                    fill='toself',
+                    name=p1['Name'],
+                    fillcolor='rgba(59, 130, 246, 0.15)',
+                    line=dict(color='#3b82f6', width=2)
+                ))
 
         if comp2_name != "Nenhum":
             p2 = df[df['Name'] == comp2_name].iloc[0]
             vals_p2 = [get_val(p2, col_en, 50) for col_en in col_names]
-            vals_p2.append(vals_p2[0])
-            fig.add_trace(go.Scatterpolar(
-                r=vals_p2,
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=p2['Name'],
-                fillcolor='rgba(16, 185, 129, 0.15)',
-                line=dict(color='#10b981', width=2)
-            ))
+            if vals_p2:
+                vals_p2.append(vals_p2[0])
+                fig.add_trace(go.Scatterpolar(
+                    r=vals_p2,
+                    theta=categories + [categories[0]],
+                    fill='toself',
+                    name=p2['Name'],
+                    fillcolor='rgba(16, 185, 129, 0.15)',
+                    line=dict(color='#10b981', width=2)
+                ))
 
         if comp3_name != "Nenhum":
             p3 = df[df['Name'] == comp3_name].iloc[0]
             vals_p3 = [get_val(p3, col_en, 50) for col_en in col_names]
-            vals_p3.append(vals_p3[0])
-            fig.add_trace(go.Scatterpolar(
-                r=vals_p3,
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=p3['Name'],
-                fillcolor='rgba(245, 158, 11, 0.15)',
-                line=dict(color='#f59e0b', width=2)
-            ))
+            if vals_p3:
+                vals_p3.append(vals_p3[0])
+                fig.add_trace(go.Scatterpolar(
+                    r=vals_p3,
+                    theta=categories + [categories[0]],
+                    fill='toself',
+                    name=p3['Name'],
+                    fillcolor='rgba(245, 158, 11, 0.15)',
+                    line=dict(color='#f59e0b', width=2)
+                ))
 
         fig.update_layout(
             polar=dict(
@@ -322,3 +339,6 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                 """, unsafe_allow_html=True)
     else:
         st.info("Nenhum jogador semelhante encontrado com esses critérios.")
+
+# Executa automaticamente ao carregar a página na navegação moderna do Streamlit
+renderizar_perfil()
