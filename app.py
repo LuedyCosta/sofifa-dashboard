@@ -262,5 +262,5 @@ pagina_formacoes = st.Page(renderizar_painel_tatico, title="Formações", icon="
 pagina_playstyles = st.Page(renderizar_playstyles, title="PlayStyles", icon="⚡")
 pagina_stats = st.Page(renderizar_explicando_stats, title="Explicando stats", icon="📊")
 
-pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats])
+pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats], position="sidebar")
 pg.run()
