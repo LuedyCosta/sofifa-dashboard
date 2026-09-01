@@ -294,7 +294,10 @@ st.sidebar.title("⚽ Dashboard FC26")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Navegação")
 
-page_selection = st.sidebar.radio("Ir para:", ["Perfil Detalhado", "Formações"])
+page_selection = st.sidebar.radio(
+    "Navegação",
+    ["Visão Geral", "Jogadores", "Formações", "Explicando stats"] # Adicionado aqui
+)
 
 df = df_raw.copy()
 
