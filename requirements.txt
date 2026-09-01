@@ -1,3 +1,6 @@
 streamlit
 pandas
+numpy
 plotly
+matplotlib
+mplsoccer
