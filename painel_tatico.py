@@ -2,7 +2,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def renderizar_painel_tatico():
-    st.title("📋 Guia Interativo de Formações & Tactical Presets (FC 26)")
     st.markdown("Selecione a formação tática e o estilo de jogo (Tactical Preset) para visualizar a disposição gráfica em campo e a análise detalhada.")
 
     painel_html = """
