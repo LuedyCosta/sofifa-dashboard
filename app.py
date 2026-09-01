@@ -48,26 +48,29 @@ st.markdown("""
         color: #94a3b8 !important;
     }
 
-    /* Estilização Customizada de Botões Globais */
+    /* Estilização Customizada de Botões Globais (Padronizado PlayStyles) */
     div[data-testid="stButton"] button {
-        background-color: #1f2937 !important;
-        color: #ffffff !important;
-        border: 1px solid #374151 !important;
+        background-color: #1a2234 !important;
+        color: #00ffcc !important;
+        border: 1px solid rgba(0, 255, 204, 0.3) !important;
         white-space: nowrap !important; /* Força 1 linha */
         height: 38px !important;
         min-height: 38px !important;
         padding: 0px 16px !important;
         margin-top: 5px !important;
-        border-radius: 8px !important;
-        transition: all 0.3s ease;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        transition: all 0.3s ease !important;
     }
     div[data-testid="stButton"] button:hover {
-        background-color: #374151 !important;
+        background-color: #00ffcc !important;
         border-color: #00ffcc !important;
-        color: #ffffff !important;
+        color: #0b0f19 !important;
+        box-shadow: 0 0 15px rgba(0, 255, 204, 0.4) !important;
     }
     div[data-testid="stButton"] button p {
-        color: #ffffff !important;
+        color: inherit !important;
         font-size: 0.95rem !important;
     }
 
@@ -97,43 +100,50 @@ st.markdown("""
         font-size: 0.95rem;
     }
 
-    /* Card do Perfil do Jogador */
+    /* Card do Perfil do Jogador (Padronizado PlayStyles) */
     .profile-info-box {
-        background-color: #111827;
+        background-color: #131b2e;
         border-radius: 12px;
         padding: 20px;
-        border: 1px solid #1f2937;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 255, 204, 0.2);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    .profile-info-box:hover {
+        border-color: rgba(0, 255, 204, 0.4);
+        box-shadow: 0 8px 24px rgba(0, 255, 204, 0.1);
     }
 
     /* Container de Jogadores Parecidos */
     .similar-container {
         background-color: #0b0f19;
-        border: 1px dashed #374151;
+        border: 1px dashed rgba(0, 255, 204, 0.3);
         border-radius: 12px;
         padding: 12px 16px;
         margin-top: -15px;
         margin-bottom: 15px;
     }
     .similar-card {
-        background-color: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 10px;
-        padding: 14px;
+        background-color: #131b2e;
+        border: 1px solid rgba(0, 255, 204, 0.2);
+        border-radius: 12px;
+        padding: 16px;
         text-align: center;
         height: 100%;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
     }
     .similar-card:hover {
+        transform: translateY(-3px);
         border-color: #00ffcc;
+        box-shadow: 0 8px 24px rgba(0, 255, 204, 0.15);
     }
     .similar-name {
         color: #00ffcc !important;
         font-size: 0.95rem !important;
         font-weight: bold !important;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
     .similar-meta {
         font-size: 0.8rem;
@@ -142,12 +152,17 @@ st.markdown("""
     
     /* Cards de Conteúdo Tático */
     .tactical-card {
-        background-color: #111827;
-        border: 1px solid #1f2937;
+        background-color: #131b2e;
+        border: 1px solid rgba(0, 255, 204, 0.2);
         border-radius: 12px;
         padding: 20px;
         margin-bottom: 15px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+    .tactical-card:hover {
+        border-color: rgba(0, 255, 204, 0.4);
+        box-shadow: 0 8px 24px rgba(0, 255, 204, 0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -348,8 +363,8 @@ if page_selection == "Perfil Detalhado":
     with c_info:
         st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
         st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
-        st.markdown(f"**Posição:** <span style='background-color: #1f2937; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
-        st.markdown(f"**Overall:** <span style='background-color: #1f2937; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
+        st.markdown(f"**Posição:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
+        st.markdown(f"**Overall:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
     with c_details:
         st.markdown(f"""
@@ -540,8 +555,8 @@ if page_selection == "Perfil Detalhado":
                 title=dict(text=f"Análise Comparativa Radar: {p['Name']} (OVR: {p['OVR']})", font=dict(color='#ffffff', size=16)),
                 polar=dict(
                     bgcolor='rgba(0,0,0,0)',
-                    radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color='#94a3b8'), gridcolor='#1f2937'),
-                    angularaxis=dict(tickfont=dict(color='#ffffff', size=13), gridcolor='#1f2937')
+                    radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color='#94a3b8'), gridcolor='#131b2e'),
+                    angularaxis=dict(tickfont=dict(color='#ffffff', size=13), gridcolor='#131b2e')
                 ),
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=480,
                 margin=dict(l=30, r=30, t=50, b=40),
