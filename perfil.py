@@ -1,108 +1,188 @@
-# Arquivo: perfil.py
 import streamlit as st
 import pandas as pd
-import ast
 import numpy as np
+import ast
 
-def renderizar_perfil(df, find_similar_players):
-    st.title("👤 Perfil Detalhado")
+from painel_tatico import renderizar_painel_tatico
+from explicando_stats import renderizar_explicando_stats
+from playstyles import renderizar_playstyles
+from busca_jogadores import renderizar_busca_jogadores
+from perfil import renderizar_perfil
 
-    col_quem, _ = st.columns([1, 2])
-    player_list = sorted(df['Name'].unique().tolist())
-    default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
+# -----------------------------------------------------------------------------
+# 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS GLOBAIS
+# -----------------------------------------------------------------------------
+st.set_page_config(
+    page_title="SoFIFA & FC26 Dashboard",
+    page_icon="⚽",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-    with col_quem:
-        target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
+st.markdown("""
+<style>
+    .stApp, .stApp > header {
+        background-color: #0b0f19;
+        color: #ffffff;
+        font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6, label, .stMarkdown p, .stMarkdown span, div[data-baseweb="typography"] {
+        color: #ffffff !important;
+        font-weight: 500 !important;
+    }
+    .streamlit-expanderHeader { color: #ffffff !important; }
+    .stCheckbox label { color: #ffffff !important; }
+    .var-text {
+        color: #00ffcc !important;
+        font-weight: bold;
+    }
+    .stCaption, small, .caption-text {
+        color: #94a3b8 !important;
+    }
+    div[data-testid="stButton"] button {
+        background-color: #1a2234 !important;
+        color: #00ffcc !important;
+        border: 1px solid rgba(0, 255, 204, 0.3) !important;
+        white-space: nowrap !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        padding: 0px 16px !important;
+        margin-top: 5px !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        transition: all 0.3s ease !important;
+    }
+    div[data-testid="stButton"] button:hover {
+        background-color: #00ffcc !important;
+        border-color: #00ffcc !important;
+        color: #0b0f19 !important;
+        box-shadow: 0 0 15px rgba(0, 255, 204, 0.4) !important;
+    }
+    .profile-info-box, .similar-card, .tactical-card, .custom-box {
+        background-color: #131b2e !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        border: 1px solid rgba(0, 255, 204, 0.2) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+        margin-bottom: 20px !important;
+    }
+    .similar-card {
+        background-color: #0b0f19;
+        border: 1px dashed rgba(0, 255, 204, 0.3);
+        border-radius: 12px;
+        padding: 12px 16px;
+    }
+    .similar-name {
+        color: #00ffcc !important;
+        font-size: 0.95rem !important;
+        font-weight: bold !important;
+        margin-bottom: 6px;
+    }
+    .similar-meta {
+        font-size: 0.8rem;
+        color: #ffffff !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-    p = df[df['Name'] == target_player_name].iloc[0]
+# -----------------------------------------------------------------------------
+# 2. CARREGAMENTO DE DADOS E FUNÇÕES AUXILIARES
+# -----------------------------------------------------------------------------
+@st.cache_data
+def load_data():
+    try:
+        df = pd.read_csv("EAFC26.csv")
+    except FileNotFoundError:
+        try:
+            df = pd.read_csv("sofifa_players_2.csv")
+        except FileNotFoundError:
+            try:
+                df = pd.read_csv("sofifa_players.csv")
+            except FileNotFoundError:
+                st.error("❌ Arquivo EAFC26.csv não encontrado.")
+                st.stop()
+
+    df['Name'] = df['Name'].fillna('Jogador Sem Nome').astype(str)
+    df['Team'] = df['Team'].fillna('Sem Clube').astype(str)
+    df['Position'] = df['Position'].fillna('N/A').astype(str)
+    df['League'] = df['League'].fillna('Desconhecida').astype(str)
+    df['GENDER'] = df['GENDER'].fillna('M').astype(str)
+    df['Preferred foot'] = df['Preferred foot'].fillna('Right').astype(str)
     
-    perna_boa = "Esq." if p.get('Preferred foot', 'Right') == 'Left' else "Dir."
-    fintas = p.get('Skill moves', 2)
-    perna_ruim = p.get('Weak foot', 2)
-    rep_int = p.get('Rank', 1)
+    for col in ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age', 'Weak foot', 'Skill moves']:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
 
-    c_face, c_info, c_details = st.columns([1.2, 2.5, 3.3])
+    return df
 
-    with c_face:
-        card_img = p.get('card', '')
-        if pd.notna(card_img) and str(card_img).startswith("http"):
-            st.image(card_img, width=140)
-        else:
-            st.image("https://cdn.sofifa.net/player_0.png", width=130)
+df_raw = load_data()
 
-    with c_info:
-        st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
-        st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
-        st.markdown(f"**Posição:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
-        st.markdown(f"**Overall:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
+def get_val(player_row, col_name, default=50):
+    if col_name in player_row.index and pd.notna(player_row[col_name]):
+        val = pd.to_numeric(player_row[col_name], errors='coerce')
+        if not pd.isna(val):
+            return int(val)
+    return int(default)
 
-    with c_details:
-        st.markdown(f"""
-        <div class="profile-info-box">
-            <div style="display: flex; justify-content: space-between;">
-                <div>
-                    <strong style="color:#ffffff;">Perfil</strong><br>
-                    <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
-                    <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
-                    <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
-                    <span>Rank: <b class="var-text">#{rep_int}</b></span>
-                </div>
-                <div>
-                    <strong style="color:#ffffff;">Atributos Globais</strong><br>
-                    <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
-                    <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
-                    <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
-                    <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
-                    <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
-                    <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
-                </div>
-                <div>
-                    <strong style="color:#ffffff;">Clube</strong><br>
-                    <span><b class="var-text">{p['Team']}</b></span><br>
-                    <span>Posição <b class="var-text">{p['Position']}</b></span>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+def find_similar_players(df, target_player, top_n=3, regens_only=False):
+    gender = target_player.get('GENDER', 'M')
+    cond = (df['GENDER'] == gender) & (df['Name'] != target_player['Name'])
+    if regens_only:
+        cond = cond & (df['Age'] <= 23)
+    candidates = df[cond].copy()
+    if candidates.empty:
+        return candidates
 
-    st.markdown("---")
+    stat_cols = ['OVR', 'PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY', 'Age']
+    target_vec = np.array([get_val(target_player, col, 50) for col in stat_cols], dtype=float)
+    cand_vecs = candidates[stat_cols].apply(pd.to_numeric, errors='coerce').fillna(50).to_numpy(dtype=float)
+    std_vec = np.array(df[stat_cols].apply(pd.to_numeric, errors='coerce').std().values, dtype=float)
+    std_vec = np.where((np.isnan(std_vec)) | (std_vec == 0), 1.0, std_vec)
 
-    col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.6, 0.6])
-    with col_sim_title:
-        st.markdown("### 👥 Jogadores Parecidos")
+    dist = np.linalg.norm((cand_vecs - target_vec) / std_vec, axis=1)
+    target_pos = str(target_player['Position'])
+    pos_penalty = np.where(candidates['Position'] == target_pos, 0.0, 1.2)
 
-    if "sim_filter_mode" not in st.session_state:
-        st.session_state["sim_filter_mode"] = "Todos"
+    try:
+        t_styles = set(ast.literal_eval(str(target_player.get('play style', '[]'))))
+    except:
+        t_styles = set()
 
-    with col_btn_todos:
-        if st.button("Todos", use_container_width=True):
-            st.session_state["sim_filter_mode"] = "Todos"
-    with col_btn_regen:
-        if st.button("Regen", use_container_width=True):
-            st.session_state["sim_filter_mode"] = "Regen"
+    def style_dist(style_str):
+        try:
+            s_set = set(ast.literal_eval(str(style_str)))
+            if not t_styles and not s_set: return 0.0
+            union = len(t_styles.union(s_set))
+            return 1.0 - (len(t_styles.intersection(s_set)) / union) if union > 0 else 1.0
+        except:
+            return 1.0
 
-    is_regens = (st.session_state["sim_filter_mode"] == "Regen")
-    similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
+    style_penalties = candidates['play style'].apply(style_dist).to_numpy(dtype=float) * 1.0
+    candidates['similarity_score'] = dist + pos_penalty + style_penalties
+    return candidates.sort_values('similarity_score').head(top_n)
 
-    sim_cols = st.columns(3)
-    if not similar_df.empty:
-        for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
-            with sim_cols[idx]:
-                try:
-                    s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
-                    styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
-                except:
-                    styles_txt = "Padrão"
+# -----------------------------------------------------------------------------
+# 3. BARRA LATERAL E NAVEGAÇÃO MODERNA (st.navigation)
+# -----------------------------------------------------------------------------
+st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
+st.sidebar.title("⚽ Dashboard FC26")
+st.sidebar.markdown("---")
 
-                st.markdown(f"""
-                <div class="similar-card">
-                    <div class="similar-name">⚽ {sim_p['Name']}</div>
-                    <div class="similar-meta">
-                        <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
-                        <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
-                        <span style="color:#94a3b8; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-    else:
-        st.info("Nenhum jogador semelhante encontrado com esses critérios.")
+df = df_raw.copy()
+
+# Wrapper function para injetar o dataframe e a função de similares no perfil
+def wrapper_perfil():
+    renderizar_perfil(df, find_similar_players)
+
+# Definindo as páginas usando st.Page e st.navigation
+pagina_perfil = st.Page(wrapper_perfil, title="Perfil Detalhado", icon="👤", default=True)
+pagina_formacoes = st.Page(renderizar_painel_tatico, title="Formações", icon="📋")
+pagina_playstyles = st.Page(renderizar_playstyles, title="PlayStyles", icon="⚡")
+pagina_stats = st.Page(renderizar_explicando_stats, title="Explicando stats", icon="📊")
+pagina_busca = st.Page(renderizar_busca_jogadores, title="Busca de Jogadores", icon="🔎")
+
+pg = st.navigation([pagina_perfil, pagina_formacoes, pagina_playstyles, pagina_stats, pagina_busca])
+
+# Executa a navegação
+pg.run()
