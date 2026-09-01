@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Tático Dinâmico</title>
+  <title>Painel Tático</title>
   <style>
     body {
       background-color: #121212;
@@ -22,14 +22,15 @@
       background: #1e1e1e;
       padding: 20px;
       border-radius: 8px;
-      max-width: 950px;
+      max-width: 900px;
       width: 100%;
     }
 
+    /* Correção da Proporção do Campo (Horizontal) */
     .campo-futebol {
       width: 100%;
       max-width: 500px;
-      aspect-ratio: 105 / 68;
+      aspect-ratio: 105 / 68; /* Proporção oficial aproximada de um campo */
       background-color: #1b4d3e;
       position: relative;
       border: 2px solid white;
@@ -37,6 +38,7 @@
       overflow: hidden;
     }
 
+    /* Linhas e marcações do campo */
     .linha-meio {
       position: absolute;
       top: 0;
@@ -64,9 +66,17 @@
       border: 2px solid rgba(255, 255, 255, 0.7);
     }
 
-    .grande-area-esq { left: 0; border-left: none; }
-    .grande-area-dir { right: 0; border-right: none; }
+    .grande-area-esq {
+      left: 0;
+      border-left: none;
+    }
 
+    .grande-area-dir {
+      right: 0;
+      border-right: none;
+    }
+
+    /* Marcadores dos Jogadores */
     .jogador {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -81,7 +91,14 @@
       font-weight: bold;
       font-size: 10px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-      transition: all 0.3s ease-in-out;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .jogador:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      background-color: #f0f0f0;
+      z-index: 10;
     }
 
     .informacoes {
@@ -91,29 +108,6 @@
       gap: 15px;
     }
 
-    .seletor-grupo {
-      background: #2a2a2a;
-      padding: 15px;
-      border-radius: 6px;
-    }
-
-    .seletor-grupo label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .seletor-grupo select {
-      width: 100%;
-      padding: 8px;
-      background: #333;
-      color: #fff;
-      border: 1px solid #555;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
     .card-info {
       background: #2a2a2a;
       padding: 15px;
@@ -121,142 +115,66 @@
       border-left: 4px solid #3b82f6;
     }
 
-    .card-info h3 { margin: 0 0 8px 0; font-size: 14px; }
-    .card-info p { margin: 0; font-size: 13px; color: #ccc; line-height: 1.4; }
+    .card-info h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+    }
+
+    .card-info p {
+      margin: 0;
+      font-size: 13px;
+      color: #ccc;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
 
   <div class="painel-container">
-    <!-- Campo de Futebol -->
-    <div class="campo-futebol" id="campo">
+    <!-- Campo com Proporção Ajustada e Jogadores Posicionados -->
+    <div class="campo-futebol">
       <div class="linha-meio"></div>
       <div class="circulo-central"></div>
       <div class="grande-area-esq"></div>
       <div class="grande-area-dir"></div>
-      <!-- Os jogadores serão inseridos aqui via JavaScript -->
+
+      <!-- Jogadores (4-3-3 Holding) -->
+      <!-- Goleiro -->
+      <div class="jogador" style="top: 50%; left: 6%;" title="Goleiro (GOL)">G</div>
+      
+      <!-- Defesa -->
+      <div class="jogador" style="top: 15%; left: 25%;" title="Lateral Direito (LD)">LD</div>
+      <div class="jogador" style="top: 38%; left: 20%;" title="Zagueiro (ZAG)">ZAG</div>
+      <div class="jogador" style="top: 62%; left: 20%;" title="Zagueiro (ZAG)">ZAG</div>
+      <div class="jogador" style="top: 85%; left: 25%;" title="Lateral Esquerdo (LE)">LE</div>
+
+      <!-- Meio-Campo (Holding / Volante + 2 Meias) -->
+      <div class="jogador" style="top: 50%; left: 38%;" title="Volante (VOL)">VOL</div>
+      <div class="jogador" style="top: 30%; left: 55%;" title="Meia Esquerda (MC)">MC</div>
+      <div class="jogador" style="top: 70%; left: 55%;" title="Meia Direita (MC)">MC</div>
+
+      <!-- Ataque -->
+      <div class="jogador" style="top: 15%; left: 78%;" title="Ponta Esquerda (ATA)">PE</div>
+      <div class="jogador" style="top: 50%; left: 82%;" title="Centroavante (ATA)">CA</div>
+      <div class="jogador" style="top: 85%; left: 78%;" title="Ponta Direita (ATA)">PD</div>
     </div>
 
-    <!-- Bloco de Controles e Informações -->
+    <!-- Bloco de Informações da Formação -->
     <div class="informacoes">
-      <div class="seletor-grupo">
-        <label for="formacao-select">Escolha a Formação:</label>
-        <select id="formacao-select" onchange="mudarFormacao()">
-          <option value="433-holding">4-3-3 Holding</option>
-          <option value="442">4-4-2 Tradicional</option>
-          <option value="352">3-5-2</option>
-        </select>
-      </div>
-
       <div class="card-info">
-        <h3 id="info-titulo">Informações da Formação</h3>
-        <p id="info-descricao">Carregando...</p>
+        <h3>Informações da Formação (4-3-3 Holding)</h3>
+        <p>Variação defensiva do 4-3-3 com um volante fixo protegendo a zaga e dois meias interiores armando o jogo.</p>
       </div>
       <div class="card-info" style="border-left-color: #10b981;">
         <h3>Vantagens (Prós)</h3>
-        <p id="info-pros">Carregando...</p>
+        <p>Excelente equilíbrio na transição defensiva e proteção contra contra-ataques.</p>
       </div>
       <div class="card-info" style="border-left-color: #ef4444;">
         <h3>Desvantagens (Contras)</h3>
-        <p id="info-contras">Carregando...</p>
+        <p>Pode pecar em volume ofensivo caso os meias interiores não avancem com frequência.</p>
       </div>
     </div>
   </div>
 
-  <script>
-    // Dicionário contendo as posições (em porcentagem top/left) e textos de cada formação
-    const formacoes = {
-      "433-holding": {
-        titulo: "Informações da Formação (4-3-3 Holding)",
-        descricao: "Variação defensiva do 4-3-3 com um volante fixo protegendo a zaga e dois meias interiores armando o jogo.",
-        pros: "Excelente equilíbrio na transição defensiva e proteção contra contra-ataques.",
-        contras: "Pode pecar em volume ofensivo caso os meias interiores não avancem com frequência.",
-        jogadores: [
-          { pos: "GOL", top: 50, left: 6 },
-          { pos: "LD",  top: 15, left: 25 },
-          { pos: "ZAG", top: 38, left: 20 },
-          { pos: "ZAG", top: 62, left: 20 },
-          { pos: "LE",  top: 85, left: 25 },
-          { pos: "VOL", top: 50, left: 38 },
-          { pos: "MC",  top: 30, left: 55 },
-          { pos: "MC",  top: 70, left: 55 },
-          { pos: "PE",  top: 15, left: 78 },
-          { pos: "CA",  top: 50, left: 82 },
-          { pos: "PD",  top: 85, left: 78 }
-        ]
-      },
-      "442": {
-        titulo: "Informações da Formação (4-4-2 Tradicional)",
-        descricao: "Esquema clássico e equilibrado, com duas linhas de quatro jogadores e dupla de ataque fixa.",
-        pros: "Fácil compactação defensiva e forte presença física no meio-campo e ataque.",
-        contras: "Pode sofrer contra times que acumulam muitos jogadores no meio de campo (ex: superioridade numérica).",
-        jogadores: [
-          { pos: "GOL", top: 50, left: 6 },
-          { pos: "LD",  top: 15, left: 25 },
-          { pos: "ZAG", top: 38, left: 20 },
-          { pos: "ZAG", top: 62, left: 20 },
-          { pos: "LE",  top: 85, left: 25 },
-          { pos: "MD",  top: 15, left: 50 },
-          { pos: "MC",  top: 38, left: 45 },
-          { pos: "MC",  top: 62, left: 45 },
-          { pos: "ME",  top: 85, left: 50 },
-          { pos: "ATA", top: 38, left: 78 },
-          { pos: "ATA", top: 62, left: 78 }
-        ]
-      },
-      "352": {
-        titulo: "Informações da Formação (3-5-2)",
-        descricao: "Formação ofensiva que utiliza três zagueiros e alas muito agressivos pelo lado do campo.",
-        pros: "Excelente controle do meio-campo e superioridade numérica no ataque.",
-        contras: "Espaços nas costas dos alas podem ser explorados por pontas rápidos adversários.",
-        jogadores: [
-          { pos: "GOL", top: 50, left: 6 },
-          { pos: "ZAG", top: 25, left: 20 },
-          { pos: "ZAG", top: 50, left: 18 },
-          { pos: "ZAG", top: 75, left: 20 },
-          { pos: "ALA", top: 10, left: 50 },
-          { pos: "VOL", top: 38, left: 40 },
-          { pos: "MC",  top: 50, left: 55 },
-          { pos: "VOL", top: 62, left: 40 },
-          { pos: "ALA", top: 90, left: 50 },
-          { pos: "ATA", top: 35, left: 80 },
-          { pos: "ATA", top: 65, left: 80 }
-        ]
-      }
-    };
-
-    function mudarFormacao() {
-      const select = document.getElementById("formacao-select");
-      const chave = select.value;
-      const dados = formacoes[chave];
-
-      // Atualiza os textos dos cards
-      document.getElementById("info-titulo").innerText = dados.titulo;
-      document.getElementById("info-descricao").innerText = dados.descricao;
-      document.getElementById("info-pros").innerText = dados.pros;
-      document.getElementById("info-contras").innerText = dados.contras;
-
-      // Atualiza os jogadores no campo
-      const campo = document.getElementById("campo");
-      
-      // Remove apenas os elementos de jogadores existentes (mantendo as marcações do campo)
-      const jogadoresAntigos = campo.querySelectorAll(".jogador");
-      jogadoresAntigos.forEach(j => j.remove());
-
-      // Insere os novos jogadores com base na formação selecionada
-      dados.jogadores.forEach(j => {
-        const div = document.createElement("div");
-        div.className = "jogador";
-        div.style.top = j.top + "%";
-        div.style.left = j.left + "%";
-        div.innerText = j.pos;
-        div.title = j.pos;
-        campo.appendChild(div);
-      });
-    }
-
-    // Inicializa a página carregando a primeira formação padrão
-    window.onload = mudarFormacao;
-  </script>
 </body>
 </html>
