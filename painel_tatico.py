@@ -11,23 +11,52 @@ def renderizar_painel_tatico():
     <head>
       <meta charset="UTF-8">
       <style>
-        body { background-color: #121212; color: #ffffff; font-family: Arial, sans-serif; display: flex; justify-content: center; margin: 0; padding: 10px; }
-        .painel-container { display: flex; gap: 20px; background: #1e1e1e; padding: 20px; border-radius: 8px; max-width: 980px; width: 100%; box-sizing: border-box; }
-        .campo-futebol { width: 100%; max-width: 450px; aspect-ratio: 105 / 68; background-color: #1b4d3e; position: relative; border: 2px solid white; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+        * { box-sizing: border-box; }
+        body { 
+          background-color: #121212; 
+          color: #ffffff; 
+          font-family: Arial, sans-serif; 
+          display: flex; 
+          justify-content: center; 
+          margin: 0; 
+          padding: 0; 
+          overflow: hidden; 
+        }
+        .painel-container { 
+          display: flex; 
+          gap: 15px; 
+          background: #1e1e1e; 
+          padding: 15px; 
+          border-radius: 8px; 
+          width: 100%; 
+          align-items: flex-start;
+        }
+        .campo-futebol { 
+          width: 45%; 
+          aspect-ratio: 105 / 68; 
+          background-color: #1b4d3e; 
+          position: relative; 
+          border: 2px solid white; 
+          border-radius: 4px; 
+          overflow: hidden; 
+          flex-shrink: 0; 
+        }
         .linha-meio { position: absolute; top: 0; bottom: 0; left: 50%; border-left: 2px dashed rgba(255, 255, 255, 0.7); }
         .circulo-central { position: absolute; top: 50%; left: 50%; width: 20%; aspect-ratio: 1/1; border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 50%; transform: translate(-50%, -50%); }
         .grande-area-esq, .grande-area-dir { position: absolute; top: 20%; bottom: 20%; width: 15%; border: 2px solid rgba(255, 255, 255, 0.7); }
         .grande-area-esq { left: 0; border-left: none; }
         .grande-area-dir { right: 0; border-right: none; }
-        .jogador { position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; background-color: #ffffff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 8px; transition: all 0.3s ease-in-out; }
-        .informacoes { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .seletor-duplo { display: flex; gap: 10px; }
-        .seletor-grupo { flex: 1; background: #2a2a2a; padding: 10px; border-radius: 6px; }
-        .seletor-grupo label { display: block; margin-bottom: 4px; font-size: 11px; font-weight: bold; color: #ddd; }
-        .seletor-grupo select { width: 100%; padding: 6px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; font-size: 11px; }
-        .card-info { background: #2a2a2a; padding: 10px 12px; border-radius: 6px; border-left: 4px solid #3b82f6; }
-        .card-info h3 { margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card-info p { margin: 0; font-size: 11.5px; color: #ccc; line-height: 1.35; }
+        .jogador { position: absolute; transform: translate(-50%, -50%); width: 24px; height: 24px; background-color: #ffffff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 7.5px; transition: all 0.3s ease-in-out; }
+        
+        .informacoes { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .seletor-duplo { display: flex; gap: 8px; }
+        .seletor-grupo { flex: 1; background: #2a2a2a; padding: 8px; border-radius: 6px; }
+        .seletor-grupo label { display: block; margin-bottom: 3px; font-size: 10.5px; font-weight: bold; color: #ddd; }
+        .seletor-grupo select { width: 100%; padding: 5px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; font-size: 10.5px; }
+        
+        .card-info { background: #2a2a2a; padding: 8px 10px; border-radius: 6px; border-left: 4px solid #3b82f6; }
+        .card-info h3 { margin: 0 0 2px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-info p { margin: 0; font-size: 10.5px; color: #ccc; line-height: 1.25; }
       </style>
     </head>
     <body>
@@ -534,4 +563,4 @@ def renderizar_painel_tatico():
     </html>
     """
 
-    components.html(painel_html, height=560, scrolling=True)
+    components.html(painel_html, height=680, scrolling=False)
