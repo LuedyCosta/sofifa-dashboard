@@ -1,8 +1,6 @@
+# Arquivo: app.py
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-import ast
+from painel_tatico import renderizar_painel_tatico # Importa o seu novo módulo
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
@@ -1088,125 +1086,11 @@ if page_selection == "Perfil Detalhado":
 
 
 # -----------------------------------------------------------------------------
-# 6. PÁGINA 2: FORMAÇÕES E ANÁLISE TÁTICA (NOVA)
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
 # 6. PÁGINA 2: FORMAÇÕES E ANÁLISE TÁTICA (ATUALIZADA)
 # -----------------------------------------------------------------------------
 elif page_selection == "Formações":
-    st.title("📋 Guia de Formações & Build-Up Styles (FC26)")
-    st.markdown("Analise a disposição tática em campo, os estilos de construção de jogada e as estratégias completas extraídas do guia tático oficial do FC26.")
+    st.title("📋 Guia de Formações & Tactical Presets (FC26)")
+    st.markdown("Analise a disposição tática em campo, os estilos de construção de jogada e as estratégias completas.")
     
-    col_sel1, col_sel2 = st.columns(2)
-    
-    with col_sel1:
-        all_formations = sorted(list(TACTICAL_DATABASE.keys()))
-        selected_formation = st.selectbox("Selecione a Formação:", options=all_formations, index=all_formations.index("4-3-3 Holding") if "4-3-3 Holding" in all_formations else 0)
-        
-    with col_sel2:
-        build_up_styles = [
-            "Balanced (Equilibrado)",
-            "Short Passing (Toque Curto)",
-            "Counter (Contra-Ataque)"
-        ]
-        default_bu = TACTICAL_DATABASE.get(selected_formation, {}).get("default_style", "Balanced (Equilibrado)")
-        default_bu_index = 0
-        for i, bu in enumerate(build_up_styles):
-            if default_bu.split()[0] in bu:
-                default_bu_index = i
-                break
-        selected_bu_style = st.selectbox("Selecione o Build-Up Style:", options=build_up_styles, index=default_bu_index)
-
-    st.markdown("---")
-
-    base_tact_data = TACTICAL_DATABASE.get(selected_formation, TACTICAL_DATABASE["4-3-3 Holding"])
-    tact_data = base_tact_data.copy()
-    
-    style_keyword = selected_bu_style.split()[0]
-    
-    if style_keyword == "Short":
-        tact_data['info'] = f"Com foco em circulação paciente e posse prolongada, o esquema {selected_formation} utiliza o estilo **Short Passing** para atrair a pressão rival e envolver blocos compactos através de triangulações curtas e seguras."
-        tact_data['pros'] = f"Controle territorial absoluto, circulação de bola refinada e baixíssimo índice de erros não forçados no setor intermediário."
-        tact_data['cons'] = f"Pode se tornar estéril ou previsível caso o adversário feche todas as linhas de passe na entrada da área."
-        tact_data['counter'] = f"Mantenha uma linha defensiva compacta em bloco baixo, evite botes precipitados e aposte em roubadas de bola rápidas para surpreender na transição."
-    elif style_keyword == "Counter":
-        tact_data['info'] = f"Voltado para transições verticais fulminantes, o esquema {selected_formation} com estilo **Counter** aciona os homens de frente em velocidade máxima imediatamente após o desarme defensivo."
-        tact_data['pros'] = f"Rapidez impressionante para surpreender defesas desorganizadas antes que o adversário consiga recompor a linha de marcação."
-        tact_data['cons'] = f"Deixa espaços consideráveis no meio-campo e nas costas dos alas/laterais caso o primeiro bote seja quebrado."
-        tact_data['counter'] = f"Adote uma postura equilibrada, reforce a cobertura dos volantes e evite perder a bola no terço ofensivo sem retaguarda protegida."
-    else:
-        tact_data['info'] = f"O esquema {selected_formation} operando no estilo **Balanced** alterna organicamente entre a retenção prudente de bola e a busca inteligente pelos espaços vazios deixados pelo adversário."
-        tact_data['pros'] = f"Grande flexibilidade tática, excelente ocupação de espaços e equilíbrio natural entre solidez e criação ofensiva."
-        tact_data['cons'] = f"Exige rigor físico elevado e pode perder eficácia se enfrentado por blocos ultra-especializados (retranca total ou pressão sufocante)."
-        tact_data['counter'] = f"Explore as fragilidades específicas das alas ou anule o principal articulador central com marcação por zona rigorosa."
-
-    col_pitch, col_info = st.columns([1.3, 1.7])
-    
-    with col_pitch:
-        st.markdown("#### ⚽ Painel Tático em Campo")
-        
-        fig_pitch = go.Figure()
-        
-        # Desenhar o gramado e linhas de campo com proporção corrigida
-        fig_pitch.add_shape(type="rect", x0=0, y0=0, x1=100, y1=100, line=dict(color="#ffffff", width=2), fillcolor="#1b4d3e")
-        fig_pitch.add_shape(type="line", x0=0, y0=50, x1=100, y1=50, line=dict(color="#ffffff", width=1.5, dash="dash"))
-        fig_pitch.add_shape(type="circle", x0=40, y0=40, x1=60, y1=60, line=dict(color="#ffffff", width=1.5))
-        fig_pitch.add_shape(type="rect", x0=20, y0=80, x1=80, y1=100, line=dict(color="#ffffff", width=1.5))
-        fig_pitch.add_shape(type="rect", x0=20, y0=0, x1=80, y1=20, line=dict(color="#ffffff", width=1.5))
-        
-        coords = tact_data["coords"]
-        pos_x = [c["x"] for c in coords]
-        pos_y = [c["y"] for c in coords]
-        pos_labels = [c["pos"] for c in coords]
-        
-        fig_pitch.add_trace(go.Scatter(
-            x=pos_x, y=pos_y,
-            mode='text+markers',
-            text=pos_labels,
-            textposition="top center",
-            textfont=dict(color="#ffffff", size=12, family="Arial Black"),
-            marker=dict(size=18, color="#10b981", line=dict(color="#ffffff", width=2))
-        ))
-        
-        fig_pitch.update_layout(
-            xaxis=dict(range=[-10, 110], showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(range=[-10, 110], showgrid=False, zeroline=False, showticklabels=False, scaleanchor="x", scaleratio=0.68),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            height=480,
-            margin=dict(l=10, r=10, t=10, b=10),
-            showlegend=False
-        )
-        st.plotly_chart(fig_pitch, use_container_width=True)
-        st.caption(f"Esquema tático ativo: **{selected_formation}** com estilo **{selected_bu_style}**")
-
-    with col_info:
-        st.markdown(f"#### 📑 Informações da Formação ({selected_formation})")
-        st.markdown(f"""
-        <div class="tactical-card">
-            <span style="color:#a3a3a3; font-size: 0.85rem;">Explicação Breve ({selected_bu_style}):</span><br>
-            <p style="color: #ffffff; font-size: 0.95rem; margin-top: 4px;">{tact_data['info']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown(f"""
-        <div class="tactical-card">
-            <span style="color:#10b981; font-weight:bold;">🟢 Vantagens (Prós):</span><br>
-            <p style="color: #ffffff; font-size: 0.95rem; margin-top: 4px;">{tact_data['pros']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown(f"""
-        <div class="tactical-card">
-            <span style="color:#ef4444; font-weight:bold;">🔴 Desvantagens (Contras):</span><br>
-            <p style="color: #ffffff; font-size: 0.95rem; margin-top: 4px;">{tact_data['cons']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Estratégia de Combate reposicionada logo abaixo das informações da formação
-        st.markdown(f"""
-        <div class="tactical-card" style="border-left: 4px solid #f59e0b;">
-            <span style="color:#f59e0b; font-weight:bold; font-size: 1.05rem;">🛡️ Estratégia de Combate (Como Jogar Contra):</span><br>
-            <p style="color: #ffffff; font-size: 0.95rem; margin-top: 6px;">{tact_data['counter']}</p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Renderiza o painel completo (Campo + Seletores + Cards de Análise)
+    renderizar_painel_tatico()
