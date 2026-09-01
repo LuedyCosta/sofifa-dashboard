@@ -21,10 +21,11 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* Fundo Totalmente Preto */
+    /* Fundo Totalmente Preto e Fontes Globais */
     .stApp, .stApp > header {
-        background-color: #000000;
+        background-color: #0b0f19;
         color: #ffffff;
+        font-family: 'Inter', sans-serif;
     }
 
     /* Textos Fixos Brancos */
@@ -39,29 +40,30 @@ st.markdown("""
 
     /* Classe para Textos Variáveis (Dinâmicos) em Verde */
     .var-text {
-        color: #10b981 !important; /* Verde 500 */
+        color: #00ffcc !important;
         font-weight: bold;
     }
 
     .stCaption, small, .caption-text {
-        color: #a3a3a3 !important;
+        color: #94a3b8 !important;
     }
 
     /* Estilização Customizada de Botões Globais */
     div[data-testid="stButton"] button {
-        background-color: #808080 !important; /* Cinza 50% */
+        background-color: #1f2937 !important;
         color: #ffffff !important;
-        border: none !important;
+        border: 1px solid #374151 !important;
         white-space: nowrap !important; /* Força 1 linha */
         height: 38px !important;
         min-height: 38px !important;
         padding: 0px 16px !important;
         margin-top: 5px !important;
-        border-radius: 6px !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease;
     }
     div[data-testid="stButton"] button:hover {
-        background-color: #a3a3a3 !important;
-        border: none !important;
+        background-color: #374151 !important;
+        border-color: #00ffcc !important;
         color: #ffffff !important;
     }
     div[data-testid="stButton"] button p {
@@ -97,35 +99,41 @@ st.markdown("""
 
     /* Card do Perfil do Jogador */
     .profile-info-box {
-        background-color: #111111;
-        border-radius: 8px;
-        padding: 16px;
-        border: 1px solid #333333;
+        background-color: #111827;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #1f2937;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         margin-bottom: 20px;
     }
 
     /* Container de Jogadores Parecidos */
     .similar-container {
-        background-color: #000000;
-        border: 1px dashed #333333;
-        border-radius: 10px;
+        background-color: #0b0f19;
+        border: 1px dashed #374151;
+        border-radius: 12px;
         padding: 12px 16px;
         margin-top: -15px;
         margin-bottom: 15px;
     }
     .similar-card {
-        background-color: #111111;
-        border: 1px solid #333333;
-        border-radius: 8px;
-        padding: 10px;
+        background-color: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 10px;
+        padding: 14px;
         text-align: center;
         height: 100%;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+    .similar-card:hover {
+        border-color: #00ffcc;
     }
     .similar-name {
-        color: #10b981 !important;
+        color: #00ffcc !important;
         font-size: 0.95rem !important;
         font-weight: bold !important;
-        margin-bottom: 2px;
+        margin-bottom: 4px;
     }
     .similar-meta {
         font-size: 0.8rem;
@@ -134,11 +142,12 @@ st.markdown("""
     
     /* Cards de Conteúdo Tático */
     .tactical-card {
-        background-color: #111111;
-        border: 1px solid #333333;
-        border-radius: 8px;
-        padding: 16px;
+        background-color: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 20px;
         margin-bottom: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -339,8 +348,8 @@ if page_selection == "Perfil Detalhado":
     with c_info:
         st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
         st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
-        st.markdown(f"**Posição:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
-        st.markdown(f"**Overall:** <span style='background-color: #262626; color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
+        st.markdown(f"**Posição:** <span style='background-color: #1f2937; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
+        st.markdown(f"**Overall:** <span style='background-color: #1f2937; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
     with c_details:
         st.markdown(f"""
@@ -406,7 +415,7 @@ if page_selection == "Perfil Detalhado":
                     <div class="similar-meta">
                         <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
                         <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
-                        <span style="color:#a3a3a3; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
+                        <span style="color:#94a3b8; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -507,7 +516,7 @@ if page_selection == "Perfil Detalhado":
 
             fig.add_trace(go.Scatterpolar(
                 r=r_vals, theta=theta_labs, mode='lines+markers', fill='none',
-                line=dict(color='#ef4444', width=3), marker=dict(size=8, color='#ef4444'),
+                line=dict(color='#00ffcc', width=3), marker=dict(size=8, color='#00ffcc'),
                 name=f"{p['Name']} (Principal)"
             ))
 
@@ -531,8 +540,8 @@ if page_selection == "Perfil Detalhado":
                 title=dict(text=f"Análise Comparativa Radar: {p['Name']} (OVR: {p['OVR']})", font=dict(color='#ffffff', size=16)),
                 polar=dict(
                     bgcolor='rgba(0,0,0,0)',
-                    radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color='#cbd5e1'), gridcolor='#333333'),
-                    angularaxis=dict(tickfont=dict(color='#ffffff', size=13), gridcolor='#333333')
+                    radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color='#94a3b8'), gridcolor='#1f2937'),
+                    angularaxis=dict(tickfont=dict(color='#ffffff', size=13), gridcolor='#1f2937')
                 ),
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=480,
                 margin=dict(l=30, r=30, t=50, b=40),
@@ -588,7 +597,6 @@ if page_selection == "Perfil Detalhado":
 elif page_selection == "Formações":
     st.title("📋 Painel Tático de Formações")
     # Chamada da função que renderiza o componente contido no arquivo painel_tatico.py
-    
     renderizar_painel_tatico()
 elif page_selection == "PlayStyles":
     renderizar_playstyles()
