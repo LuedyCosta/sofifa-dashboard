@@ -200,7 +200,7 @@ def renderizar_painel_tatico():
 
     st.markdown("---")
 
-    # Exibição dos cards analíticos
+    # Exibição dos cards analíticos estruturados em 3 colunas idênticas
     c1, c2, c3 = st.columns(3)
 
     with c1:
@@ -214,22 +214,23 @@ def renderizar_painel_tatico():
         """, unsafe_allow_html=True)
 
     with c2:
+        # Bloco superior: Vantagens
         st.markdown(f"""
-        <div class="custom-box">
+        <div class="custom-box" style="margin-bottom: 16px;">
             <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02 / DESEMPENHO</span>
-            <h2 style='margin: 0; padding: 2px 0; font-size: 22px; color: #ffffff;'>Prós & Contras</h2>
-            <p style='color: #00ffcc; font-size: 13px; font-weight: bold; margin-top: -5px;'>Pontos Chave</p>
+            <h2 style='margin: 0; padding: 2px 0; font-size: 20px; color: #22c55e;'>🟢 Vantagens</h2>
+            <p style='color: #ffffff; font-size: 12px; margin-top: 8px; opacity: 0.9;'>{dados['p']}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        with st.expander("Expandir Vantagens e Desvantagens", expanded=True):
-            st.markdown("<span class='var-text'>🟢 Vantagens:</span>", unsafe_allow_html=True)
-            st.markdown(f"- {dados['p']}")
-            
-            st.divider()
-            
-            st.markdown("<span class='var-text'>🔴 Desvantagens:</span>", unsafe_allow_html=True)
-            st.markdown(f"- {dados['c']}")
+        # Bloco inferior: Desvantagens
+        st.markdown(f"""
+        <div class="custom-box">
+            <span style='color: #94a3b8; font-family: monospace; font-size: 13px;'>02.1 / LIMITAÇÕES</span>
+            <h2 style='margin: 0; padding: 2px 0; font-size: 20px; color: #ef4444;'>🔴 Desvantagens</h2>
+            <p style='color: #ffffff; font-size: 12px; margin-top: 8px; opacity: 0.9;'>{dados['c']}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     with c3:
         st.markdown(f"""
