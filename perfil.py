@@ -4,20 +4,7 @@ import pandas as pd
 import ast
 import plotly.graph_objects as go
 
-def renderizar_perfil():
-    # Resgata dados e funções do session_state se disponíveis
-    df = st.session_state.get('df', None)
-    if df is None:
-        try:
-            df = pd.read_csv('dados_jogadores.csv')
-        except:
-            st.error("DataFrame não encontrado. Certifique-se de carregar os dados na página inicial.")
-            return
-
-    find_similar_players = st.session_state.get('find_similar_players', lambda d, p, top_n, regens_only: pd.DataFrame())
-    STAT_GROUPS = st.session_state.get('STAT_GROUPS', {})
-    get_val = st.session_state.get('get_val', lambda p, k, default: p.get(k, default))
-
+def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     st.title("👤 Perfil Detalhado")
 
     player_list = sorted(df['Name'].unique().tolist())
@@ -27,7 +14,6 @@ def renderizar_perfil():
 
     p = df[df['Name'] == target_player_name].iloc[0]
     
-    # Extração segura dos playstyles do jogador
     play_styles_raw = str(p.get('play style', '[]'))
     try:
         play_styles = ast.literal_eval(play_styles_raw)
@@ -55,7 +41,6 @@ def renderizar_perfil():
         st.markdown(f"**Posição:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
         st.markdown(f"**Overall:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
 
-    # Bloco de detalhes usando container nativo estilizado do Streamlit
     with st.container(border=True):
         b_col1, b_col2, b_col3 = st.columns(3)
         with b_col1:
@@ -85,9 +70,6 @@ def renderizar_perfil():
 
     st.markdown("---")
 
-    # -------------------------------------------------------------------------
-    # 1. DETALHAMENTO COMPLETO POR CATEGORIA (INCLUINDO PLAYSTYLES)
-    # -------------------------------------------------------------------------
     st.markdown("### 📊 Detalhamento Completo por Categoria")
     tab_names = list(STAT_GROUPS.keys()) if STAT_GROUPS else ['Playstyles']
     tabs = st.tabs(tab_names)
@@ -146,9 +128,6 @@ def renderizar_perfil():
 
     st.markdown("---")
 
-    # -------------------------------------------------------------------------
-    # 2. INDICADORES DE PERFORMANCE E GRÁFICO DE RADAR COM COMPARAÇÃO
-    # -------------------------------------------------------------------------
     st.markdown("### 2 · Indicadores de Performance")
 
     all_attributes = {}
@@ -297,9 +276,6 @@ def renderizar_perfil():
 
     st.markdown("---")
 
-    # -------------------------------------------------------------------------
-    # 3. JOGADORES PARECIDOS
-    # -------------------------------------------------------------------------
     col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.7, 0.7])
     with col_sim_title:
         st.markdown("### 👥 Jogadores Parecidos")
@@ -339,6 +315,3 @@ def renderizar_perfil():
                 """, unsafe_allow_html=True)
     else:
         st.info("Nenhum jogador semelhante encontrado com esses critérios.")
-
-# Executa automaticamente ao carregar a página na navegação moderna do Streamlit
-renderizar_perfil()
