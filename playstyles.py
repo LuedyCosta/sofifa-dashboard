@@ -104,6 +104,11 @@ def renderizar_playstyles():
                 st.markdown(f"<p style='color: #ccc; font-size: 12px; min-height: 48px;'>{cat['desc']}</p>", unsafe_allow_html=True)
                 
                 with st.expander("Expandir"):
-                    for nome_style, desc_style in cat["styles"].items():
+                    items = list(cat["styles"].items())
+                    for i, (nome_style, desc_style) in enumerate(items):
                         st.markdown(f"**{nome_style}**")
                         st.caption(desc_style)
+                        
+                        # Adiciona uma linha divisória entre os itens, exceto no último
+                        if i < len(items) - 1:
+                            st.divider()
