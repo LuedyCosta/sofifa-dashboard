@@ -16,7 +16,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
 
     p = df[df['Name'] == target_player_name].iloc[0]
     
-    # Processamento dos PlayStyles do Jogador
+    # Extração segura dos playstyles do jogador
     play_styles_raw = str(p.get('play style', '[]'))
     try:
         play_styles = ast.literal_eval(play_styles_raw)
@@ -79,28 +79,37 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     # 1. DETALHAMENTO COMPLETO POR CATEGORIA (INCLUINDO PLAYSTYLES)
     # -------------------------------------------------------------------------
     st.markdown("### 📊 Detalhamento Completo por Categoria")
-    
-    # Criamos cópia ou dicionário estendido para incluir PlayStyles nas abas
-    all_tabs_dict = dict(STAT_GROUPS)
-    all_tabs_dict["PlayStyles"] = {} # Aba especial tratada separadamente
-
-    tab_names = list(all_tabs_dict.keys())
+    tab_names = list(STAT_GROUPS.keys())
     tabs = st.tabs(tab_names)
     
     for tab_idx, tab_name in enumerate(tab_names):
         with tabs[tab_idx]:
-            if tab_name == "PlayStyles":
-                if play_styles and len(play_styles) > 0:
-                    cols_ps = st.columns(3)
-                    for idx_ps, ps_name in enumerate(play_styles):
-                        with cols_ps[idx_ps % 3]:
+            if tab_name == 'Playstyles':
+                if not play_styles:
+                    st.info("Não tem")
+                else:
+                    # Dicionário de descrições padrão para os Playstyles do FC
+                    descriptions = {
+                        "Power Shot": "Disparos com força significativamente maior e velocidade extrema de chute.",
+                        "Technical": "Habilidade para realizar curvas e precisão em passes/chutes rasteiros.",
+                        "Speed Dribbler": "Capacidade de correr em velocidade máxima mantendo a bola muito próxima.",
+                        "Trickster": "Acesso a animações especiais e fintas mais rápidas e eficientes.",
+                        "Rapid": "Aceleração e velocidade explosiva ao conduzir a bola.",
+                        "Finesse Shot": "Chutes colocados com curva acentuada e alta precisão.",
+                        "Trivela": "Passes e finalizações utilizando a parte externa do pé com maestria.",
+                        "Chip Shot": "Finalizações por cobertura com maior precisão e altura adequada."
+                    }
+                    
+                    ps_cols = st.columns(2)
+                    for i, ps in enumerate(play_styles):
+                        desc = descriptions.get(ps, "Melhora o desempenho do atleta em situações específicas de jogo correspondentes a esta habilidade.")
+                        with ps_cols[i % 2]:
                             st.markdown(f"""
-                            <div class="similar-card" style="margin-bottom: 10px; text-align: center;">
-                                <span class="var-text" style="font-size: 1rem; font-weight: bold;">⚡ {ps_name}</span>
+                            <div class="similar-card" style="margin-bottom: 12px;">
+                                <div class="similar-name">⚡ {ps}</div>
+                                <div class="similar-meta" style="color: #94a3b8 !important;">{desc}</div>
                             </div>
                             """, unsafe_allow_html=True)
-                else:
-                    st.markdown("<p style='color: #94a3b8; font-style: italic; font-size: 1.1rem; padding: 10px;'>não tem</p>", unsafe_allow_html=True)
             else:
                 group_dict = STAT_GROUPS[tab_name]
                 sub_cols = st.columns(2)
@@ -135,6 +144,8 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
 
     all_attributes = {}
     for group_name, attrs in STAT_GROUPS.items():
+        if group_name == 'Playstyles':
+            continue
         for label_pt, col_en in attrs.items():
             all_attributes[f"{group_name} - {label_pt}"] = col_en
 
@@ -169,6 +180,8 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=False):
         selected_stats = []
         for group_name, attrs in STAT_GROUPS.items():
+            if group_name == 'Playstyles':
+                continue
             st.markdown(f"**{group_name}**")
             cols_check = st.columns(2)
             idx_chk = 0
