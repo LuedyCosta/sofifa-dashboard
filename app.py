@@ -6,6 +6,7 @@ import ast
 
 # Importação da função do arquivo painel_tatico.py
 from painel_tatico import renderizar_painel_tatico
+from explicando_stats import renderizar_explicando_stats
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CSS
@@ -293,7 +294,7 @@ st.sidebar.title("⚽ Dashboard FC26")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Navegação")
 
-page_selection = st.sidebar.radio("Ir para:", ["Perfil Detalhado", "Formações"])
+page_selection = st.sidebar.radio("Ir para:", ["Perfil Detalhado", "Formações", "Explicando stats"])
 
 df = df_raw.copy()
 
@@ -587,3 +588,6 @@ elif page_selection == "Formações":
     st.title("📋 Painel Tático de Formações")
     # Chamada da função que renderiza o componente contido no arquivo painel_tatico.py
     renderizar_painel_tatico()
+
+elif page_selection == "Explicando stats":
+    renderizar_explicando_stats()
