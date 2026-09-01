@@ -1,3 +1,9 @@
+import streamlit as st
+import streamlit.components.v1 as components
+
+st.set_page_config(page_title="Painel Tático", layout="wide")
+
+painel_tatico_html = """
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -12,8 +18,10 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 10px;
+      box-sizing: border-box;
     }
 
     .painel-container {
@@ -134,7 +142,6 @@
       <div class="circulo-central"></div>
       <div class="grande-area-esq"></div>
       <div class="grande-area-dir"></div>
-      <!-- Os jogadores serão inseridos aqui via JavaScript -->
     </div>
 
     <!-- Bloco de Controles e Informações -->
@@ -164,7 +171,6 @@
   </div>
 
   <script>
-    // Dicionário contendo as posições (em porcentagem top/left) e textos de cada formação
     const formacoes = {
       "433-holding": {
         titulo: "Informações da Formação (4-3-3 Holding)",
@@ -230,20 +236,15 @@
       const chave = select.value;
       const dados = formacoes[chave];
 
-      // Atualiza os textos dos cards
       document.getElementById("info-titulo").innerText = dados.titulo;
       document.getElementById("info-descricao").innerText = dados.descricao;
       document.getElementById("info-pros").innerText = dados.pros;
       document.getElementById("info-contras").innerText = dados.contras;
 
-      // Atualiza os jogadores no campo
       const campo = document.getElementById("campo");
-      
-      // Remove apenas os elementos de jogadores existentes (mantendo as marcações do campo)
       const jogadoresAntigos = campo.querySelectorAll(".jogador");
       jogadoresAntigos.forEach(j => j.remove());
 
-      // Insere os novos jogadores com base na formação selecionada
       dados.jogadores.forEach(j => {
         const div = document.createElement("div");
         div.className = "jogador";
@@ -255,8 +256,10 @@
       });
     }
 
-    // Inicializa a página carregando a primeira formação padrão
     window.onload = mudarFormacao;
   </script>
 </body>
 </html>
+"""
+
+components.html(painel_tatico_html, height=450, scrolling=True)
