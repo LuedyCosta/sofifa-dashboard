@@ -23,6 +23,29 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
+    /* ESTILIZAÇÃO DA BARRA LATERAL */
+    [data-testid="stSidebar"] {
+        background-color: #0b0f19 !important;
+        border-right: 1px solid rgba(0, 255, 204, 0.2) !important;
+    }
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+    [data-testid="stSidebar"] hr {
+        border-color: rgba(0, 255, 204, 0.2) !important;
+    }
+    /* Estilização dos itens de navegação do st.navigation na sidebar */
+    [data-testid="stSidebar"] [data-testid="stPageLink"] a, 
+    [data-testid="stSidebar"] div[data-baseweb="radio"] div {
+        color: #94a3b8 !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"] {
+        background-color: #131b2e !important;
+        color: #00ffcc !important;
+        border: 1px solid rgba(0, 255, 204, 0.3) !important;
+        border-radius: 8px !important;
+    }
+
     /* CORREÇÃO DEFINITIVA DA COR DAS ABAS PARA O VERDE/CIANO */
     div[data-baseweb="tab-list"] button {
         color: #94a3b8 !important;
@@ -226,8 +249,7 @@ def find_similar_players(df, target_player, top_n=3, regens_only=False):
 # -----------------------------------------------------------------------------
 # 3. BARRA LATERAL E NAVEGAÇÃO MODERNA (st.navigation)
 # -----------------------------------------------------------------------------
-st.sidebar.image("https://sofifa.com/static/common/logo.svg", width=180)
-st.sidebar.title("⚽ Dashboard FC26")
+st.sidebar.title("Dashboard FC26 by Luedy Costa")
 st.sidebar.markdown("---")
 
 df = df_raw.copy()
