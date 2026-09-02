@@ -3,11 +3,14 @@ import pandas as pd
 
 def renderizar_busca_jogadores(df, get_val):
     st.subheader("🔍 Central de Busca SoFifa")
-    st.markdown("Filtre atletas detalhadamente por todas as características, posições, ligas e atributos do jogo.")
+    st.markdown("Filtre atletas detalhadamente por categorias de atributos, posições e biografia.")
 
     df_filtrado = df.copy()
 
-    with st.expander("🛠️ Filtros de Biografia e Informações Básicas", expanded=True):
+    # -------------------------------------------------------------
+    # BLOCO 1: BIOGRAFIA E INFORMAÇÕES BÁSICAS
+    # -------------------------------------------------------------
+    with st.expander("👤 Biografia e Informações Básicas", expanded=True):
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
@@ -42,7 +45,7 @@ def renderizar_busca_jogadores(df, get_val):
             weak_foot = st.slider("Perna Ruim (Mínima)", 1, 5, 1)
             skill_moves = st.slider("Fintas / Skill Moves (Mínima)", 1, 5, 1)
 
-    # Aplicação dos filtros básicos
+    # Aplicação básica
     if pos_escolhida != "Todas":
         df_filtrado = df_filtrado[df_filtrado['Position'] == pos_escolhida]
     if liga_escolhida != "Todas":
@@ -61,42 +64,133 @@ def renderizar_busca_jogadores(df, get_val):
     ]
 
     # -------------------------------------------------------------
-    # FILTROS AVANÇADOS DE ATRIBUTOS (PAC, SHO, PAS, DRI, DEF, PHY, ETC)
+    # BLOCOS EXPANSÍVEIS POR CATEGORIAS DE STATS (EXPLICANDO STATS)
     # -------------------------------------------------------------
-    with st.expander("⚡ Filtros por Atributos Detalhados do Atleta", expanded=False):
+    
+    with st.expander("⚽ Atributos Ofensivos", expanded=False):
         c1, c2, c3 = st.columns(3)
-        
         with c1:
-            min_pac = st.slider("Ritmo (PAC Mínimo)", 0, 99, 0)
-            min_sho = st.slider("Finalização (SHO Mínimo)", 0, 99, 0)
-            min_pas = st.slider("Passe (PAS Mínimo)", 0, 99, 0)
+            min_sho = st.slider("Finalização Mínima", 0, 99, 0)
+            min_cross = st.slider("Cruzamento Mínimo", 0, 99, 0) if 'Crossing' in df.columns else 0
         with c2:
-            min_dri = st.slider("Drible (DRI Mínimo)", 0, 99, 0)
-            min_def = st.slider("Defesa (DEF Mínimo)", 0, 99, 0)
-            min_phy = st.slider("Físico (PHY Mínimo)", 0, 99, 0)
+            min_head = st.slider("Prec. Cabeceio Mínimo", 0, 99, 0) if 'Heading Accuracy' in df.columns else 0
+            min_pass_c = st.slider("Passe Curto Mínimo", 0, 99, 0) if 'Short Passing' in df.columns else 0
         with c3:
-            # Filtros específicos extras se as colunas existirem no dataset
-            min_acc = st.slider("Aceleração Mínima", 0, 99, 0) if 'Acceleration' in df.columns else None
-            min_sta = st.slider("Fôlego (Stamina) Mínimo", 0, 99, 0) if 'Stamina' in df.columns else None
-            min_str = st.slider("Força (Strength) Mínima", 0, 99, 0) if 'Strength' in df.columns else None
+            min_vol = st.slider("Voleios Mínimo", 0, 99, 0) if 'Volleys' in df.columns else 0
 
-        # Aplicando filtros de atributos principais
-        df_filtrado = df_filtrado[
-            (df_filtrado['PAC'] >= min_pac) &
-            (df_filtrado['SHO'] >= min_sho) &
-            (df_filtrado['PAS'] >= min_pas) &
-            (df_filtrado['DRI'] >= min_dri) &
-            (df_filtrado['DEF'] >= min_def) &
-            (df_filtrado['PHY'] >= min_phy)
-        ]
+        df_filtrado = df_filtrado[df_filtrado['SHO'] >= min_sho]
+        if 'Crossing' in df.columns and min_cross > 0:
+            df_filtrado = df_filtrado[df_filtrado['Crossing'] >= min_cross]
+        if 'Heading Accuracy' in df.columns and min_head > 0:
+            df_filtrado = df_filtrado[df_filtrado['Heading Accuracy'] >= min_head]
+        if 'Short Passing' in df.columns and min_pass_c > 0:
+            df_filtrado = df_filtrado[df_filtrado['Short Passing'] >= min_pass_c]
+        if 'Volleys' in df.columns and min_vol > 0:
+            df_filtrado = df_filtrado[df_filtrado['Volleys'] >= min_vol]
 
-        # Aplicando opcionais caso existam
-        if min_acc is not None and 'Acceleration' in df_filtrado.columns:
+    with st.expander("🎯 Habilidade & Criação", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            min_dri = st.slider("Dribles Mínimo", 0, 99, 0)
+            min_pas = st.slider("Passe Geral (PAS) Mínimo", 0, 99, 0)
+        with c2:
+            min_long_pass = st.slider("Lançamento Mínimo", 0, 99, 0) if 'Long Passing' in df.columns else 0
+            min_ball_ctrl = st.slider("Controle de Bola Mínimo", 0, 99, 0) if 'Ball Control' in df.columns else 0
+        with c3:
+            min_curve = st.slider("Curva Mínima", 0, 99, 0) if 'Curve' in df.columns else 0
+
+        df_filtrado = df_filtrado[(df_filtrado['DRI'] >= min_dri) & (df_filtrado['PAS'] >= min_pas)]
+        if 'Long Passing' in df.columns and min_long_pass > 0:
+            df_filtrado = df_filtrado[df_filtrado['Long Passing'] >= min_long_pass]
+        if 'Ball Control' in df.columns and min_ball_ctrl > 0:
+            df_filtrado = df_filtrado[df_filtrado['Ball Control'] >= min_ball_ctrl]
+        if 'Curve' in df.columns and min_curve > 0:
+            df_filtrado = df_filtrado[df_filtrado['Curve'] >= min_curve]
+
+    with st.expander("⚡ Movimentação & Ritmo", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            min_pac = st.slider("Ritmo Geral (PAC) Mínimo", 0, 99, 0)
+            min_acc = st.slider("Aceleração Mínima", 0, 99, 0) if 'Acceleration' in df.columns else 0
+        with c2:
+            min_sprint = st.slider("Pique Mínimo", 0, 99, 0) if 'Sprint Speed' in df.columns else 0
+            min_agil = st.slider("Agilidade Mínima", 0, 99, 0) if 'Agility' in df.columns else 0
+        with c3:
+            min_react = st.slider("Reação Mínima", 0, 99, 0) if 'Reactions' in df.columns else 0
+            min_bal = st.slider("Equilíbrio Mínimo", 0, 99, 0) if 'Balance' in df.columns else 0
+
+        df_filtrado = df_filtrado[df_filtrado['PAC'] >= min_pac]
+        if 'Acceleration' in df.columns and min_acc > 0:
             df_filtrado = df_filtrado[df_filtrado['Acceleration'] >= min_acc]
-        if min_sta is not None and 'Stamina' in df_filtrado.columns:
-            df_filtrado = df_filtrado[df_filtrado['Stamina'] >= min_sta]
-        if min_str is not None and 'Strength' in df_filtrado.columns:
+        if 'Sprint Speed' in df.columns and min_sprint > 0:
+            df_filtrado = df_filtrado[df_filtrado['Sprint Speed'] >= min_sprint]
+        if 'Agility' in df.columns and min_agil > 0:
+            df_filtrado = df_filtrado[df_filtrado['Agility'] >= min_agil]
+        if 'Reactions' in df.columns and min_react > 0:
+            df_filtrado = df_filtrado[df_filtrado['Reactions'] >= min_react]
+        if 'Balance' in df.columns and min_bal > 0:
+            df_filtrado = df_filtrado[df_filtrado['Balance'] >= min_bal]
+
+    with st.expander("💪 Força & Físico", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            min_phy = st.slider("Físico Geral (PHY) Mínimo", 0, 99, 0)
+            min_stam = st.slider("Fôlego (Stamina) Mínimo", 0, 99, 0) if 'Stamina' in df.columns else 0
+        with c2:
+            min_str = st.slider("Força Mínima", 0, 99, 0) if 'Strength' in df.columns else 0
+            min_jump = st.slider("Impulsão Mínima", 0, 99, 0) if 'Jumping' in df.columns else 0
+        with c3:
+            min_shot_pow = st.slider("Força do Chute Mínima", 0, 99, 0) if 'Shot Power' in df.columns else 0
+
+        df_filtrado = df_filtrado[df_filtrado['PHY'] >= min_phy]
+        if 'Stamina' in df.columns and min_stam > 0:
+            df_filtrado = df_filtrado[df_filtrado['Stamina'] >= min_stam]
+        if 'Strength' in df.columns and min_str > 0:
             df_filtrado = df_filtrado[df_filtrado['Strength'] >= min_str]
+        if 'Jumping' in df.columns and min_jump > 0:
+            df_filtrado = df_filtrado[df_filtrado['Jumping'] >= min_jump]
+        if 'Shot Power' in df.columns and min_shot_pow > 0:
+            df_filtrado = df_filtrado[df_filtrado['Shot Power'] >= min_shot_pow]
+
+    with st.expander("🛡️ Defesa", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            min_def = st.slider("Defesa Geral (DEF) Mínimo", 0, 99, 0)
+            min_aware = st.slider("Consciência Defensiva Mínima", 0, 99, 0) if 'Def Awareness' in df.columns else 0
+        with c2:
+            min_stand = st.slider("Dividida em Pé Mínima", 0, 99, 0) if 'Standing Tackle' in df.columns else 0
+        with c3:
+            min_slide = st.slider("Carrinho Mínimo", 0, 99, 0) if 'Sliding Tackle' in df.columns else 0
+
+        df_filtrado = df_filtrado[df_filtrado['DEF'] >= min_def]
+        if 'Def Awareness' in df.columns and min_aware > 0:
+            df_filtrado = df_filtrado[df_filtrado['Def Awareness'] >= min_aware]
+        if 'Standing Tackle' in df.columns and min_stand > 0:
+            df_filtrado = df_filtrado[df_filtrado['Standing Tackle'] >= min_stand]
+        if 'Sliding Tackle' in df.columns and min_slide > 0:
+            df_filtrado = df_filtrado[df_filtrado['Sliding Tackle'] >= min_slide]
+
+    with st.expander("🧠 Mentalidadade", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            min_pos_at = st.slider("Posicionamento de Ataque Mínimo", 0, 99, 0) if 'Positioning' in df.columns else 0
+            min_vision = st.slider("Visão de Jogo Mínima", 0, 99, 0) if 'Vision' in df.columns else 0
+        with c2:
+            min_compo = st.slider("Compostura Mínima", 0, 99, 0) if 'Composure' in df.columns else 0
+            min_aggr = st.slider("Combatividade Mínima", 0, 99, 0) if 'Aggression' in df.columns else 0
+        with c3:
+            min_inter = st.slider("Interceptações Mínimas", 0, 99, 0) if 'Interceptions' in df.columns else 0
+
+        if 'Positioning' in df.columns and min_pos_at > 0:
+            df_filtrado = df_filtrado[df_filtrado['Positioning'] >= min_pos_at]
+        if 'Vision' in df.columns and min_vision > 0:
+            df_filtrado = df_filtrado[df_filtrado['Vision'] >= min_vision]
+        if 'Composure' in df.columns and min_compo > 0:
+            df_filtrado = df_filtrado[df_filtrado['Composure'] >= min_compo]
+        if 'Aggression' in df.columns and min_aggr > 0:
+            df_filtrado = df_filtrado[df_filtrado['Aggression'] >= min_aggr]
+        if 'Interceptions' in df.columns and min_inter > 0:
+            df_filtrado = df_filtrado[df_filtrado['Interceptions'] >= min_inter]
 
     st.markdown("---")
     st.markdown(f"### 📋 Resultados encontrados ({len(df_filtrado)} jogadores)")
