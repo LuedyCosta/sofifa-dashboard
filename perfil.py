@@ -1,317 +1,152 @@
-# Arquivo: perfil.py
 import streamlit as st
 import pandas as pd
-import ast
-import plotly.graph_objects as go
 
-def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
-    st.title("👤 Perfil Detalhado")
-
-    player_list = sorted(df['Name'].unique().tolist())
-    default_index = player_list.index("Bradley Barcola") if "Bradley Barcola" in player_list else 0
-
-    target_player_name = st.selectbox("Buscar Jogador:", options=player_list, index=default_index)
-
-    p = df[df['Name'] == target_player_name].iloc[0]
+def renderizar_perfil_jogador(df, jogador_selecionado):
+    st.subheader(f"👤 Perfil do Atleta: {jogador_selecionado.get('Name', 'Jogador')}")
     
-    play_styles_raw = str(p.get('play style', '[]'))
-    try:
-        play_styles = ast.literal_eval(play_styles_raw)
-        if not isinstance(play_styles, list): play_styles = []
-    except:
-        play_styles = []
-
-    perna_boa = "Esq." if p.get('Preferred foot', 'Right') == 'Left' else "Dir."
-    fintas = p.get('Skill moves', 2)
-    perna_ruim = p.get('Weak foot', 2)
-    rep_int = p.get('Rank', 1)
-
-    c_face, c_info = st.columns([1, 2.5])
-
-    with c_face:
-        card_img = p.get('card', '')
-        if pd.notna(card_img) and str(card_img).startswith("http"):
-            st.image(card_img, width=130)
-        else:
-            st.image("https://cdn.sofifa.net/player_0.png", width=120)
-
-    with c_info:
-        st.markdown(f"<h2>🏃 <span class='var-text'>{p['Name']}</span></h2>", unsafe_allow_html=True)
-        st.markdown(f"**Clube:** <span class='var-text'>{p['Team']}</span> ({p['League']})", unsafe_allow_html=True)
-        st.markdown(f"**Posição:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['Position']}</span> | **Nacionalidade:** <span class='var-text'>{p.get('Nation', 'N/A')}</span>", unsafe_allow_html=True)
-        st.markdown(f"**Overall:** <span style='background-color: #1a2234; color: #00ffcc; padding: 2px 8px; border-radius: 4px; font-weight: bold;'>{p['OVR']}</span> | **Idade:** <span class='var-text'>{p['Age']} anos</span>", unsafe_allow_html=True)
-
-    with st.container(border=True):
-        b_col1, b_col2, b_col3 = st.columns(3)
-        with b_col1:
-            st.markdown(f"""
-            <strong style="color:#ffffff;">Perfil</strong><br>
-            <span>Perna boa: <b class="var-text">{perna_boa}</b></span><br>
-            <span><b class="var-text">{fintas} ★</b> Fintas</span><br>
-            <span><b class="var-text">{perna_ruim} ★</b> Perna ruim</span><br>
-            <span>Rank: <b class="var-text">#{rep_int}</b></span>
-            """, unsafe_allow_html=True)
-        with b_col2:
-            st.markdown(f"""
-            <strong style="color:#ffffff;">Atributos Globais</strong><br>
-            <span>PAC: <b class="var-text">{p.get('PAC', 0)}</b></span> | 
-            <span>SHO: <b class="var-text">{p.get('SHO', 0)}</b></span><br>
-            <span>PAS: <b class="var-text">{p.get('PAS', 0)}</b></span> | 
-            <span>DRI: <b class="var-text">{p.get('DRI', 0)}</b></span><br>
-            <span>DEF: <b class="var-text">{p.get('DEF', 0)}</b></span> | 
-            <span>PHY: <b class="var-text">{p.get('PHY', 0)}</b></span>
-            """, unsafe_allow_html=True)
-        with b_col3:
-            st.markdown(f"""
-            <strong style="color:#ffffff;">Clube</strong><br>
-            <span><b class="var-text">{p['Team']}</b></span><br>
-            <span>Posição: <b class="var-text">{p['Position']}</b></span>
-            """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    st.markdown("### 📊 Detalhamento Completo por Categoria")
-    tab_names = list(STAT_GROUPS.keys()) if STAT_GROUPS else ['Playstyles']
-    tabs = st.tabs(tab_names)
+    posicao = jogador_selecionado.get('Position', 'CM')
     
-    for tab_idx, tab_name in enumerate(tab_names):
-        with tabs[tab_idx]:
-            if tab_name == 'Playstyles':
-                if not play_styles:
-                    st.info("Não tem")
-                else:
-                    descriptions = {
-                        "Power Shot": "Disparos com força significativamente maior e velocidade extrema de chute.",
-                        "Technical": "Habilidade para realizar curvas e precisão em passes/chutes rasteiros.",
-                        "Speed Dribbler": "Capacidade de correr em velocidade máxima mantendo a bola muito próxima.",
-                        "Trickster": "Acesso a animações especiais e fintas mais rápidas e eficientes.",
-                        "Rapid": "Aceleração e velocidade explosiva ao conduzir a bola.",
-                        "Finesse Shot": "Chutes colocados com curva acentuada e alta precisão.",
-                        "Trivela": "Passes e finalizações utilizando a parte externa do pé com maestria.",
-                        "Chip Shot": "Finalizações por cobertura com maior precisão e altura adequada."
-                    }
-                    
-                    ps_cols = st.columns(2)
-                    for i, ps in enumerate(play_styles):
-                        desc = descriptions.get(ps, "Melhora o desempenho do atleta em situações específicas de jogo correspondentes a esta habilidade.")
-                        with ps_cols[i % 2]:
-                            st.markdown(f"""
-                            <div class="similar-card" style="margin-bottom: 12px;">
-                                <div class="similar-name">⚡ {ps}</div>
-                                <div class="similar-meta" style="color: #94a3b8 !important;">{desc}</div>
-                            </div>
-                            """, unsafe_allow_html=True)
-            else:
-                group_dict = STAT_GROUPS.get(tab_name, {})
-                sub_cols = st.columns(2)
-                items = list(group_dict.items())
-                half = (len(items) + 1) // 2
-                
-                def render_stat_item(label, value):
-                    val_int = int(value) if str(value).isdigit() else 50
-                    badge_class = "stat-green" if val_int >= 70 else ("stat-yellow" if val_int >= 60 else "stat-red")
-                    return f"""
-                    <div class="stat-box">
-                        <span class="stat-badge {badge_class}">{val_int}</span>
-                        <span class="stat-label">{label}</span>
-                    </div>
-                    """
-
-                with sub_cols[0]:
-                    for label, col_csv in items[:half]:
-                        val = get_val(p, col_csv, 50)
-                        st.markdown(render_stat_item(label, val), unsafe_allow_html=True)
-                with sub_cols[1]:
-                    for label, col_csv in items[half:]:
-                        val = get_val(p, col_csv, 50)
-                        st.markdown(render_stat_item(label, val), unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    st.markdown("### 2 · Indicadores de Performance")
-
-    all_attributes = {}
-    for group_name, attrs in STAT_GROUPS.items():
-        if group_name == 'Playstyles':
-            continue
-        for label_pt, col_en in attrs.items():
-            all_attributes[f"{group_name} - {label_pt}"] = col_en
-
-    if "selected_indicators" not in st.session_state:
-        st.session_state["selected_indicators"] = [
-            "Ofensivo - Finalização", 
-            "Habilidade - Dribles", 
-            "Movimentação - Agilidade", 
-            "Força - Fôlego"
-        ]
-
-    c_b1, c_b2, c_b3 = st.columns(3)
-    with c_b1:
-        if st.button("✅ Marcar", use_container_width=True):
-            st.session_state["selected_indicators"] = list(all_attributes.keys())
-            st.rerun()
-    with c_b2:
-        if st.button("❌ Limpar", use_container_width=True):
-            st.session_state["selected_indicators"] = []
-            st.rerun()
-    with c_b3:
-        if st.button("💡 Sugestão", use_container_width=True):
-            st.session_state["selected_indicators"] = [
-                "Ofensivo - Finalização", 
-                "Habilidade - Dribles", 
-                "Movimentação - Aceleração", 
-                "Força - Força chute",
-                "Mentalidade - Visão de jogo"
-            ]
-            st.rerun()
-
-    with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=False):
-        selected_stats = []
-        for group_name, attrs in STAT_GROUPS.items():
-            if group_name == 'Playstyles':
-                continue
-            st.markdown(f"**{group_name}**")
-            cols_check = st.columns(2)
-            idx_chk = 0
-            for label_pt, col_en in attrs.items():
-                key_name = f"{group_name} - {label_pt}"
-                is_checked = key_name in st.session_state["selected_indicators"]
-                with cols_check[idx_chk % 2]:
-                    if st.checkbox(label_pt, value=is_checked, key=f"chk_{key_name}"):
-                        selected_stats.append(key_name)
-                idx_chk += 1
-        st.session_state["selected_indicators"] = selected_stats
-
-    st.markdown("---")
-
-    st.markdown("### ⚖️ Comparação com Outros Jogadores")
-    col_comp1, col_comp2, col_comp3 = st.columns(3)
+    # Mapeamento de atributos-chave por posição para o botão de sugestão
+    atrib_sugeridos = {
+        'ST': ['SHO', 'PAC', 'DRI', 'Positioning', 'Finishing', 'Shot Power'],
+        'CF': ['SHO', 'PAS', 'DRI', 'PAC', 'Vision'],
+        'RW': ['PAC', 'DRI', 'Crossing', 'Agility'],
+        'LW': ['PAC', 'DRI', 'Crossing', 'Agility'],
+        'CAM': ['PAS', 'DRI', 'Vision', 'Short Passing', 'Long Passing'],
+        'CM': ['PAS', 'DRI', 'PHY', 'Stamina', 'Short Passing'],
+        'CDM': ['DEF', 'PHY', 'Interceptions', 'Standing Tackle', 'Stamina'],
+        'CB': ['DEF', 'PHY', 'Strength', 'Def Awareness', 'Standing Tackle', 'Jumping'],
+        'RB': ['PAC', 'DEF', 'PHY', 'Stamina', 'Crossing'],
+        'LB': ['PAC', 'DEF', 'PHY', 'Stamina', 'Crossing'],
+        'GK': ['GK Diving', 'GK Handling', 'GK Kicking', 'GK Reflexes', 'GK Positioning']
+    }
     
-    with col_comp1:
-        comp1_name = st.selectbox("🔵 Jogador 1", options=["Nenhum"] + player_list, index=0, key="comp1")
-    with col_comp2:
-        comp2_name = st.selectbox("🟢 Jogador 2", options=["Nenhum"] + player_list, index=0, key="comp2")
-    with col_comp3:
-        comp3_name = st.selectbox("🟡 Jogador 3", options=["Nenhum"] + player_list, index=0, key="comp3")
+    # Pega os sugeridos da posição ou usa uma base genérica
+    sugestoes_posicao = atrib_sugeridos.get(posicao, ['PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY'])
 
-    st.markdown("---")
-    st.markdown(f"### Análise Comparativa Radar: <span class='var-text'>{p['Name']}</span>", unsafe_allow_html=True)
+    # Botão de Sugestão Inteligente
+    if st.button("💡 Sugestão para a Posição"):
+        st.info(f"Atributos cruciais destacados para a posição **{posicao}**: {', '.join(sugestoes_posicao)}")
 
-    selected_keys = st.session_state.get("selected_indicators", [])
-    if not selected_keys:
-        st.warning("Selecione pelo menos um indicador de performance acima para exibir o gráfico de radar.")
-    else:
-        categories = [k.split(" - ")[1] for k in selected_keys]
-        col_names = [all_attributes[k] for k in selected_keys if k in all_attributes]
+    # -------------------------------------------------------------
+    # BLOCO 1: BIOGRAFIA E INFORMAÇÕES BÁSICAS
+    # -------------------------------------------------------------
+    with st.expander("👤 Biografia e Informações Básicas", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Overall (OVR)", jogador_selecionado.get('OVR', '-'))
+            st.metric("Idade", jogador_selecionado.get('Age', '-'))
+        with col2:
+            st.metric("Posição", posicao)
+            st.metric("Clube", jogador_selecionado.get('Team', '-'))
+        with col3:
+            st.metric("Liga", jogador_selecionado.get('League', '-'))
+            st.metric("Nacionalidade", jogador_selecionado.get('Nationality', jogador_selecionado.get('Country', '-')))
 
-        fig = go.Figure()
+    # -------------------------------------------------------------
+    # BLOCO 2: ATRIBUTOS OFENSIVOS
+    # -------------------------------------------------------------
+    with st.expander("⚽ Atributos Ofensivos", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Finalização (SHO)", jogador_selecionado.get('SHO', '-'))
+            if 'Crossing' in jogador_selecionado:
+                st.metric("Cruzamento", jogador_selecionado.get('Crossing'))
+        with c2:
+            if 'Heading Accuracy' in jogador_selecionado:
+                st.metric("Prec. Cabeceio", jogador_selecionado.get('Heading Accuracy'))
+            if 'Short Passing' in jogador_selecionado:
+                st.metric("Passe Curto", jogador_selecionado.get('Short Passing'))
+        with c3:
+            if 'Volleys' in jogador_selecionado:
+                st.metric("Voleios", jogador_selecionado.get('Volleys'))
 
-        vals_main = [get_val(p, col_en, 50) for col_en in col_names]
-        if vals_main:
-            vals_main.append(vals_main[0])
-            fig.add_trace(go.Scatterpolar(
-                r=vals_main,
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=p['Name'],
-                fillcolor='rgba(0, 255, 204, 0.15)',
-                line=dict(color='#00ffcc', width=2)
-            ))
+    # -------------------------------------------------------------
+    # BLOCO 3: HABILIDADE & CRIAÇÃO
+    # -------------------------------------------------------------
+    with st.expander("🎯 Habilidade & Criação", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Dribles (DRI)", jogador_selecionado.get('DRI', '-'))
+            st.metric("Passe Geral (PAS)", jogador_selecionado.get('PAS', '-'))
+        with c2:
+            if 'Long Passing' in jogador_selecionado:
+                st.metric("Lançamento", jogador_selecionado.get('Long Passing'))
+            if 'Ball Control' in jogador_selecionado:
+                st.metric("Controle de Bola", jogador_selecionado.get('Ball Control'))
+        with c3:
+            if 'Curve' in jogador_selecionado:
+                st.metric("Curva", jogador_selecionado.get('Curve'))
 
-        if comp1_name != "Nenhum":
-            p1 = df[df['Name'] == comp1_name].iloc[0]
-            vals_p1 = [get_val(p1, col_en, 50) for col_en in col_names]
-            if vals_p1:
-                vals_p1.append(vals_p1[0])
-                fig.add_trace(go.Scatterpolar(
-                    r=vals_p1,
-                    theta=categories + [categories[0]],
-                    fill='toself',
-                    name=p1['Name'],
-                    fillcolor='rgba(59, 130, 246, 0.15)',
-                    line=dict(color='#3b82f6', width=2)
-                ))
+    # -------------------------------------------------------------
+    # BLOCO 4: MOVIMENTAÇÃO & RITMO
+    # -------------------------------------------------------------
+    with st.expander("⚡ Movimentação & Ritmo", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Ritmo Geral (PAC)", jogador_selecionado.get('PAC', '-'))
+            if 'Acceleration' in jogador_selecionado:
+                st.metric("Aceleração", jogador_selecionado.get('Acceleration'))
+        with c2:
+            if 'Sprint Speed' in jogador_selecionado:
+                st.metric("Pique", jogador_selecionado.get('Sprint Speed'))
+            if 'Agility' in jogador_selecionado:
+                st.metric("Agilidade", jogador_selecionado.get('Agility'))
+        with c3:
+            if 'Reactions' in jogador_selecionado:
+                st.metric("Reação", jogador_selecionado.get('Reactions'))
+            if 'Balance' in jogador_selecionado:
+                st.metric("Equilíbrio", jogador_selecionado.get('Balance'))
 
-        if comp2_name != "Nenhum":
-            p2 = df[df['Name'] == comp2_name].iloc[0]
-            vals_p2 = [get_val(p2, col_en, 50) for col_en in col_names]
-            if vals_p2:
-                vals_p2.append(vals_p2[0])
-                fig.add_trace(go.Scatterpolar(
-                    r=vals_p2,
-                    theta=categories + [categories[0]],
-                    fill='toself',
-                    name=p2['Name'],
-                    fillcolor='rgba(16, 185, 129, 0.15)',
-                    line=dict(color='#10b981', width=2)
-                ))
+    # -------------------------------------------------------------
+    # BLOCO 5: FORÇA & FÍSICO
+    # -------------------------------------------------------------
+    with st.expander("💪 Força & Físico", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Físico Geral (PHY)", jogador_selecionado.get('PHY', '-'))
+            if 'Stamina' in jogador_selecionado:
+                st.metric("Fôlego (Stamina)", jogador_selecionado.get('Stamina'))
+        with c2:
+            if 'Strength' in jogador_selecionado:
+                st.metric("Força", jogador_selecionado.get('Strength'))
+            if 'Jumping' in jogador_selecionado:
+                st.metric("Impulsão", jogador_selecionado.get('Jumping'))
+        with c3:
+            if 'Shot Power' in jogador_selecionado:
+                st.metric("Força do Chute", jogador_selecionado.get('Shot Power'))
 
-        if comp3_name != "Nenhum":
-            p3 = df[df['Name'] == comp3_name].iloc[0]
-            vals_p3 = [get_val(p3, col_en, 50) for col_en in col_names]
-            if vals_p3:
-                vals_p3.append(vals_p3[0])
-                fig.add_trace(go.Scatterpolar(
-                    r=vals_p3,
-                    theta=categories + [categories[0]],
-                    fill='toself',
-                    name=p3['Name'],
-                    fillcolor='rgba(245, 158, 11, 0.15)',
-                    line=dict(color='#f59e0b', width=2)
-                ))
+    # -------------------------------------------------------------
+    # BLOCO 6: DEFESA
+    # -------------------------------------------------------------
+    with st.expander("🛡️ Defesa", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Defesa Geral (DEF)", jogador_selecionado.get('DEF', '-'))
+            if 'Def Awareness' in jogador_selecionado:
+                st.metric("Consciência Defensiva", jogador_selecionado.get('Def Awareness'))
+        with c2:
+            if 'Standing Tackle' in jogador_selecionado:
+                st.metric("Dividida em Pé", jogador_selecionado.get('Standing Tackle'))
+        with c3:
+            if 'Sliding Tackle' in jogador_selecionado:
+                st.metric("Carrinho", jogador_selecionado.get('Sliding Tackle'))
 
-        fig.update_layout(
-            polar=dict(
-                bgcolor='rgba(0,0,0,0)',
-                radialaxis=dict(visible=True, range=[0, 100], color='#94a3b8'),
-                angularaxis=dict(color='#ffffff')
-            ),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(l=40, r=40, t=40, b=40),
-            height=450,
-            legend=dict(font=dict(color="white"), bgcolor="rgba(0,0,0,0.5)")
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("---")
-
-    col_sim_title, col_btn_todos, col_btn_regen = st.columns([1.5, 0.7, 0.7])
-    with col_sim_title:
-        st.markdown("### 👥 Jogadores Parecidos")
-
-    if "sim_filter_mode" not in st.session_state:
-        st.session_state["sim_filter_mode"] = "Todos"
-
-    with col_btn_todos:
-        if st.button("Todos", use_container_width=True):
-            st.session_state["sim_filter_mode"] = "Todos"
-    with col_btn_regen:
-        if st.button("Regen", use_container_width=True):
-            st.session_state["sim_filter_mode"] = "Regen"
-
-    is_regens = (st.session_state["sim_filter_mode"] == "Regen")
-    similar_df = find_similar_players(df, p, top_n=3, regens_only=is_regens)
-
-    sim_cols = st.columns(3)
-    if not similar_df.empty:
-        for idx, (_, sim_p) in enumerate(similar_df.iterrows()):
-            with sim_cols[idx]:
-                try:
-                    s_list = ast.literal_eval(str(sim_p.get('play style', '[]')))
-                    styles_txt = ", ".join(s_list[:2]) if s_list else "Padrão"
-                except:
-                    styles_txt = "Padrão"
-
-                st.markdown(f"""
-                <div class="similar-card">
-                    <div class="similar-name">⚽ {sim_p['Name']}</div>
-                    <div class="similar-meta">
-                        <b>Pos:</b> <span class="var-text">{sim_p['Position']}</span> | <b>Idade:</b> <span class="var-text">{sim_p['Age']} yrs</span><br>
-                        <b>OVR:</b> <span class="var-text">{sim_p['OVR']}</span> | <b>Clube:</b> <span class="var-text">{sim_p['Team']}</span><br>
-                        <span style="color:#94a3b8; font-size:0.75rem;">Estilo: <span class="var-text">{styles_txt}</span></span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-    else:
-        st.info("Nenhum jogador semelhante encontrado com esses critérios.")
+    # -------------------------------------------------------------
+    # BLOCO 7: MENTALIDADE
+    # -------------------------------------------------------------
+    with st.expander("🧠 Mentalidade", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            if 'Positioning' in jogador_selecionado:
+                st.metric("Posicionamento Ataque", jogador_selecionado.get('Positioning'))
+            if 'Vision' in jogador_selecionado:
+                st.metric("Visão de Jogo", jogador_selecionado.get('Vision'))
+        with c2:
+            if 'Composure' in jogador_selecionado:
+                st.metric("Compostura", jogador_selecionado.get('Composure'))
+            if 'Aggression' in jogador_selecionado:
+                st.metric("Combatividade", jogador_selecionado.get('Aggression'))
+        with c3:
+            if 'Interceptions' in jogador_selecionado:
+                st.metric("Interceptações", jogador_selecionado.get('Interceptions'))
