@@ -144,19 +144,20 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
-    # Mapeamento inteligente de atributos cruciais por posição para o botão "Sugestão"
+    # Mapeamento rigoroso baseado nas diretrizes de atributos essenciais por posição
     position_suggestions = {
-        'ST': ["Ofensivo - Finalização", "Ofensivo - Posicionamento", "Força - Força chute", "Movimentação - Aceleração", "Movimentação - Pique"],
-        'CF': ["Ofensivo - Finalização", "Habilidade - Dribles", "Habilidade - Visão de jogo", "Movimentação - Agilidade", "Ofensivo - Passe curto"],
-        'RW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Movimentação - Agilidade", "Ofensivo - Cruzamento"],
-        'LW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Movimentação - Agilidade", "Ofensivo - Cruzamento"],
-        'CAM': ["Habilidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Dribles", "Habilidade - Lançamento", "Movimentação - Agilidade"],
-        'CM': ["Habilidade - Passe curto", "Força - Fôlego", "Habilidade - Visão de jogo", "Defesa - Consciência defensiva", "Habilidade - Dribles"],
-        'CDM': ["Defesa - Consciência defensiva", "Defesa - Dividida em pé", "Força - Fôlego", "Defesa - Interceptações", "Força - Força"],
-        'CB': ["Defesa - Consciência defensiva", "Defesa - Dividida em pé", "Força - Força", "Força - Impulsão", "Defesa - Carrinho"],
-        'RB': ["Movimentação - Aceleração", "Movimentação - Pique", "Força - Fôlego", "Defesa - Dividida em pé", "Ofensivo - Cruzamento"],
-        'LB': ["Movimentação - Aceleração", "Movimentação - Pique", "Força - Fôlego", "Defesa - Dividida em pé", "Ofensivo - Cruzamento"],
-        'GK': ["Mentalidade - Reflexos", "Mentalidade - Posicionamento", "Mentalidade - Divisão", "Mentalidade - Jogo de mãos", "Mentalidade - Repulsão"]
+        'GOL': ["Mentalidade - Reflexos", "Mentalidade - Jogo de mãos", "Mentalidade - Posicionamento", "Movimentação - Pique"],
+        'ZAG': ["Defesa - Dividida em pé", "Defesa - Interceptações", "Ofensivo - Cabeceio", "Força - Força", "Força - Impulsão"],
+        'LD': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'LE': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'ALA': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'VOL': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida em pé", "Habilidade - Passe curto"],
+        'MC': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
+        'MEI': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
+        'PE': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        'PD': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        'ATA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
+        'CA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"]
     }
 
     c_b1, c_b2, c_b3 = st.columns(3)
@@ -170,15 +171,14 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             st.rerun()
     with c_b3:
         if st.button("💡 Sugestão", use_container_width=True):
-            pos_atual = p.get('Position', 'CM')
+            pos_atual = str(p.get('Position', 'MC')).strip().upper()
             sugestoes_encontradas = position_suggestions.get(pos_atual, [
                 "Ofensivo - Finalização", 
                 "Habilidade - Dribles", 
                 "Movimentação - Aceleração", 
-                "Força - Força chute",
+                "Força - Força do chute",
                 "Mentalidade - Visão de jogo"
             ])
-            # Filtra apenas as que existem de fato no dicionário de atributos
             validas = [s for s in sugestoes_encontradas if s in all_attributes]
             if not validas:
                 validas = list(all_attributes.keys())[:5]
