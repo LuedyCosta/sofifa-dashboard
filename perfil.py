@@ -250,23 +250,18 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     st.markdown("---")
 
     st.markdown("### ⚖️ Comparação com Outros Jogadores")
-    
-    st.markdown("""
-    <div style="display: flex; gap: 20px; margin-bottom: 10px; font-weight: bold;">
-        <span style="color: #ef4444;">🔴 Jogador 1</span>
-        <span style="color: #a855f7;">🟣 Jogador 2</span>
-        <span style="color: #eab308;">🟡 Jogador 3</span>
-    </div>
-    """, unsafe_allow_html=True)
 
     col_comp1, col_comp2, col_comp3 = st.columns(3)
     
     with col_comp1:
-        comp1_name = st.selectbox("Jogador 1", options=["Nenhum"] + player_list, index=0, key="comp1")
+        st.markdown('<div style="font-weight: bold; margin-bottom: 5px;"><span style="color: #ef4444;">🔴</span> Jogador 1</div>', unsafe_allow_html=True)
+        comp1_name = st.selectbox("Jogador 1", options=["Nenhum"] + player_list, index=0, key="comp1", label_visibility="collapsed")
     with col_comp2:
-        comp2_name = st.selectbox("Jogador 2", options=["Nenhum"] + player_list, index=0, key="comp2")
+        st.markdown('<div style="font-weight: bold; margin-bottom: 5px;"><span style="color: #a855f7;">🟣</span> Jogador 2</div>', unsafe_allow_html=True)
+        comp2_name = st.selectbox("Jogador 2", options=["Nenhum"] + player_list, index=0, key="comp2", label_visibility="collapsed")
     with col_comp3:
-        comp3_name = st.selectbox("Jogador 3", options=["Nenhum"] + player_list, index=0, key="comp3")
+        st.markdown('<div style="font-weight: bold; margin-bottom: 5px;"><span style="color: #eab308;">🟡</span> Jogador 3</div>', unsafe_allow_html=True)
+        comp3_name = st.selectbox("Jogador 3", options=["Nenhum"] + player_list, index=0, key="comp3", label_visibility="collapsed")
 
     st.markdown("---")
     st.markdown(f"### Análise Comparativa Radar: <span class='var-text'>{p['Name']}</span>", unsafe_allow_html=True)
