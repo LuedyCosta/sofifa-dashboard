@@ -251,7 +251,6 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
 
     st.markdown("### ⚖️ Comparação com Outros Jogadores")
     
-    # Legendas visuais atualizadas com as cores solicitadas
     st.markdown("""
     <div style="display: flex; gap: 20px; margin-bottom: 10px; font-weight: bold;">
         <span style="color: #ef4444;">🔴 Jogador 1</span>
@@ -280,6 +279,19 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         col_names = [all_attributes[k] for k in selected_keys if k in all_attributes]
 
         fig = go.Figure()
+
+        # Jogador principal (verde-água original)
+        vals_main = [get_val(p, col_en, 50) for col_en in col_names]
+        if vals_main:
+            vals_main.append(vals_main[0])
+            fig.add_trace(go.Scatterpolar(
+                r=vals_main,
+                theta=categories + [categories[0]],
+                fill='toself',
+                name=p['Name'],
+                fillcolor='rgba(0, 255, 204, 0.15)',
+                line=dict(color='#00ffcc', width=2)
+            ))
 
         # Jogador 1 -> Vermelho (#ef4444)
         if comp1_name != "Nenhum":
