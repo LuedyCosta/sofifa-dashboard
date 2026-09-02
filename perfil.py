@@ -160,16 +160,23 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     }
 
     c_b1, c_b2, c_b3 = st.columns(3)
+    
     with c_b1:
-        if st.button("✅ Marcar", use_container_width=True):
+        if st.button("✅ Marcar", use_container_width=True, key="btn_marcar_todos"):
             st.session_state["selected_indicators"] = list(all_attributes.keys())
+            for k in all_attributes.keys():
+                st.session_state[f"chk_{k}"] = True
             st.rerun()
+            
     with c_b2:
-        if st.button("❌ Limpar", use_container_width=True):
+        if st.button("❌ Limpar", use_container_width=True, key="btn_limpar_todos"):
             st.session_state["selected_indicators"] = []
+            for k in all_attributes.keys():
+                st.session_state[f"chk_{k}"] = False
             st.rerun()
+            
     with c_b3:
-        if st.button("💡 Sugestão", use_container_width=True):
+        if st.button("💡 Sugestão", use_container_width=True, key="btn_sugestao_pos"):
             pos_atual = str(p.get('Position', 'MC')).strip().upper()
             sugestoes_encontradas = position_suggestions.get(pos_atual, [
                 "Ofensivo - Finalização", 
@@ -183,10 +190,8 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                 validas = list(all_attributes.keys())[:5]
             
             st.session_state["selected_indicators"] = validas
-            
             for key_name in all_attributes.keys():
                 st.session_state[f"chk_{key_name}"] = (key_name in validas)
-                
             st.rerun()
 
     with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=False):
@@ -199,11 +204,18 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             idx_chk = 0
             for label_pt, col_en in attrs.items():
                 key_name = f"{group_name} - {label_pt}"
-                is_checked = key_name in st.session_state["selected_indicators"]
+                
+                if f"chk_{key_name}" not in st.session_state:
+                    st.session_state[f"chk_{key_name}"] = key_name in st.session_state["selected_indicators"]
+                
                 with cols_check[idx_chk % 2]:
-                    if st.checkbox(label_pt, value=is_checked, key=f"chk_{key_name}"):
+                    is_on = st.checkbox(label_pt, key=f"chk_{key_name}")
+                    if is_on and key_name not in selected_stats:
                         selected_stats.append(key_name)
+                    elif not is_on and key_name in selected_stats:
+                        selected_stats.remove(key_name)
                 idx_chk += 1
+        
         st.session_state["selected_indicators"] = selected_stats
 
     st.markdown("---")
