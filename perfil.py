@@ -144,7 +144,6 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
-    # Mapeamento atualizado com base estrita na nova lista fornecida
     position_suggestions = {
         'GOL': ["Goleiro - Reflexos GL", "Goleiro - Manejo GL", "Goleiro - Posicion. GL", "Goleiro - Elasticidade GL", "Goleiro - Chute GL"],
         'GK': ["Goleiro - Reflexos GL", "Goleiro - Manejo GL", "Goleiro - Posicion. GL", "Goleiro - Elasticidade GL", "Goleiro - Chute GL"],
@@ -251,14 +250,24 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     st.markdown("---")
 
     st.markdown("### ⚖️ Comparação com Outros Jogadores")
+    
+    # Legendas visuais atualizadas com as cores solicitadas
+    st.markdown("""
+    <div style="display: flex; gap: 20px; margin-bottom: 10px; font-weight: bold;">
+        <span style="color: #ef4444;">🔴 Jogador 1</span>
+        <span style="color: #a855f7;">🟣 Jogador 2</span>
+        <span style="color: #eab308;">🟡 Jogador 3</span>
+    </div>
+    """, unsafe_allow_html=True)
+
     col_comp1, col_comp2, col_comp3 = st.columns(3)
     
     with col_comp1:
-        comp1_name = st.selectbox("🔵 Jogador 1", options=["Nenhum"] + player_list, index=0, key="comp1")
+        comp1_name = st.selectbox("Jogador 1", options=["Nenhum"] + player_list, index=0, key="comp1")
     with col_comp2:
-        comp2_name = st.selectbox("🟢 Jogador 2", options=["Nenhum"] + player_list, index=0, key="comp2")
+        comp2_name = st.selectbox("Jogador 2", options=["Nenhum"] + player_list, index=0, key="comp2")
     with col_comp3:
-        comp3_name = st.selectbox("🟡 Jogador 3", options=["Nenhum"] + player_list, index=0, key="comp3")
+        comp3_name = st.selectbox("Jogador 3", options=["Nenhum"] + player_list, index=0, key="comp3")
 
     st.markdown("---")
     st.markdown(f"### Análise Comparativa Radar: <span class='var-text'>{p['Name']}</span>", unsafe_allow_html=True)
@@ -272,18 +281,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
 
         fig = go.Figure()
 
-        vals_main = [get_val(p, col_en, 50) for col_en in col_names]
-        if vals_main:
-            vals_main.append(vals_main[0])
-            fig.add_trace(go.Scatterpolar(
-                r=vals_main,
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=p['Name'],
-                fillcolor='rgba(0, 255, 204, 0.15)',
-                line=dict(color='#00ffcc', width=2)
-            ))
-
+        # Jogador 1 -> Vermelho (#ef4444)
         if comp1_name != "Nenhum":
             p1 = df[df['Name'] == comp1_name].iloc[0]
             vals_p1 = [get_val(p1, col_en, 50) for col_en in col_names]
@@ -294,10 +292,11 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                     theta=categories + [categories[0]],
                     fill='toself',
                     name=p1['Name'],
-                    fillcolor='rgba(59, 130, 246, 0.15)',
-                    line=dict(color='#3b82f6', width=2)
+                    fillcolor='rgba(239, 68, 68, 0.15)',
+                    line=dict(color='#ef4444', width=2)
                 ))
 
+        # Jogador 2 -> Roxo (#a855f7)
         if comp2_name != "Nenhum":
             p2 = df[df['Name'] == comp2_name].iloc[0]
             vals_p2 = [get_val(p2, col_en, 50) for col_en in col_names]
@@ -308,10 +307,11 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                     theta=categories + [categories[0]],
                     fill='toself',
                     name=p2['Name'],
-                    fillcolor='rgba(16, 185, 129, 0.15)',
-                    line=dict(color='#10b981', width=2)
+                    fillcolor='rgba(168, 85, 247, 0.15)',
+                    line=dict(color='#a855f7', width=2)
                 ))
 
+        # Jogador 3 -> Amarelo (#eab308)
         if comp3_name != "Nenhum":
             p3 = df[df['Name'] == comp3_name].iloc[0]
             vals_p3 = [get_val(p3, col_en, 50) for col_en in col_names]
@@ -322,8 +322,8 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                     theta=categories + [categories[0]],
                     fill='toself',
                     name=p3['Name'],
-                    fillcolor='rgba(245, 158, 11, 0.15)',
-                    line=dict(color='#f59e0b', width=2)
+                    fillcolor='rgba(234, 179, 8, 0.15)',
+                    line=dict(color='#eab308', width=2)
                 ))
 
         fig.update_layout(
