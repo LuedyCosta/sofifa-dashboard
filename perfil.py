@@ -144,45 +144,45 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
-    # Mapeamento corrigido exatamente com o padrão "Grupo - Rótulo" do STAT_GROUPS
-    position_suggestions = {
-        'GOL': ["Goleiro - Reflexos", "Goleiro - Manejo", "Goleiro - Posicionamento", "Goleiro - Elasticidade", "Goleiro - Chute"],
-        'GK': ["Goleiro - Reflexos", "Goleiro - Manejo", "Goleiro - Posicionamento", "Goleiro - Elasticidade", "Goleiro - Chute"],
+    # Termos-chave desejados por posição para busca flexível nas chaves reais do dicionário
+    position_keywords = {
+        'GOL': ["reflexos", "manejo", "posicionamento", "elasticidade", "chute"],
+        'GK': ["reflexos", "manejo", "posicionamento", "elasticidade", "chute"],
         
-        'ZAG': ["Defesa - Dividida pé", "Defesa - Interceptações", "Ofensivo - Precisão cabeceio", "Força - Força", "Força - Impulsão"],
-        'CB': ["Defesa - Dividida pé", "Defesa - Interceptações", "Ofensivo - Precisão cabeceio", "Força - Força", "Força - Impulsão"],
+        'ZAG': ["dividida pé", "intercept", "cabeceio", "força", "impulsão"],
+        'CB': ["dividida pé", "intercept", "cabeceio", "força", "impulsão"],
         
-        'LD': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
-        'RB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
+        'LD': ["fôlego", "aceleração", "cruzamento", "dividida pé", "agilidade"],
+        'RB': ["fôlego", "aceleração", "cruzamento", "dividida pé", "agilidade"],
         
-        'LE': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
-        'LB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
+        'LE': ["fôlego", "aceleração", "cruzamento", "dividida pé", "agilidade"],
+        'LB': ["fôlego", "aceleração", "cruzamento", "dividida pé", "agilidade"],
         
-        'ALA': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
-        'RWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
-        'LWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
+        'ALA': ["fôlego", "aceleração", "cruzamento", "dividida pé", "agilidade"],
+        'RWB': ["fôlego", "aceleração", "cruzamento", "dividida pé", "agilidade"],
+        'LWB': ["fôlego", "aceleração", "cruzamento", "dividida pé", "agilidade"],
         
-        'VOL': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida pé", "Habilidade - Passe curto"],
-        'CDM': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida pé", "Habilidade - Passe curto"],
+        'VOL': ["fôlego", "intercept", "força", "dividida pé", "passe curto"],
+        'CDM': ["fôlego", "intercept", "força", "dividida pé", "passe curto"],
         
-        'MC': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
-        'CM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
+        'MC': ["visão", "passe curto", "controle", "agilidade", "chutes longe"],
+        'CM': ["visão", "passe curto", "controle", "agilidade", "chutes longe"],
         
-        'MEI': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
-        'CAM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
+        'MEI': ["visão", "passe curto", "controle", "agilidade", "chutes longe"],
+        'CAM': ["visão", "passe curto", "controle", "agilidade", "chutes longe"],
         
-        'PE': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
-        'LM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
-        'LW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
+        'PE': ["aceleração", "pique", "dribles", "cruzamento", "curva"],
+        'LM': ["aceleração", "pique", "dribles", "cruzamento", "curva"],
+        'LW': ["aceleração", "pique", "dribles", "cruzamento", "curva"],
         
-        'PD': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
-        'RM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
-        'RW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
+        'PD': ["aceleração", "pique", "dribles", "cruzamento", "curva"],
+        'RM': ["aceleração", "pique", "dribles", "cruzamento", "curva"],
+        'RW': ["aceleração", "pique", "dribles", "cruzamento", "curva"],
         
-        'ATA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento ataque", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
-        'CA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento ataque", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
-        'ST': ["Ofensivo - Finalização", "Mentalidade - Posicionamento ataque", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
-        'CF': ["Ofensivo - Finalização", "Mentalidade - Posicionamento ataque", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"]
+        'ATA': ["finalização", "posição", "chute", "compostura", "força"],
+        'CA': ["finalização", "posição", "chute", "compostura", "força"],
+        'ST': ["finalização", "posição", "chute", "compostura", "força"],
+        'CF': ["finalização", "posição", "chute", "compostura", "força"]
     }
 
     c_b1, c_b2, c_b3 = st.columns(3)
@@ -204,17 +204,21 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     with c_b3:
         if st.button("💡 Sugestão", use_container_width=True, key="btn_sugestao_pos"):
             pos_atual = str(p.get('Position', 'MC')).strip().upper()
-            sugestoes_desejadas = position_suggestions.get(pos_atual, [
-                "Ofensivo - Finalização", 
-                "Habilidade - Dribles", 
-                "Movimentação - Aceleração", 
-                "Força - Força do chute",
-                "Mentalidade - Visão de jogo"
-            ])
+            keywords = position_keywords.get(pos_atual, ["finalização", "dribles", "aceleração", "força", "visão"])
             
-            validas = [s for s in sugestoes_desejadas if s in all_attributes]
+            # Busca dinâmica e flexível baseada em palavras-chave para evitar falhas por divergência de nomes
+            validas = []
+            for kw in keywords:
+                matches = [k for k in all_attributes.keys() if kw.lower() in k.lower()]
+                for m in matches:
+                    if m not in validas:
+                        validas.append(m)
+                        break
+            
             if not validas:
                 validas = list(all_attributes.keys())[:5]
+            else:
+                validas = validas[:5] # limita a até 5 sugestões principais
             
             st.session_state["selected_indicators"] = validas
             
