@@ -144,12 +144,13 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
+    # Mapeamento corrigido exatamente com o padrão "Grupo - Rótulo" do STAT_GROUPS
     position_suggestions = {
-        'GOL': ["Goleiro - Reflexos GL", "Goleiro - Manejo GL", "Goleiro - Posicion. GL", "Goleiro - Elasticidade GL", "Goleiro - Chute GL"],
-        'GK': ["Goleiro - Reflexos GL", "Goleiro - Manejo GL", "Goleiro - Posicion. GL", "Goleiro - Elasticidade GL", "Goleiro - Chute GL"],
+        'GOL': ["Goleiro - Reflexos", "Goleiro - Manejo", "Goleiro - Posicionamento", "Goleiro - Elasticidade", "Goleiro - Chute"],
+        'GK': ["Goleiro - Reflexos", "Goleiro - Manejo", "Goleiro - Posicionamento", "Goleiro - Elasticidade", "Goleiro - Chute"],
         
-        'ZAG': ["Defesa - Dividida pé", "Defesa - Intercept.", "Ofensivo - Prec. Cabeceio", "Força - Força", "Força - Impulsão"],
-        'CB': ["Defesa - Dividida pé", "Defesa - Intercept.", "Ofensivo - Prec. Cabeceio", "Força - Força", "Força - Impulsão"],
+        'ZAG': ["Defesa - Dividida pé", "Defesa - Interceptações", "Ofensivo - Precisão cabeceio", "Força - Força", "Força - Impulsão"],
+        'CB': ["Defesa - Dividida pé", "Defesa - Interceptações", "Ofensivo - Precisão cabeceio", "Força - Força", "Força - Impulsão"],
         
         'LD': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
         'RB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
@@ -161,14 +162,14 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         'RWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
         'LWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
         
-        'VOL': ["Força - Fôlego", "Defesa - Intercept.", "Força - Força", "Defesa - Dividida pé", "Habilidade - Passe curto"],
-        'CDM': ["Força - Fôlego", "Defesa - Intercept.", "Força - Força", "Defesa - Dividida pé", "Habilidade - Passe curto"],
+        'VOL': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida pé", "Habilidade - Passe curto"],
+        'CDM': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida pé", "Habilidade - Passe curto"],
         
-        'MC': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
-        'CM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
+        'MC': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
+        'CM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
         
-        'MEI': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
-        'CAM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
+        'MEI': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
+        'CAM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
         
         'PE': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
         'LM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
@@ -178,10 +179,10 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         'RM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
         'RW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
         
-        'ATA': ["Ofensivo - Finalização", "Mentalidade - Pos. ataque", "Força - Força chute", "Mentalidade - Compostura", "Força - Força"],
-        'CA': ["Ofensivo - Finalização", "Mentalidade - Pos. ataque", "Força - Força chute", "Mentalidade - Compostura", "Força - Força"],
-        'ST': ["Ofensivo - Finalização", "Mentalidade - Pos. ataque", "Força - Força chute", "Mentalidade - Compostura", "Força - Força"],
-        'CF': ["Ofensivo - Finalização", "Mentalidade - Pos. ataque", "Força - Força chute", "Mentalidade - Compostura", "Força - Força"]
+        'ATA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento ataque", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
+        'CA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento ataque", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
+        'ST': ["Ofensivo - Finalização", "Mentalidade - Posicionamento ataque", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
+        'CF': ["Ofensivo - Finalização", "Mentalidade - Posicionamento ataque", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"]
     }
 
     c_b1, c_b2, c_b3 = st.columns(3)
@@ -207,7 +208,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                 "Ofensivo - Finalização", 
                 "Habilidade - Dribles", 
                 "Movimentação - Aceleração", 
-                "Força - Força chute",
+                "Força - Força do chute",
                 "Mentalidade - Visão de jogo"
             ])
             
