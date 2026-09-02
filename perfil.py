@@ -144,45 +144,45 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
-    # Mapeamento contemplando tanto as siglas em Português quanto as siglas em Inglês do dataset (ex: CB, GK, LB, RB, etc.)
+    # Mapeamento atualizado com base estrita na nova lista fornecida
     position_suggestions = {
-        'GOL': ["Mentalidade - Reflexos", "Mentalidade - Jogo de mãos", "Mentalidade - Posicionamento"],
-        'GK': ["Mentalidade - Reflexos", "Mentalidade - Jogo de mãos", "Mentalidade - Posicionamento"],
+        'GOL': ["Goleiro - Reflexos GL", "Goleiro - Manejo GL", "Goleiro - Posicion. GL", "Goleiro - Elasticidade GL", "Goleiro - Chute GL"],
+        'GK': ["Goleiro - Reflexos GL", "Goleiro - Manejo GL", "Goleiro - Posicion. GL", "Goleiro - Elasticidade GL", "Goleiro - Chute GL"],
         
-        'ZAG': ["Defesa - Dividida em pé", "Defesa - Interceptações", "Ofensivo - Cabeceio", "Força - Força", "Força - Impulsão"],
-        'CB': ["Defesa - Dividida em pé", "Defesa - Interceptações", "Ofensivo - Cabeceio", "Força - Força", "Força - Impulsão"],
+        'ZAG': ["Defesa - Dividida pé", "Defesa - Intercept.", "Ofensivo - Prec. Cabeceio", "Força - Força", "Força - Impulsão"],
+        'CB': ["Defesa - Dividida pé", "Defesa - Intercept.", "Ofensivo - Prec. Cabeceio", "Força - Força", "Força - Impulsão"],
         
-        'LD': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
-        'RB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'LD': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
+        'RB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
         
-        'LE': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
-        'LB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'LE': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
+        'LB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
         
-        'ALA': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
-        'RWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
-        'LWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'ALA': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
+        'RWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
+        'LWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida pé", "Movimentação - Agilidade"],
         
-        'VOL': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida em pé", "Habilidade - Passe curto"],
-        'CDM': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida em pé", "Habilidade - Passe curto"],
+        'VOL': ["Força - Fôlego", "Defesa - Intercept.", "Força - Força", "Defesa - Dividida pé", "Habilidade - Passe curto"],
+        'CDM': ["Força - Fôlego", "Defesa - Intercept.", "Força - Força", "Defesa - Dividida pé", "Habilidade - Passe curto"],
         
-        'MC': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
-        'CM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
+        'MC': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
+        'CM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
         
-        'MEI': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
-        'CAM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
+        'MEI': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
+        'CAM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle bola", "Movimentação - Agilidade", "Habilidade - Chutes longe"],
         
-        'PE': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
-        'LM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
-        'LW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        'PE': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
+        'LM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
+        'LW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
         
-        'PD': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
-        'RM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
-        'RW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        'PD': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
+        'RM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
+        'RW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Curva"],
         
-        'ATA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
-        'CA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
-        'ST': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
-        'CF': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"]
+        'ATA': ["Ofensivo - Finalização", "Mentalidade - Pos. ataque", "Força - Força chute", "Mentalidade - Compostura", "Força - Força"],
+        'CA': ["Ofensivo - Finalização", "Mentalidade - Pos. ataque", "Força - Força chute", "Mentalidade - Compostura", "Força - Força"],
+        'ST': ["Ofensivo - Finalização", "Mentalidade - Pos. ataque", "Força - Força chute", "Mentalidade - Compostura", "Força - Força"],
+        'CF': ["Ofensivo - Finalização", "Mentalidade - Pos. ataque", "Força - Força chute", "Mentalidade - Compostura", "Força - Força"]
     }
 
     c_b1, c_b2, c_b3 = st.columns(3)
@@ -208,7 +208,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                 "Ofensivo - Finalização", 
                 "Habilidade - Dribles", 
                 "Movimentação - Aceleração", 
-                "Força - Força do chute",
+                "Força - Força chute",
                 "Mentalidade - Visão de jogo"
             ])
             
