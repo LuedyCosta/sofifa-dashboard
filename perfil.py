@@ -144,90 +144,45 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
-    # Mapeamento exato baseado nos nomes das categorias do seu STAT_GROUPS
+    # Mapeamento contemplando tanto as siglas em Português quanto as siglas em Inglês do dataset (ex: CB, GK, LB, RB, etc.)
     position_suggestions = {
-        'GOL': [
-            "Mentalidade - Reflexos", 
-            "Mentalidade - Jogo de mãos", 
-            "Mentalidade - Posicionamento"
-        ],
-        'ZAG': [
-            "Defesa - Dividida em pé", 
-            "Defesa - Interceptações", 
-            "Ofensivo - Cabeceio", 
-            "Força - Força", 
-            "Força - Impulsão"
-        ],
-        'LD': [
-            "Força - Fôlego", 
-            "Movimentação - Aceleração", 
-            "Ofensivo - Cruzamento", 
-            "Defesa - Dividida em pé", 
-            "Movimentação - Agilidade"
-        ],
-        'LE': [
-            "Força - Fôlego", 
-            "Movimentação - Aceleração", 
-            "Ofensivo - Cruzamento", 
-            "Defesa - Dividida em pé", 
-            "Movimentação - Agilidade"
-        ],
-        'ALA': [
-            "Força - Fôlego", 
-            "Movimentação - Aceleração", 
-            "Ofensivo - Cruzamento", 
-            "Defesa - Dividida em pé", 
-            "Movimentação - Agilidade"
-        ],
-        'VOL': [
-            "Força - Fôlego", 
-            "Defesa - Interceptações", 
-            "Força - Força", 
-            "Defesa - Dividida em pé", 
-            "Habilidade - Passe curto"
-        ],
-        'MC': [
-            "Mentalidade - Visão de jogo", 
-            "Habilidade - Passe curto", 
-            "Habilidade - Controle de bola", 
-            "Movimentação - Agilidade", 
-            "Habilidade - Chutes de longa distância"
-        ],
-        'MEI': [
-            "Mentalidade - Visão de jogo", 
-            "Habilidade - Passe curto", 
-            "Habilidade - Controle de bola", 
-            "Movimentação - Agilidade", 
-            "Habilidade - Chutes de longa distância"
-        ],
-        'PE': [
-            "Movimentação - Aceleração", 
-            "Movimentação - Pique", 
-            "Habilidade - Dribles", 
-            "Ofensivo - Cruzamento", 
-            "Habilidade - Efeito"
-        ],
-        'PD': [
-            "Movimentação - Aceleração", 
-            "Movimentação - Pique", 
-            "Habilidade - Dribles", 
-            "Ofensivo - Cruzamento", 
-            "Habilidade - Efeito"
-        ],
-        'ATA': [
-            "Ofensivo - Finalização", 
-            "Mentalidade - Posicionamento", 
-            "Força - Força do chute", 
-            "Mentalidade - Compostura", 
-            "Força - Força"
-        ],
-        'CA': [
-            "Ofensivo - Finalização", 
-            "Mentalidade - Posicionamento", 
-            "Força - Força do chute", 
-            "Mentalidade - Compostura", 
-            "Força - Força"
-        ]
+        'GOL': ["Mentalidade - Reflexos", "Mentalidade - Jogo de mãos", "Mentalidade - Posicionamento"],
+        'GK': ["Mentalidade - Reflexos", "Mentalidade - Jogo de mãos", "Mentalidade - Posicionamento"],
+        
+        'ZAG': ["Defesa - Dividida em pé", "Defesa - Interceptações", "Ofensivo - Cabeceio", "Força - Força", "Força - Impulsão"],
+        'CB': ["Defesa - Dividida em pé", "Defesa - Interceptações", "Ofensivo - Cabeceio", "Força - Força", "Força - Impulsão"],
+        
+        'LD': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'RB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        
+        'LE': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'LB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        
+        'ALA': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'RWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        'LWB': ["Força - Fôlego", "Movimentação - Aceleração", "Ofensivo - Cruzamento", "Defesa - Dividida em pé", "Movimentação - Agilidade"],
+        
+        'VOL': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida em pé", "Habilidade - Passe curto"],
+        'CDM': ["Força - Fôlego", "Defesa - Interceptações", "Força - Força", "Defesa - Dividida em pé", "Habilidade - Passe curto"],
+        
+        'MC': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
+        'CM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
+        
+        'MEI': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
+        'CAM': ["Mentalidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Controle de bola", "Movimentação - Agilidade", "Habilidade - Chutes de longa distância"],
+        
+        'PE': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        'LM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        'LW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        
+        'PD': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        'RM': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        'RW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Ofensivo - Cruzamento", "Habilidade - Efeito"],
+        
+        'ATA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
+        'CA': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
+        'ST': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"],
+        'CF': ["Ofensivo - Finalização", "Mentalidade - Posicionamento", "Força - Força do chute", "Mentalidade - Compostura", "Força - Força"]
     }
 
     c_b1, c_b2, c_b3 = st.columns(3)
@@ -249,8 +204,6 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     with c_b3:
         if st.button("💡 Sugestão", use_container_width=True, key="btn_sugestao_pos"):
             pos_atual = str(p.get('Position', 'MC')).strip().upper()
-            
-            # Pega as sugestões da posição ou usa uma padrão se não encontrar
             sugestoes_desejadas = position_suggestions.get(pos_atual, [
                 "Ofensivo - Finalização", 
                 "Habilidade - Dribles", 
@@ -259,18 +212,20 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
                 "Mentalidade - Visão de jogo"
             ])
             
-            # Filtra apenas os que existem de fato no dicionário all_attributes
             validas = [s for s in sugestoes_desejadas if s in all_attributes]
             if not validas:
                 validas = list(all_attributes.keys())[:5]
             
             st.session_state["selected_indicators"] = validas
             
-            # Atualiza o estado booleano de cada checkbox individual para refletir na tela
             for key_name in all_attributes.keys():
                 st.session_state[f"chk_{key_name}"] = (key_name in validas)
                 
             st.rerun()
+
+    for key_name in all_attributes.keys():
+        if f"chk_{key_name}" not in st.session_state:
+            st.session_state[f"chk_{key_name}"] = key_name in st.session_state["selected_indicators"]
 
     with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=False):
         selected_stats = []
@@ -282,9 +237,6 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             idx_chk = 0
             for label_pt, col_en in attrs.items():
                 key_name = f"{group_name} - {label_pt}"
-                
-                if f"chk_{key_name}" not in st.session_state:
-                    st.session_state[f"chk_{key_name}"] = key_name in st.session_state["selected_indicators"]
                 
                 with cols_check[idx_chk % 2]:
                     is_on = st.checkbox(label_pt, key=f"chk_{key_name}")
