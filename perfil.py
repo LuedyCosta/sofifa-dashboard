@@ -144,7 +144,6 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
-    # Mapeamento rigoroso baseado nas diretrizes de atributos essenciais por posição
     position_suggestions = {
         'GOL': ["Mentalidade - Reflexos", "Mentalidade - Jogo de mãos", "Mentalidade - Posicionamento", "Movimentação - Pique"],
         'ZAG': ["Defesa - Dividida em pé", "Defesa - Interceptações", "Ofensivo - Cabeceio", "Força - Força", "Força - Impulsão"],
@@ -169,7 +168,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
         if st.button("❌ Limpar", use_container_width=True):
             st.session_state["selected_indicators"] = []
             st.rerun()
-   with c_b3:
+    with c_b3:
         if st.button("💡 Sugestão", use_container_width=True):
             pos_atual = str(p.get('Position', 'MC')).strip().upper()
             sugestoes_encontradas = position_suggestions.get(pos_atual, [
@@ -183,16 +182,13 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             if not validas:
                 validas = list(all_attributes.keys())[:5]
             
-            # Atualiza o estado global dos indicadores
             st.session_state["selected_indicators"] = validas
             
-            # Atualiza o estado individual de cada checkbox do expander para refletir a sugestão imediatamente
             for key_name in all_attributes.keys():
                 st.session_state[f"chk_{key_name}"] = (key_name in validas)
                 
             st.rerun()
 
-    # Reorganizando os indicadores por grupo de forma limpa e estruturada
     with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=False):
         selected_stats = []
         for group_name, attrs in STAT_GROUPS.items():
