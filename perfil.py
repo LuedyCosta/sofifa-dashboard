@@ -1,12 +1,11 @@
 import streamlit as st
 import pandas as pd
 
-def renderizar_perfil_jogador(df, jogador_selecionado):
+def renderizar_perfil(df, jogador_selecionado):
     st.subheader(f"👤 Perfil do Atleta: {jogador_selecionado.get('Name', 'Jogador')}")
     
     posicao = jogador_selecionado.get('Position', 'CM')
     
-    # Mapeamento de atributos-chave por posição para o botão de sugestão
     atrib_sugeridos = {
         'ST': ['SHO', 'PAC', 'DRI', 'Positioning', 'Finishing', 'Shot Power'],
         'CF': ['SHO', 'PAS', 'DRI', 'PAC', 'Vision'],
@@ -21,16 +20,11 @@ def renderizar_perfil_jogador(df, jogador_selecionado):
         'GK': ['GK Diving', 'GK Handling', 'GK Kicking', 'GK Reflexes', 'GK Positioning']
     }
     
-    # Pega os sugeridos da posição ou usa uma base genérica
     sugestoes_posicao = atrib_sugeridos.get(posicao, ['PAC', 'SHO', 'PAS', 'DRI', 'DEF', 'PHY'])
 
-    # Botão de Sugestão Inteligente
     if st.button("💡 Sugestão para a Posição"):
         st.info(f"Atributos cruciais destacados para a posição **{posicao}**: {', '.join(sugestoes_posicao)}")
 
-    # -------------------------------------------------------------
-    # BLOCO 1: BIOGRAFIA E INFORMAÇÕES BÁSICAS
-    # -------------------------------------------------------------
     with st.expander("👤 Biografia e Informações Básicas", expanded=True):
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -43,9 +37,6 @@ def renderizar_perfil_jogador(df, jogador_selecionado):
             st.metric("Liga", jogador_selecionado.get('League', '-'))
             st.metric("Nacionalidade", jogador_selecionado.get('Nationality', jogador_selecionado.get('Country', '-')))
 
-    # -------------------------------------------------------------
-    # BLOCO 2: ATRIBUTOS OFENSIVOS
-    # -------------------------------------------------------------
     with st.expander("⚽ Atributos Ofensivos", expanded=False):
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -61,9 +52,6 @@ def renderizar_perfil_jogador(df, jogador_selecionado):
             if 'Volleys' in jogador_selecionado:
                 st.metric("Voleios", jogador_selecionado.get('Volleys'))
 
-    # -------------------------------------------------------------
-    # BLOCO 3: HABILIDADE & CRIAÇÃO
-    # -------------------------------------------------------------
     with st.expander("🎯 Habilidade & Criação", expanded=False):
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -78,9 +66,6 @@ def renderizar_perfil_jogador(df, jogador_selecionado):
             if 'Curve' in jogador_selecionado:
                 st.metric("Curva", jogador_selecionado.get('Curve'))
 
-    # -------------------------------------------------------------
-    # BLOCO 4: MOVIMENTAÇÃO & RITMO
-    # -------------------------------------------------------------
     with st.expander("⚡ Movimentação & Ritmo", expanded=False):
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -98,9 +83,6 @@ def renderizar_perfil_jogador(df, jogador_selecionado):
             if 'Balance' in jogador_selecionado:
                 st.metric("Equilíbrio", jogador_selecionado.get('Balance'))
 
-    # -------------------------------------------------------------
-    # BLOCO 5: FORÇA & FÍSICO
-    # -------------------------------------------------------------
     with st.expander("💪 Força & Físico", expanded=False):
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -116,9 +98,6 @@ def renderizar_perfil_jogador(df, jogador_selecionado):
             if 'Shot Power' in jogador_selecionado:
                 st.metric("Força do Chute", jogador_selecionado.get('Shot Power'))
 
-    # -------------------------------------------------------------
-    # BLOCO 6: DEFESA
-    # -------------------------------------------------------------
     with st.expander("🛡️ Defesa", expanded=False):
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -132,9 +111,6 @@ def renderizar_perfil_jogador(df, jogador_selecionado):
             if 'Sliding Tackle' in jogador_selecionado:
                 st.metric("Carrinho", jogador_selecionado.get('Sliding Tackle'))
 
-    # -------------------------------------------------------------
-    # BLOCO 7: MENTALIDADE
-    # -------------------------------------------------------------
     with st.expander("🧠 Mentalidade", expanded=False):
         c1, c2, c3 = st.columns(3)
         with c1:
