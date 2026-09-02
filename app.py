@@ -241,12 +241,13 @@ with st.sidebar:
     st.markdown("### Dashboard FC26 by\n### Luedy Costa")
     st.markdown("---")
     
-    # Menu de navegação limpo posicionado após o título
+    # Menu de navegação atualizado com a nova opção de busca
     pagina = st.radio(
         "Navegação",
-        options=["Perfil Detalhado", "Formações", "PlayStyles", "Explicando stats"],
+        options=["Perfil Detalhado", "Buscar Jogadores", "Formações", "PlayStyles", "Explicando stats"],
         format_func=lambda x: {
             "Perfil Detalhado": "👤 Perfil Detalhado",
+            "Buscar Jogadores": "🔍 Buscar Jogadores",
             "Formações": "📋 Formações",
             "PlayStyles": "⚡ PlayStyles",
             "Explicando stats": "📊 Explicando stats"
@@ -259,6 +260,8 @@ df = df_raw.copy()
 # Renderização da página selecionada
 if pagina == "Perfil Detalhado":
     renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val)
+elif pagina == "Buscar Jogadores":
+    renderizar_busca_jogadores(df, get_val)
 elif pagina == "Formações":
     renderizar_painel_tatico()
 elif pagina == "PlayStyles":
