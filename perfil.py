@@ -1,4 +1,3 @@
-# Arquivo: perfil.py
 import streamlit as st
 import pandas as pd
 import ast
@@ -145,6 +144,21 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
+    # Mapeamento inteligente de atributos cruciais por posição para o botão "Sugestão"
+    position_suggestions = {
+        'ST': ["Ofensivo - Finalização", "Ofensivo - Posicionamento", "Força - Força chute", "Movimentação - Aceleração", "Movimentação - Pique"],
+        'CF': ["Ofensivo - Finalização", "Habilidade - Dribles", "Habilidade - Visão de jogo", "Movimentação - Agilidade", "Ofensivo - Passe curto"],
+        'RW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Movimentação - Agilidade", "Ofensivo - Cruzamento"],
+        'LW': ["Movimentação - Aceleração", "Movimentação - Pique", "Habilidade - Dribles", "Movimentação - Agilidade", "Ofensivo - Cruzamento"],
+        'CAM': ["Habilidade - Visão de jogo", "Habilidade - Passe curto", "Habilidade - Dribles", "Habilidade - Lançamento", "Movimentação - Agilidade"],
+        'CM': ["Habilidade - Passe curto", "Força - Fôlego", "Habilidade - Visão de jogo", "Defesa - Consciência defensiva", "Habilidade - Dribles"],
+        'CDM': ["Defesa - Consciência defensiva", "Defesa - Dividida em pé", "Força - Fôlego", "Defesa - Interceptações", "Força - Força"],
+        'CB': ["Defesa - Consciência defensiva", "Defesa - Dividida em pé", "Força - Força", "Força - Impulsão", "Defesa - Carrinho"],
+        'RB': ["Movimentação - Aceleração", "Movimentação - Pique", "Força - Fôlego", "Defesa - Dividida em pé", "Ofensivo - Cruzamento"],
+        'LB': ["Movimentação - Aceleração", "Movimentação - Pique", "Força - Fôlego", "Defesa - Dividida em pé", "Ofensivo - Cruzamento"],
+        'GK': ["Mentalidade - Reflexos", "Mentalidade - Posicionamento", "Mentalidade - Divisão", "Mentalidade - Jogo de mãos", "Mentalidade - Repulsão"]
+    }
+
     c_b1, c_b2, c_b3 = st.columns(3)
     with c_b1:
         if st.button("✅ Marcar", use_container_width=True):
@@ -156,15 +170,22 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             st.rerun()
     with c_b3:
         if st.button("💡 Sugestão", use_container_width=True):
-            st.session_state["selected_indicators"] = [
+            pos_atual = p.get('Position', 'CM')
+            sugestoes_encontradas = position_suggestions.get(pos_atual, [
                 "Ofensivo - Finalização", 
                 "Habilidade - Dribles", 
                 "Movimentação - Aceleração", 
                 "Força - Força chute",
                 "Mentalidade - Visão de jogo"
-            ]
+            ])
+            # Filtra apenas as que existem de fato no dicionário de atributos
+            validas = [s for s in sugestoes_encontradas if s in all_attributes]
+            if not validas:
+                validas = list(all_attributes.keys())[:5]
+            st.session_state["selected_indicators"] = validas
             st.rerun()
 
+    # Reorganizando os indicadores por grupo de forma limpa e estruturada
     with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=False):
         selected_stats = []
         for group_name, attrs in STAT_GROUPS.items():
