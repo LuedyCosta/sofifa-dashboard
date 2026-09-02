@@ -82,7 +82,7 @@ def renderizar_busca_jogadores(df, get_val):
         st.markdown("Descreva o jogador ideal (Ex: *ponta esquerdo rápido com bom chute*, *volante forte e marcador*).")
         query_texto = st.text_input("O que você procura?", placeholder="Ex: volante com bom chute")
 
-        df_texto_filtrado = df.copy()
+        df_texto_filtrado = pd.DataFrame()
         if query_texto.strip():
             @st.cache_resource
             def preparar_corpus(dataframe):
@@ -103,14 +103,14 @@ def renderizar_busca_jogadores(df, get_val):
             query_vec = vectorizer.transform([query_texto])
             similaridades = cosine_similarity(query_vec, tfidf_matrix).flatten()
             
+            df_texto_filtrado = df.copy()
             df_texto_filtrado['score_busca'] = similaridades
             df_texto_filtrado = df_texto_filtrado.sort_values(by='score_busca', ascending=False)
-            
-            # Filtra apenas os que possuem relevância maior que zero para o texto digitado
             df_texto_filtrado = df_texto_filtrado[df_texto_filtrado['score_busca'] > 0.01]
 
         st.markdown("---")
-        st.markdown(f"### 📋 Resultados da Busca por Texto ({len(df_texto_filtrado if query_texto.strip() else 0)} jogadores)")
+        total_resultados = len(df_texto_filtrado) if query_texto.strip() else 0
+        st.markdown(f"### 📋 Resultados da Busca por Texto ({total_resultados} jogadores)")
         
         if not query_texto.strip():
             st.info("Digite alguma característica acima para ver os jogadores correspondentes.")
