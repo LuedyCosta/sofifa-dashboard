@@ -144,6 +144,7 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
             "Força - Fôlego"
         ]
 
+    # Mapeamento exato baseado nos nomes das categorias do seu STAT_GROUPS
     position_suggestions = {
         'GOL': [
             "Mentalidade - Reflexos", 
@@ -248,20 +249,27 @@ def renderizar_perfil(df, find_similar_players, STAT_GROUPS, get_val):
     with c_b3:
         if st.button("💡 Sugestão", use_container_width=True, key="btn_sugestao_pos"):
             pos_atual = str(p.get('Position', 'MC')).strip().upper()
-            sugestoes_encontradas = position_suggestions.get(pos_atual, [
+            
+            # Pega as sugestões da posição ou usa uma padrão se não encontrar
+            sugestoes_desejadas = position_suggestions.get(pos_atual, [
                 "Ofensivo - Finalização", 
                 "Habilidade - Dribles", 
                 "Movimentação - Aceleração", 
                 "Força - Força do chute",
                 "Mentalidade - Visão de jogo"
             ])
-            validas = [s for s in sugestoes_encontradas if s in all_attributes]
+            
+            # Filtra apenas os que existem de fato no dicionário all_attributes
+            validas = [s for s in sugestoes_desejadas if s in all_attributes]
             if not validas:
                 validas = list(all_attributes.keys())[:5]
             
             st.session_state["selected_indicators"] = validas
+            
+            # Atualiza o estado booleano de cada checkbox individual para refletir na tela
             for key_name in all_attributes.keys():
                 st.session_state[f"chk_{key_name}"] = (key_name in validas)
+                
             st.rerun()
 
     with st.expander("📌 Clique para expandir e selecionar as Estatísticas por Grupo", expanded=False):
