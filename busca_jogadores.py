@@ -5,6 +5,10 @@ def renderizar_busca_jogadores(df, get_val):
     st.subheader("🔍 Central de Busca SoFifa")
     st.markdown("Filtre atletas detalhadamente por categorias de atributos, posições e biografia.")
 
+    # Botão para limpar filtros
+    if st.button("🧹 Limpar Filtros"):
+        st.rerun()
+
     df_filtrado = df.copy()
 
     # -------------------------------------------------------------
@@ -64,9 +68,8 @@ def renderizar_busca_jogadores(df, get_val):
     ]
 
     # -------------------------------------------------------------
-    # BLOCOS EXPANSÍVEIS POR CATEGORIAS DE STATS (EXPLICANDO STATS)
+    # BLOCOS EXPANSÍVEIS POR CATEGORIAS DE STATS
     # -------------------------------------------------------------
-    
     with st.expander("⚽ Atributos Ofensivos", expanded=False):
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -170,7 +173,7 @@ def renderizar_busca_jogadores(df, get_val):
         if 'Sliding Tackle' in df.columns and min_slide > 0:
             df_filtrado = df_filtrado[df_filtrado['Sliding Tackle'] >= min_slide]
 
-    with st.expander("🧠 Mentalidadade", expanded=False):
+    with st.expander("🧠 Mentalidade", expanded=False):
         c1, c2, c3 = st.columns(3)
         with c1:
             min_pos_at = st.slider("Posicionamento de Ataque Mínimo", 0, 99, 0) if 'Positioning' in df.columns else 0
